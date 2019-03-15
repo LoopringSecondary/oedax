@@ -66,6 +66,44 @@ contract IOedax is IData {
             uint[] memory auctions
         );
 
+    ///@dev clone an auction from existing auction
+    function cloneAuction(
+        uint auctionID,
+        uint tokenAsk,
+        uint tokenBid
+        )
+        public
+        returns(
+            address auction,
+            uint id,
+            bool successful
+        );
+
+    ///@dev clone an auction from existing auction
+    function cloneAuction(
+        address auctionAddr,
+        uint tokenAsk,
+        uint tokenBid
+        )
+        public
+        returns(
+            address auction,
+            uint id,
+            bool successful
+        );
+
+    ///@dev function called after creation of auctions
+    function registerAuction(
+        address auction,
+        uint    id
+    )
+        internal
+        returns (
+            bool successful
+        );
+
+
+
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
     // We suggest the followign values:
