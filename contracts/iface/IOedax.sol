@@ -104,6 +104,8 @@ contract IOedax is IData {
             uint    withdrawalPenaltyBips
         );
 
+    // the sub-contract should only be used as "cloning" a curve
+    // cloning an auction is the same as cloning a curve
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
     function registerCurve(
