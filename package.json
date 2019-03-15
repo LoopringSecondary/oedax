@@ -27,5 +27,9 @@
   "devDependencies": {
     "solc": "^0.5.5",
     "truffle": "^5.0.7"
+  },
+  "dependencies": {
+    "solhint": "^2.0.0",
+    "solium": "^1.2.3"
   }
 }
