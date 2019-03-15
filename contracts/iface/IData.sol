@@ -8,6 +8,7 @@ contract IData {
         // The following are state information that changes while the auction is still active.
         uint    askPrice;           // The current ask/sell price curve value
         uint    bidPrice;           // The current bid/buy price curve value
+        uint    actualPrice;        // Calculated according to asks and bids
         uint    asks;               // the total asks or tokenA
         uint    bids;               // The total bids or tokenB
         uint    estimatedTTLSeconds;// Estimated time in seconds that this auction will end.
@@ -27,8 +28,8 @@ contract IData {
         uint    asksWithdrawalLimit;
         uint    bidsWithdrawalLimit;
 
-        // selected curve
-        address curve;
+
+        uint    lastSynTime;
     }
 
     struct AuctionInfo {
@@ -55,6 +56,10 @@ contract IData {
 
         uint    maxAmountAPerAddr;
         uint    maxAmountBPerAddr;
+
+        // selected curve, the curve does not change
+        // all the infos above decides the curve
+        address curve;
 
         AuctionState state;
     }
