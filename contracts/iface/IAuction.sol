@@ -21,20 +21,20 @@ contract IAuction is IData, ICurve {
         int      avgTokenBFeeBips;    // < 0 means rebate.
     }
 
-    Participation[] public pns; //used for recording
+    Participation[] public participations; //used for recording
     
     mapping(address=>Participant) public users; //used for user address => ask/bid info
 
-    mapping(address=>int[]) public indexP; //index of user participation
+    mapping(address=>int[]) public indexP; //index of user participation, user address => index of Participation[]
     
-    mapping(address=>uint256) public askWallet;
-    mapping(address=>uint256) public bidWallet;
+    mapping(address=>uint256) public askWallet; //the amount of tokens in this contract (also locked in Trasury)
+    mapping(address=>uint256) public bidWallet; //the amount of tokens in this contract (also locked in Trasury)
 
     struct WaitingInfo {
-        uint    index;             // start from 0
-        address user;
-        uint    amount;           
-        uint    timestamp;
+        uint    index;      // start from 0
+        address user;       // user address
+        uint    amount;     // amount of tokens
+        uint    timestamp;  // time when joining the list
     }
     
     WaitingInfo[] public askWaitingList;//record the ask waiting list 
@@ -49,7 +49,7 @@ contract IAuction is IData, ICurve {
     uint public nPointBid;//Actual point in price curve
     uint public nPointAsk;//Actual point in price curve
     
-    uint public lastSysTime;//same as that in auctionState
+    uint public lastSynTime;//same as that in auctionState
 
     AuctionState public auctionState; //price read/update in this struct
     
