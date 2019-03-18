@@ -8,29 +8,41 @@ pragma experimental ABIEncoderV2;
 
 contract AuctionEvent{
     
-    event AskDeposit(
+    event AskDeposited(
         address indexed user,
         uint256         askAmount,
         uint256         totalAsk,
+        uint256         totalBid,
+        uint256         actualPrice,
         uint256         timestamp
     );
 
-    event BidDeposit(
+    event BidDeposited(
         address indexed user,
         uint256         bidAmount,
+        uint256         totalAsk,
         uint256         totalBid,
+        uint256         actualPrice,
         uint256         timestamp
     );
 
-    event AskWaitingList(
+
+
+    event AskWithdrawn(
         address indexed user,
         uint256         askAmount,
+        uint256         totalAsk,
+        uint256         totalBid,
+        uint256         actualPrice,
         uint256         timestamp
     );
 
-    event BidWaitingList(
+    event BidWithdrawn(
         address indexed user,
-        uint256         askAmount,
+        uint256         bidAmount,
+        uint256         totalAsk,
+        uint256         totalBid,
+        uint256         actualPrice,
         uint256         timestamp
     );
 
@@ -41,20 +53,6 @@ contract AuctionEvent{
     );
 
 
-    event AskWithdraw(
-        address indexed user,
-        uint256         askAmount,
-        uint256         totalAsk,
-        uint256         timestamp
-    );
-
-    event BidWithdraw(
-        address indexed user,
-        uint256         bidAmount,
-        uint256         totalBid,
-        uint256         timestamp
-    );
-
     event AuctionStarted(
         address indexed owner,
         uint256         createTime,
@@ -64,7 +62,7 @@ contract AuctionEvent{
         uint256         scaleFactor,
         uint256         shapeFactor,
         uint256         durationSeconds,
-        bool            isWithdrawalAllowed
+        bool            isWithdrawnalAllowed
     );
 
     event AuctionConstrained(
@@ -80,32 +78,6 @@ contract AuctionEvent{
     event AuctionSettled(
         uint256 timestamp
     );
-
-    event AskPricePause(
-        uint256 price,
-        uint256 pauseTime
-    );
-
-    event AskPriceResume(
-        uint256 price,
-        uint256 resumeTime
-    );
-
-    event BidPricePause(
-        uint256 price,
-        uint256 pauseTime
-    );
-
-    event BidPriceResume(
-        uint256 price,
-        uint256 resumeTime
-    );
-
-    event auctualPriceUpdate(
-        uint256 price,
-        uint256 updateTime
-    );
-
 
 
 }
