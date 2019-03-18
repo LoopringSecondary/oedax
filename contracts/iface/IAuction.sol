@@ -21,14 +21,14 @@ contract IAuction is IData, ICurve {
         int      avgTokenBFeeBips;    // < 0 means rebate.
     }
 
-    Participation[] public participations; //used for recording
+    Participation[] public participations;      // used for recording
     
-    mapping(address=>Participant) public users; //used for user address => ask/bid info
+    mapping(address=>Participant) public users; // used for user address => ask/bid info
 
-    mapping(address=>int[]) public indexP; //index of user participation, user address => index of Participation[]
+    mapping(address=>int[]) public indexP;      // index of user participation, user address => index of Participation[]
     
-    mapping(address=>uint256) public askWallet; //the amount of tokens in this contract (also locked in Trasury)
-    mapping(address=>uint256) public bidWallet; //the amount of tokens in this contract (also locked in Trasury)
+    mapping(address=>uint256) public askWallet; // the amount of tokenA
+    mapping(address=>uint256) public bidWallet; // the amount of tokenB
 
     struct WaitingInfo {
         uint    index;      // start from 0
@@ -37,28 +37,28 @@ contract IAuction is IData, ICurve {
         uint    timestamp;  // time when joining the list
     }
     
-    WaitingInfo[] public askWaitingList;//record the ask waiting list 
-    WaitingInfo[] public bidWaitingList;//record the bid waiting list 
-    uint public indexAskWait;//the index where the pending ask waiting list starts 
-    uint public indexBidWait;//the index where the pending bid waiting list starts
+    WaitingInfo[] public askWaitingList;    // record the ask waiting list 
+    WaitingInfo[] public bidWaitingList;    // record the bid waiting list 
+    uint public indexAskWait;   // the index where the pending ask waiting list starts 
+    uint public indexBidWait;   // the index where the pending bid waiting list starts
 
-    //in any method, when curve pauses at a price P, 
-    //there may be a calculation error, according to the precision of t
-    //for fitting the protocol, when price pauses at P
-    //the point t meets P(t)<=P<P(t+1), the price equals P
-    uint public nPointBid;//Actual point in price curve
-    uint public nPointAsk;//Actual point in price curve
+    // in any method, when curve pauses at a price P, 
+    // there may be a calculation error, according to the precision of t
+    // for fitting the protocol, when price pauses at P
+    // the point t meets P(t)<=P<P(t+1), the price equals P
+    uint public nPointBid;  // Actual point in price curve
+    uint public nPointAsk;  // Actual point in price curve
     
-    uint public lastSynTime;//same as that in auctionState
+    uint public lastSynTime;// same as that in auctionState
 
-    AuctionState public auctionState; //price read/update in this struct
+    AuctionState public auctionState; // price read/update in this struct
     
-    AuctionInfo public auctionInfo;//static info of the auction
+    AuctionInfo public auctionInfo; // static info of the auction
 
-    ///@dev Update actual pricce and ask/bid price from synTime
+    /// @dev Update actual pricce and ask/bid price from synTime
     function updatePrice() internal;
 
-    ///@dev Add bid to waiting list
+    /// @dev Add bid to waiting list
     function addBidWailtingList(
         address user,
         uint amount
@@ -68,7 +68,7 @@ contract IAuction is IData, ICurve {
             bool successful
         );
 
-    ///@dev Add ask to waiting list
+    /// @dev Add ask to waiting list
     function addAskWailtingList(
         address user,
         uint amount
@@ -78,14 +78,14 @@ contract IAuction is IData, ICurve {
             bool successful
         );
 
-    ///@dev Remove objects in waiting list and add to the pool
+    /// @dev Remove objects in waiting list and add to the pool
     function clearWaitingList(
         uint indexAsk,
         uint indexBid
         )
         internal;
 
-    ///@dev Calculate Limits of asking/biding
+    /// @dev Calculate Limits of asking/biding
     function calLimit() 
         public
         view
@@ -96,7 +96,7 @@ contract IAuction is IData, ICurve {
             uint   bidsWithdrawalLimit   
         );
 
-    ///@dev Calculate estimated time to end
+    /// @dev Calculate estimated time to end
     function calEstimatedTTL() 
         public
         view
@@ -105,7 +105,7 @@ contract IAuction is IData, ICurve {
         );
 
 
-    ///@dev Function to check whether amount of bid/ask is available
+    /// @dev Function to check whether amount of bid/ask is available
     /// price should be "updated"(getAuctionState()) before the calculation
     function canParticipate(
         int amountAsk,
@@ -119,7 +119,7 @@ contract IAuction is IData, ICurve {
 
     function askDeposit(
         uint    amount,
-        address wallet //compatible with 0x0
+        address wallet // compatible with 0x0
         )
         public
         returns (
@@ -129,7 +129,7 @@ contract IAuction is IData, ICurve {
 
     function bidDeposit(
         uint    amount,
-        address wallet //compatible with 0x0
+        address wallet // compatible with 0x0
         )
         public
         returns (
@@ -173,7 +173,7 @@ contract IAuction is IData, ICurve {
             bool successful
         );
 
-    //function only works within a block
+    // function only works within a block
     function simulateDeposit(
         address user,
         address token,
@@ -185,7 +185,7 @@ contract IAuction is IData, ICurve {
             AuctionState memory state
         );
 
-    //function only works within a block
+    // function only works within a block
     function simulateWithdrawal(
         address user,
         address token,
@@ -218,8 +218,8 @@ contract IAuction is IData, ICurve {
             uint id
         );
 
-    //Auction states updates continuously, auction info is static
-    //It would be better to seperate them
+    // Auction states updates continuously, auction info is static
+    // It would be better to seperate them
     function getAuctionInfo()
         external
         view
@@ -227,7 +227,7 @@ contract IAuction is IData, ICurve {
             AuctionInfo memory
         );
 
-    ///@dev Get Auction State（simulated & updated）
+    /// @dev Get Auction State（simulated & updated）
     function getAuctionState()
         external
         view
@@ -235,7 +235,7 @@ contract IAuction is IData, ICurve {
             AuctionState memory
         );
 
-    ///@dev Get Participations from an address
+    /// @dev Get Participations from an address
     function getParticipations(
         address user
     )
@@ -246,7 +246,7 @@ contract IAuction is IData, ICurve {
             uint total
         );
     
-    ///@dev Get Participant info from an address
+    /// @dev Get Participant info from an address
     function getParticipant(
         address user
     )
