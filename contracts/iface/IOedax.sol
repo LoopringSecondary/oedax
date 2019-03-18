@@ -66,7 +66,7 @@ contract IOedax is IData {
             uint[] memory auctions
         );
 
-    ///@dev clone an auction from existing auction
+    // /@dev clone an auction from existing auction using its id
     function cloneAuction(
         uint auctionID,
         uint tokenAsk,
@@ -79,7 +79,7 @@ contract IOedax is IData {
             bool successful
         );
 
-    ///@dev clone an auction from existing auction
+    // /@dev clone an auction using its address
     function cloneAuction(
         address auctionAddr,
         uint tokenAsk,
@@ -92,7 +92,7 @@ contract IOedax is IData {
             bool successful
         );
 
-    ///@dev function called after creation of auctions
+    // /@dev function called after creation of auctions
     function registerAuction(
         address auction,
         uint    id
