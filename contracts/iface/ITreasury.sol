@@ -24,7 +24,7 @@ contract ITreasury {
     )
         external
         returns (
-            bool successful
+            bool /* successful */
         );
 
     function withdraw(
@@ -34,7 +34,7 @@ contract ITreasury {
     )
         external
         returns (
-            bool successful
+            bool /* successful */
         );
 
     function getBalance(
@@ -44,9 +44,9 @@ contract ITreasury {
         external
         view
         returns (
-            uint total,
-            uint available,
-            uint locked
+            uint /* total */,
+            uint /* available */,
+            uint /* locked */
         );
 
     function registerAuction(
@@ -55,7 +55,7 @@ contract ITreasury {
     )
         external
         returns (
-            bool successful
+            bool /* successful */
         );
 
 
@@ -69,6 +69,6 @@ contract ITreasury {
     function isTerminated()
         external
         returns (
-            bool terminated
+            bool /* terminated */
         );
 }
