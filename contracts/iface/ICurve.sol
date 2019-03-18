@@ -3,9 +3,9 @@ pragma experimental ABIEncoderV2;
 
 /// @author Weikang Wang
 /// @title ICurve - A contract calculating price curve.
-/// @dev Inverse Propostional Model Applied, para:T,M,P,K
-/// Ask/sell price curve: P(t)=(at+b)/(ct+d), 
-/// or use P(t)/P to demonstrate the curve, it would be universal 
+/// @dev Inverse Propostional Model applied, para:T,M,P,K
+/// Ask/sell price curve: P(t)=(at+b)/(ct+d),
+/// or use P(t)/P to demonstrate the curve, it would be universal
 /// let r=(K-1)/(M-1), where a=P, b=rMPT, c=K, d=rT
 /// range of K is (1,inf), K is decided with S from 0 to 100
 /// According to simulation, K=(11000+(M-1)*(S+10)*(S+10))/10000
@@ -13,8 +13,7 @@ pragma experimental ABIEncoderV2;
 
 contract ICurve{
 
-    
-    struct CurveParams{
+    struct CurveParams {
         uint T;
         uint M;
         uint P;
@@ -25,29 +24,30 @@ contract ICurve{
         uint d;// d=(K-1)*nT/(M-1)
         uint precision;// points per second
     }
-    
+
 
     CurveParams public curveParams;
 
     /// @dev Init parameters of price curves
     // init a,b,c,d,precison according to the parameters
-    // if T=10000s, Precision=1000, then the point 
+    // if T=10000s, Precision=1000, then the point
     // reach P on curves is nT=T*Precision=1e7
     /// @param T Time to reach P (second)
     /// @param M Price scale
     /// @param P Target price
     /// @param S Curve shape parameter, from 1 to 100
-    /// @param Precision points per second
-    function initialize(
+    /// @param precision points per second
+    // TODO(): 这个方法可以被调用多次吗？
+    function initialize (
         uint T,
         uint M,
         uint P,
         uint S,
-        uint Precision
+        uint precision
         )
         internal
-        returns (bool success);
- 
+        returns (bool /* success */);
+
 
     /// @dev Calculate ask/sell price on price curve
     /// @param nT Point in price curve
@@ -56,7 +56,7 @@ contract ICurve{
         )
         internal
         view
-        returns (uint price);
+        returns (uint);
 
     /// @dev Calculate inverse ask/sell price on price curve
     /// @param P Price in price curve
@@ -65,7 +65,7 @@ contract ICurve{
         )
         internal
         view
-        returns (uint point);
+        returns (uint);
 
 
     /// @dev Calculate bid/buy price on price curve
@@ -75,7 +75,7 @@ contract ICurve{
         )
         internal
         view
-        returns (uint price);
+        returns (uint);
 
     /// @dev Calculate inverse bid/buy price on price curve
     /// @param P Price in price curve
@@ -84,6 +84,6 @@ contract ICurve{
         )
         internal
         view
-        returns (uint nT);
-    
+        returns (uint);
+
 }

@@ -1,10 +1,11 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "./ICurve.sol";
-import "./IData.sol";
+import "./IAuctionData.sol";
+import "./IAuctionEvents.sol";
+import "./IOedaxEvents.sol";
 
-contract IOedax is IData {
+contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
     // Two possible paths:
     // 1):STARTED -> CONSTRAINED -> CLOSED
     // 2):STARTED -> CONSTRAINED -> CLOSED -> SETTLED
@@ -26,32 +27,33 @@ contract IOedax is IData {
     function createAuction(
         uint    delaySeconds,
         uint    curveId,
-        address tokenA,
-        address tokenB,
-        uint    decimalsA,
-        uint    decimalsB,
+        address askToken,
+        address bidToken,
+        uint    askDecimals,
+        uint    bidDecimals,
         uint    priceScale,
-        uint    targetPrice,
-        uint    scaleFactor,
-        uint    durationSeconds,
+        uint    P,  // target price
+        uint    M,  // prixce factor
+        uint    T,  // duration
+        uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
+        uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
+        uint    maxAskAmountPerAddr,      // The max amount of tokenA per address, 0 for unlimited.
+        uint    maxBidAmountPerAddr,      // The max amount of tokenB per address, 0 for unlimited.
         bool    isWithdrawalAllowed,
-        uint    initialAmountA,         // The initial amount of tokenA from the creator's account.
-        uint    initialAmountB,         // The initial amount of tokenB from the creator's account.
-        uint    maxAmountAPerAddr,      // The max amount of tokenA per address, 0 for unlimited.
-        uint    maxAmountBPerAddr,      // The max amount of tokenB per address, 0 for unlimited.
         bool    isTakerFeeDisabled      // Disable using takerBips
     )
         external
         returns (
-            address auction,
-            uint    id
+            address /* auction */,
+            uint    /* id */
         );
 
     function getAuctionInfo(uint id)
         external
         view
         returns (
-            AuctionInfo memory info
+            AuctionSettings memory,
+            AuctionState    memory
         );
 
     function getAuctions(
@@ -63,33 +65,33 @@ contract IOedax is IData {
         external
         view
         returns (
-            uint[] memory auctions
+            uint[] memory /* auction index */
         );
 
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
         uint auctionID,
-        uint tokenAsk,
-        uint tokenBid
+        uint initialAskAmount,
+        uint initialBidAmount
         )
         public
         returns(
-            address auction,
-            uint id,
-            bool successful
+            address /* auction */,
+            uint    /* id */,
+            bool    /* successful */
         );
 
     // /@dev clone an auction using its address
     function cloneAuction(
         address auctionAddr,
-        uint tokenAsk,
-        uint tokenBid
+        uint    initialAskAmount,
+        uint    initialBidAmount
         )
         public
         returns(
-            address auction,
-            uint id,
-            bool successful
+            address /* auction */,
+            uint    /* id */,
+            bool    /* successful */
         );
 
     // /@dev function called after creation of auctions
@@ -99,10 +101,8 @@ contract IOedax is IData {
     )
         internal
         returns (
-            bool successful
+            bool /* successful */
         );
-
-
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -115,7 +115,6 @@ contract IOedax is IData {
     // The earliest maker will earn 25-5-5=15 bips (0.15%) rebate, the latest taker will pay
     // 25+5+5=35 bips (0.35) fee. All user combinedly pay 5+5=10 bips (0.1%) fee out of their
     // purchased tokens.
-
     function setFeeSettings(
         address recepient,
         uint    creationFeeEth,     // the required Ether fee from auction creators. We may need to
@@ -151,7 +150,7 @@ contract IOedax is IData {
     )
         external
         returns (
-            uint curveId
+            uint /* curveId */
         );
 
     // unregister a curve sub-contract
@@ -160,7 +159,7 @@ contract IOedax is IData {
     )
         external
         returns (
-            address curve
+            address /* curve */
         );
 
     function getCurves(
@@ -168,6 +167,6 @@ contract IOedax is IData {
         external
         view
         returns (
-            address[] memory curves
+            address[] memory /* curves */
         );
 }
