@@ -13,39 +13,32 @@ contract IAuction is IData, ICurve {
         uint    timestamp;
     }
 
-    struct Participant {
-        address  user;
-        uint     amountA;
-        int      avgTokenAFeeBips;    // < 0 means rebate.
-        uint     amountB;
-        int      avgTokenBFeeBips;    // < 0 means rebate.
-    }
+
 
     Participation[] public participations;      // used for recording
     
-    mapping(address=>Participant) public users; // used for user address => ask/bid info
+    address[] public users; // users participating in the auction
 
     mapping(address=>int[]) public indexP;      // index of user participation, user address => index of Participation[]
     
     mapping(address=>uint256) public askWallet; // the amount of tokenA
     mapping(address=>uint256) public bidWallet; // the amount of tokenB
 
-    struct WaitingInfo {
+    struct QueuedParticipation {
         uint    index;      // start from 0
         address user;       // user address
         uint    amount;     // amount of tokens
         uint    timestamp;  // time when joining the list
     }
     
-    WaitingInfo[] public askWaitingList;    // record the ask waiting list 
-    WaitingInfo[] public bidWaitingList;    // record the bid waiting list 
+    QueuedParticipation[] public askWaitingList;    // record the ask waiting list 
+    QueuedParticipation[] public bidWaitingList;    // record the bid waiting list 
     uint public indexAskWait;   // the index where the pending ask waiting list starts 
     uint public indexBidWait;   // the index where the pending bid waiting list starts
 
-    // in any method, when curve pauses at a price P, 
-    // there may be a calculation error, according to the precision of t
-    // for fitting the protocol, when price pauses at P
-    // the point t meets P(t)<=P<P(t+1), the price equals P
+    // 当价格曲线停在某个值P时，可以根据这个值计算出价格曲线中对应的时间点
+    // 这个时间点的计算可能存在误差，误差在precision以内
+    // 求出的时间点满足P(t)<=P<P(t+1)，价格曲线暂停在P点
     uint public nPointBid;  // Actual point in price curve
     uint public nPointAsk;  // Actual point in price curve
     
@@ -246,15 +239,6 @@ contract IAuction is IData, ICurve {
             uint total
         );
     
-    /// @dev Get Participant info from an address
-    function getParticipant(
-        address user
-    )
-        external
-        view
-        returns (
-            Participant memory participant
-        );
 
 
 
@@ -270,15 +254,5 @@ contract IAuction is IData, ICurve {
             uint total
         );
 
-    // If this function is too hard/costy to do, we can remove it.
-    function getParticipants(
-        uint skip,
-        uint count
-    )
-        external
-        view
-        returns (
-            Participant[] memory participants,
-            uint total
-        );
+
 }
