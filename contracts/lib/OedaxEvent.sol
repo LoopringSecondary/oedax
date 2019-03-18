@@ -37,7 +37,7 @@ contract OedaxEvent{
         uint256         finalPrice
     );
 
-    event AuctionFeeSet(
+    event AuctionFeeUpdated(
         address indexed recepient,
         uint256         creationFeeEth,
         uint256         protocolBips,
