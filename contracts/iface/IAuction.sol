@@ -20,14 +20,13 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
 
     address[] public users; // users participating in the auction
 
-    // TODO(): move participationIndex into implementation
-    mapping(address => int[])   private participationIndex;  // user address => index of Participation[]
+
 
     mapping(address => uint256) public totalAskAmount; // the amount of tokenA
     mapping(address => uint256) public totalBidAmount; // the amount of tokenB
 
     struct QueuedParticipation {
-        uint    index;      // start from 0
+        //uint    index;      // start from 0, queue会实时清空，index没有必要
         address user;       // user address
         uint    amount;     // amount of tokenA or tokenB
         uint    timestamp;  // time when joining the list
@@ -37,18 +36,9 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     QueuedParticipation[] public askQueue;
     QueuedParticipation[] public bidQueue;
 
-    // TODO(): 下面的5个变量我没太懂，可以聊聊，但感觉不应放到接口里面。
-    // uint public indexAskWait;   // the index where the queued ask waiting list starts
-    // uint public indexBidWait;   // the index where the queued bid waiting list starts
 
-    // // 当价格曲线停在某个值P时，可以根据这个值计算出价格曲线中对应的时间点
-    // // 这个时间点的计算可能存在误差，误差在precision以内
-    // // 求出的时间点满足 P(t)<=P<P(t+1)，价格曲线暂停在P点.
-
-    // uint public nPointBid;  // Actual point in price curve
-    // uint public nPointAsk;  // Actual point in price curve
-
-    // uint public lastSynTime;// same as that in auctionState
+    uint public constrainedTime;// time when entering constrained period
+    uint public lastSynTime;// same as that in auctionState
 
     AuctionState    public auctionState; // mutable state
     AuctionSettings public auctionInfo;  // immutable settings
@@ -73,18 +63,7 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
             uint /* ttlSeconds */
         );
 
-    // TODO(): 这个方法不需要，只需要调用simulate方法就好了。
-    // /// @dev Function to check whether amount of bid/ask is available
-    // /// price should be "updated"(getAuctionState()) before the calculation
-    // function canParticipate(
-    //     int amountAsk,
-    //     int amountBid
-    //     )
-    //     public
-    //     view
-    //     returns(
-    //         bool /* successful */
-    //     );
+
 
     /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
     /// auciton, the rest is put into the waiting list (queue).

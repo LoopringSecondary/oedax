@@ -6,22 +6,7 @@ import "./IAuctionEvents.sol";
 import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
-    // Two possible paths:
-    // 1):STARTED -> CONSTRAINED -> CLOSED
-    // 2):STARTED -> CONSTRAINED -> CLOSED -> SETTLED
-    // 3):SCHEDULED -> STARTED -> CONSTRAINED -> CLOSED
-    // 4):SCHEDULED -> STARTED -> CONSTRAINED -> CLOSED -> SETTLED
-    // It is also possible for the auction to jump right into the CONSTRAINED status from
-    // STARTED.
-    // When we say an auction is active or ongoing, it means the auction's status
-    // is either STARTED or CONSTRAINED.
-    enum Status {
-        STARTED,        // Started but not ready for participation.
-        OPEN,           // Started with actual price out of bid/ask curves
-        CONSTRAINED,    // Actual price in between bid/ask curves
-        CLOSED,         // Ended without settlement
-        SETTLED         // Ended with settlement
-    }
+
 
     // Initiate an auction
     function createAuction(
@@ -94,15 +79,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             bool    /* successful */
         );
 
-    // /@dev function called after creation of auctions
-    function registerAuction(
-        address auction,
-        uint    id
-    )
-        internal
-        returns (
-            bool /* successful */
-        );
+
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.

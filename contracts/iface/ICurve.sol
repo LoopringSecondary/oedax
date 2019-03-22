@@ -4,85 +4,114 @@ pragma experimental ABIEncoderV2;
 /// @author Weikang Wang
 /// @title ICurve - A contract calculating price curve.
 /// @dev Inverse Propostional Model applied, para:T,M,P,K
-/// Ask/sell price curve: P(t)=(at+b)/(ct+d),
+/// Ask/sell price curve: P(t)=(at+b)/(ct+d)*P,
+/// alternatively: P(t)=(at+b*T)/(ct+d*T)*P, M and S(K) decide the trend
 /// or use P(t)/P to demonstrate the curve, it would be universal
 /// let r=(K-1)/(M-1), where a=P, b=rMPT, c=K, d=rT
-/// range of K is (1,inf), K is decided with S from 0 to 100
-/// According to simulation, K=(11000+(M-1)*(S+10)*(S+10))/10000
-/// min(K)=1.1 is to prevent curve from dropping too rapidly
+/// range of K is (1,inf), K is decided with S from 10 to inf
+/// K=1+0.01*S min(K)=1.1 is to prevent curve from dropping too rapidly
 
 contract ICurve{
 
     struct CurveParams {
-        uint T;
-        uint M;
-        uint P;
-        uint S;
-        uint a;// a=P
-        uint b;// b=(K-1)*M*P*nT/(M-1)
-        uint c;// c=K
-        uint d;// d=(K-1)*nT/(M-1)
-        uint precision;// points per second
+        uint T; // integer(100-100000)
+        uint M; // integer(2-100)
+        uint P; // decimal(P*priceScale)
+        uint S; // integer(10-100*M),precision=0.01,K=1+0.01*S
+        uint a; // a=P => a=1*P
+        uint b; // b=(K-1)*M*P*T/(M-1) => b=(K-1)*M/(M-1) *P*T
+        uint c; // c=K
+        uint d; // d=(K-1)*T/(M-1) => d=(K-1)/(M-1) *T
+        uint priceScale;    // priceScale
+        bytes32 curveName;  // curve name
     }
 
 
-    CurveParams public curveParams;
+    CurveParams[] public curveParams;
+    mapping(bytes32 => uint) public cidByName;
 
     /// @dev Init parameters of price curves
-    // init a,b,c,d,precison according to the parameters
-    // if T=10000s, Precision=1000, then the point
-    // reach P on curves is nT=T*Precision=1e7
     /// @param T Time to reach P (second)
     /// @param M Price scale
     /// @param P Target price
-    /// @param S Curve shape parameter, from 1 to 100
-    /// @param precision points per second
-    // TODO(): 这个方法可以被调用多次吗？
-    function initialize (
+    /// @param S Curve shape parameter
+    /// @param PriceScale precision of price
+    /// @param curveName 32bytes, strictly 8 alphabets/numbers
+    function createCurve(
         uint T,
         uint M,
         uint P,
         uint S,
-        uint precision
+        uint PriceScale,
+        string memory curveName
         )
-        internal
-        returns (bool /* success */);
+        public
+        returns (
+            bool /* success */,
+            uint /* cid */
+        );
+
+    /// @dev Get Curve info From id
+    /// @param cid Curve id
+    function getCurveByID(
+        uint cid
+        )
+        external
+        view
+        returns (CurveParams memory);
+
+    /// @dev Get Curve info From id
+    /// @param name Curve name
+    function getCurveByName(
+        bytes32 name
+        )
+        external
+        view
+        returns (CurveParams memory);
 
 
     /// @dev Calculate ask/sell price on price curve
-    /// @param nT Point in price curve
+    /// @param cid curve ID
+    /// @param t Point in price curve
     function calcAskPrice(
-        uint nT
+        uint cid,
+        uint t
         )
-        internal
+        external
         view
         returns (uint);
 
     /// @dev Calculate inverse ask/sell price on price curve
-    /// @param P Price in price curve
+    /// @param cid curve ID
+    /// @param p Price in price curve
     function calcInvAskPrice(
-        uint P
+        uint cid,
+        uint p
         )
-        internal
+        external
         view
         returns (uint);
 
 
     /// @dev Calculate bid/buy price on price curve
-    /// @param nT Point in price curve
+    /// @param cid curve ID
+    /// @param t Point in price curve
     function calcBidPrice(
-        uint nT
+        uint cid,
+        uint t
         )
-        internal
+        external
         view
         returns (uint);
 
     /// @dev Calculate inverse bid/buy price on price curve
-    /// @param P Price in price curve
+    /// @param cid curve ID
+    /// @param p Price in price curve
     function calcInvBidPrice(
-        uint P
+        uint cid,
+        uint p
         )
-        internal
+        external
         view
         returns (uint);
 
