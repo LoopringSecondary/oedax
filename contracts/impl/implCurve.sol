@@ -65,9 +65,7 @@ contract ImplCurve is ICurve, MathLib{
         )
     {
         bytes32 name = nameCheck(curveName);
-        if (cidByName[name] != 0){
-            return (false, 0);
-        }
+        require(cidByName[name] == 0, "curve name already used");
 
         require(T>=100 && T<=100000, "Duraton of auction should be between 100s and 100000s");
         require(M>=2 && M<=100, "M should be between 2 and 100");
@@ -104,7 +102,7 @@ contract ImplCurve is ICurve, MathLib{
     function getCurveByID(
         uint cid
         )
-        external
+        public
         view
         returns (CurveParams memory)
     {
@@ -113,14 +111,15 @@ contract ImplCurve is ICurve, MathLib{
     }
 
     /// @dev Get Curve info From id
-    /// @param name Curve name
+    /// @param curveName Curve name
     function getCurveByName(
-        bytes32 name
+        string memory curveName
         )
-        external
+        public
         view
         returns (CurveParams memory)
     {
+        bytes32 name = nameCheck(curveName);
         require(cidByName[name] > 0, "curve does not exist");
         return curveParams[cidByName[name]-1];
     }
@@ -132,7 +131,7 @@ contract ImplCurve is ICurve, MathLib{
         uint cid,
         uint t
         )
-        external
+        public
         view
         returns (uint)
     {
@@ -152,7 +151,7 @@ contract ImplCurve is ICurve, MathLib{
         uint cid,
         uint p
         )
-        external
+        public
         view
         returns (uint)
     {
@@ -175,7 +174,7 @@ contract ImplCurve is ICurve, MathLib{
         uint cid,
         uint t
         )
-        external
+        public
         view
         returns (uint)
     {
@@ -194,7 +193,7 @@ contract ImplCurve is ICurve, MathLib{
         uint cid,
         uint p
         )
-        external
+        public
         view
         returns (uint)
     {

@@ -56,16 +56,16 @@ contract ICurve{
     function getCurveByID(
         uint cid
         )
-        external
+        public
         view
         returns (CurveParams memory);
 
     /// @dev Get Curve info From id
-    /// @param name Curve name
+    /// @param curveName Curve name
     function getCurveByName(
-        bytes32 name
+        string memory curveName
         )
-        external
+        public
         view
         returns (CurveParams memory);
 
@@ -77,7 +77,7 @@ contract ICurve{
         uint cid,
         uint t
         )
-        external
+        public
         view
         returns (uint);
 
@@ -88,7 +88,7 @@ contract ICurve{
         uint cid,
         uint p
         )
-        external
+        public
         view
         returns (uint);
 
@@ -100,7 +100,7 @@ contract ICurve{
         uint cid,
         uint t
         )
-        external
+        public
         view
         returns (uint);
 
@@ -111,7 +111,7 @@ contract ICurve{
         uint cid,
         uint p
         )
-        external
+        public
         view
         returns (uint);
 
