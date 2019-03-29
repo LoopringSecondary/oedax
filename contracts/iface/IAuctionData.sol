@@ -22,10 +22,17 @@ contract IAuctionData {
         SETTLED         // Ended with settlement
     }
     
+
+
+    struct AuctionLimits{
+        uint    askDepositLimit;
+        uint    bidDepositLimit;
+        uint    askWithdrawalLimit;
+        uint    bidWithdrawalLimit;
+    }
+
     struct AuctionState {
         // The following are state information that changes while the auction is still active.
-        Status  status;
-
         uint    askPrice;           // The current ask/sell price curve value
         uint    bidPrice;           // The current bid/buy price curve value
         uint    actualPrice;        // Calculated according to asks and bids
@@ -43,25 +50,11 @@ contract IAuctionData {
 
         // Deposit & Withdrawal limits. Withdrawal limit should be 0 if withdrawal is disabled;
         // deposit limit should put waiting list in consideration.
-        uint    askDepositLimit;
-        uint    bidDepositLimit;
-        uint    askWithdrawalLimit;
-        uint    bidWithdrawalLimit;
+        AuctionLimits    auctionLimits;
     }
 
-    struct AuctionSettings {
-        // Fee settings copied from IOedax
-        uint    creationFeeEth;
-        uint    protocolBips;
-        uint    walletBipts;
-        uint    rebateBips;
-        uint    withdrawalPenaltyBips;
-
-        // The following are constant setups that never change.
-        int64   id;                 // 0-based ever increasing id
-        uint    startedTimestamp;   // Timestamp when this auction is started.
-        uint    delaySeconds;       // The delay for open participation.
-        address creator;            // The one crated this auction.
+    //sub-structs to prevent deep stack
+    struct TokenInfo{
         address askToken;           // The ask (sell) token
         address bidToken;           // The bid (buy) token
         uint    askDecimals;        // Decimals of tokenA, should be read from their smart contract,
@@ -70,18 +63,45 @@ contract IAuctionData {
                                     // not supplied manually.
         uint    priceScale;         // A scaling factor to convert prices to double values,
                                     // including targetPrice, askPrice, bidPrice.
+    }
+
+    struct FeeSettings{
+        address recepient;
+        uint    creationFeeEth;
+        uint    protocolBips;
+        uint    walletBipts;
+        uint    takerBips;
+        uint    withdrawalPenaltyBips;
+    }
+
+
+
+       
+
+    struct Info{
+
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
         uint    T;                  // Duration in seconds
-
+        uint    startedTimestamp;   // Timestamp when this auction is started.
+        uint    delaySeconds;       // The delay for open participation.
         uint    maxAskAmountPerAddr;
         uint    maxBidAmountPerAddr;
-
         bool    isWithdrawalAllowed;
         bool    isTakerFeeDisabled;
+    }
 
-        // selected curve, the curve does not change
-        // all the infos above decides the curve
-        ICurve  curve;
+    // The following are constant setups that never change.
+        
+    struct AuctionSettings {
+        
+        address creator;            // The one crated this auction.
+        uint    auctionID;          // 0-based ever increasing id
+        uint    curveID;
+        Info    info;
+        FeeSettings feeSettings;
+        TokenInfo   tokenInfo;
+
+
     }
 }

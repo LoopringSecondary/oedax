@@ -3,11 +3,10 @@ pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
-import "./ICurve.sol";
 import "./IParticipationEvents.sol";
 
 
-contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents {
+contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     struct Participation {
         uint    index;             // start from 0
         address user;
@@ -21,10 +20,49 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     address[] public users; // users participating in the auction
 
 
+    // 拍卖过程中交互的逻辑：
+    // 1. 用户Deposit X个 tokenA
+    // 2. X中，一部分作为固定的fee给recepient，一部分作为takerFee，剩下的参与
+    // 3. 拍卖过程中提取，一部分作为penalty，剩下的返回钱包
+    // 4. 拍卖全部结束，有效的总TokenA与TokenB作为兑换价格依据
+    // 过程中要求，TokenA与TokenB与实际兑换时总量一致
+    // 紧急terminate时，可以全部提出Token，仅扣除给recepient的，takerFee从简结算
 
-    mapping(address => uint256) public totalAskAmount; // the amount of tokenA
-    mapping(address => uint256) public totalBidAmount; // the amount of tokenB
+    // userTotalBalances = userAvailableBalances + ∑userLockedBalances 需要始终满足
+    // 简化逻辑，拍卖过程中的fee结算，仅在auction合约中记录，拍卖结束后整体进行结算
+    // 只有10%的固定Fee在Deposit时直接入账recepient
+    // 25%的takerFee暂存至auction合约中，结束后进行再分配
+    // 合约结束后，用户lock的部分根据auction合约计算，在tokenA与tokenB中结算
+    // 中途退出时，takeFee不退还，但是takerRateA按比例扣除
 
+    // totalAskAmount = ∑askAmount + totalTakerAmountA
+    // totalRecipientAmountA 在 Deposit 时扣除，放入recipient账户
+
+    mapping(address => uint256) public askAmount; // the amount of tokenA
+    mapping(address => uint256) public bidAmount; // the amount of tokenB
+
+  
+    mapping(address => uint256) public takerRateA;
+    mapping(address => uint256) public takerRateB;
+
+    // clear to sync with oedax/treasury
+    mapping(address => uint256) public oedaxLockedA;
+    mapping(address => uint256) public oedaxLockedB;
+
+    mapping(address => bool) public isSettled;
+
+    uint public totalRecipientAmountA;
+    uint public totalRecipientAmountB;
+
+    uint public totalTakerRateA;
+    uint public totalTakerRateB;
+
+    uint public totalTakerAmountA;
+    uint public totalTakerAmountB;
+
+
+    
+    
     struct QueuedParticipation {
         //uint    index;      // start from 0, queue会实时清空，index没有必要
         address user;       // user address
@@ -37,11 +75,44 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     QueuedParticipation[] public bidQueue;
 
 
-    uint public constrainedTime;// time when entering constrained period
-    uint public lastSynTime;// same as that in auctionState
+    Status  public  status;
+    uint    public  constrainedTime;// time when entering constrained period
+    uint    public  lastSynTime;// same as that in auctionState
 
     AuctionState    public auctionState; // mutable state
-    AuctionSettings public auctionInfo;  // immutable settings
+    AuctionSettings public auctionSettings;  // immutable settings
+
+    
+    function calcActualTokens(address user)
+        public
+        view
+        returns(
+            uint,
+            uint
+        );
+
+
+    function calcTakeRate()
+        public
+        view
+        returns(
+            uint /* rate */
+        );
+
+
+    function getAuctionSettings()
+        public
+        view
+        returns(
+            AuctionSettings memory
+        );
+    
+    function getAuctionState()
+        public
+        view
+        returns(
+            AuctionState memory
+        );
 
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
     /// be considered in the calculations.
@@ -69,7 +140,7 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     /// auciton, the rest is put into the waiting list (queue).
     /// Set `wallet` to 0x0 will avoid paying wallet a fee. Note only deposit has fee.
     function deposit(
-        address user,
+        //address user,
         address wallet,
         address token,
         uint    amount)
@@ -81,7 +152,7 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
     /// the auciton.
     function withdraw(
-        address user,
+        //address user,
         address token,
         uint    amount)
         public
@@ -123,6 +194,9 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     // Start a new aucton with the same parameters except the P and the delaySeconds parameter.
     // The new P parameter would be the settlement price of this auction.
     // Function should be only called from Oedax main contract, as an interface
+    
+    // cannot clone itself
+    /*
     function clone(
         uint delaySeconds,
         uint initialAskAmount, // The initial amount of tokenA from the creator's account.
@@ -130,9 +204,10 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     ) // The initial amount of tokenB from the creator's account.
         external
         returns (
-            address /* auction */,
-            uint /* id */
+            address,
+            uint
         );
+    */
 
     /// @dev Get participations from a given address.
     function getUserParticipations(

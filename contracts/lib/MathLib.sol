@@ -57,4 +57,22 @@ contract MathLib {
         return x >= y ? x : y;
     }
   
+    function pow(
+        uint x, 
+        uint n
+    ) 
+        internal 
+        pure 
+        returns (uint z) 
+    {
+        z = n % 2 != 0 ? x : 1;
+
+        for (n /= 2; n != 0; n /= 2) {
+            x = mul(x, x);
+
+            if (n % 2 != 0) {
+                z = mul(z, x);
+            }
+        }
+    }
 }

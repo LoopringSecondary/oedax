@@ -8,15 +8,14 @@ import "./IOedaxEvents.sol";
 contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
 
 
+
+
     // Initiate an auction
     function createAuction(
-        uint    delaySeconds,
+        //uint    delaySeconds,
         uint    curveId,
         address askToken,
         address bidToken,
-        uint    askDecimals,
-        uint    bidDecimals,
-        uint    priceScale,
         uint    P,  // target price
         uint    M,  // prixce factor
         uint    T,  // duration
@@ -33,10 +32,23 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             uint    /* id */
         );
 
+
+
+    function getAuctionsAll(
+        address creator
+    )
+        public
+        view
+        returns (
+            uint /*  count */, 
+            uint[] memory /* auction index */
+        );
+
     function getAuctionInfo(uint id)
         external
         view
         returns (
+            uint,
             AuctionSettings memory,
             AuctionState    memory
         );
@@ -56,6 +68,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
         uint auctionID,
+        uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
         )
@@ -69,6 +82,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
     // /@dev clone an auction using its address
     function cloneAuction(
         address auctionAddr,
+        uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
         )
@@ -118,8 +132,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             uint    withdrawalPenaltyBips
         );
 
-    // the sub-contract should only be used as "cloning" a curve
-    // cloning an auction is the same as cloning a curve
+
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
     function registerCurve(

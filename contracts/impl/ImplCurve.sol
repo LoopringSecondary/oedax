@@ -69,21 +69,25 @@ contract ImplCurve is ICurve, MathLib{
 
         require(T>=100 && T<=100000, "Duraton of auction should be between 100s and 100000s");
         require(M>=2 && M<=100, "M should be between 2 and 100");
-        require(S>=10 && S<=100*M, "M should be between 10 and 100*M");
+        require(S>=10 && S<=100*M, "S should be between 10 and 100*M");
 
         uint cid;
         CurveParams memory cP;
+        BasicParams memory bP;
         
+
+        bP.M = M;
+        bP.S = S;
+        bP.a = 1e18*100;
+        bP.b = 1e18*S*M/(M-1);
+        bP.c = 1e18*(100+S);
+        bP.d = 1e18*S/(M-1);
+
         cP.T = T;
-        cP.M = M;
         cP.P = P;
-        cP.S = S;
-        cP.a = PriceScale*100;
-        cP.b = PriceScale*S*M/(M-1);
-        cP.c = PriceScale*(100+S);
-        cP.d = PriceScale*S/(M-1);
         cP.priceScale = PriceScale;
         cP.curveName = name;
+        cP.basicParams = bP;
 
         curveParams.push(cP);
          
@@ -110,7 +114,7 @@ contract ImplCurve is ICurve, MathLib{
         return curveParams[cid-1];
     }
 
-    /// @dev Get Curve info From id
+    /// @dev Get Curve info From curve name
     /// @param curveName Curve name
     function getCurveByName(
         string memory curveName
@@ -138,9 +142,11 @@ contract ImplCurve is ICurve, MathLib{
         require(cid>0 && cid <= curveParams.length, "curve does not exist");
         uint p;
         CurveParams memory cP;
+        BasicParams memory bP;
         cP = curveParams[cid-1];
+        bP = cP.basicParams;
         //p=P*(at+bT)/(ct+dT)
-        p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b)))/add(mul(t, cP.c), mul(cP.T, cP.d));
+        p = mul(cP.P, add(mul(t, bP.a), mul(cP.T, bP.b)))/add(mul(t, bP.c), mul(cP.T, bP.d));
         return p; 
     }
 
@@ -157,10 +163,12 @@ contract ImplCurve is ICurve, MathLib{
     {
         require(cid>0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
+        BasicParams memory bP;
         cP = curveParams[cid-1];
-        require(p <= cP.P*cP.M && p > cP.P*cP.a/cP.c, "p is not correct");
+        bP = cP.basicParams;
+        require(p <= cP.P*bP.M && p > cP.P*bP.a/bP.c, "p is not correct");
         uint t;
-        t = mul(cP.T, sub(mul(cP.b,cP.P),mul(cP.d,p)))/sub(mul(cP.c,p),mul(cP.a,cP.P));
+        t = mul(cP.T, sub(mul(bP.b,cP.P),mul(bP.d,p)))/sub(mul(bP.c,p),mul(bP.a,cP.P));
 
         return t;
 
@@ -180,9 +188,11 @@ contract ImplCurve is ICurve, MathLib{
     {
         require(cid>0 && cid <= curveParams.length, "curve does not exist");
         uint p;
-        CurveParams memory cP;
+        CurveParams memory cP;        
+        BasicParams memory bP;
         cP = curveParams[cid-1];
-        p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d))/add(mul(t, cP.a), mul(cP.T, cP.b)));
+        bP = cP.basicParams;
+        p = mul(cP.P, add(mul(t, bP.c), mul(cP.T, bP.d))/add(mul(t, bP.a), mul(cP.T, bP.b)));
         return p; 
     }
 
@@ -199,10 +209,12 @@ contract ImplCurve is ICurve, MathLib{
     {
         require(cid>0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
+        BasicParams memory bP;
         cP = curveParams[cid-1];
-        require(p >= cP.P/cP.M && p < cP.P*cP.c/cP.a, "p is not correct");
+        bP = cP.basicParams;
+        require(p >= cP.P/bP.M && p < cP.P*bP.c/bP.a, "p is not correct");
         uint t;
-        t = mul(cP.T, sub(mul(cP.b,p),mul(cP.d,cP.P)))/sub(mul(cP.c,cP.P),mul(cP.a,p));
+        t = mul(cP.T, sub(mul(bP.b,p),mul(bP.d,cP.P)))/sub(mul(bP.c,cP.P),mul(bP.a,p));
         return t;
 
     }
