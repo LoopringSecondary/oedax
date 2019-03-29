@@ -33,7 +33,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
         );
 
 
-
+    // 获取用户创建的所有合约
     function getAuctionsAll(
         address creator
     )
@@ -44,6 +44,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             uint[] memory /* auction index */
         );
 
+    // 获取合约信息
     function getAuctionInfo(uint id)
         external
         view
@@ -133,6 +134,8 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
         );
 
 
+    // 目前采用曲线合约中存储参数的形式，曲线可以命名
+    // 无需单独生成合约
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
     function registerCurve(

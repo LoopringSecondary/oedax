@@ -28,6 +28,7 @@ contract ITreasury {
     // contractLockedBalances用于存储总量，不代表可以提币数量
     mapping (address => mapping(address => uint)) public contractLockedBalances;
 
+    // 获得用户创建的Auction的Index数组
     function getAuctionIndex(
         address creator
     )
@@ -37,6 +38,7 @@ contract ITreasury {
             uint[] memory
         );
 
+    // auctionID递增，用于创建拍卖时获得ID
     function getNextAuctionID()
         public
         returns (
@@ -44,7 +46,8 @@ contract ITreasury {
         );
 
 
-
+    // 拍卖结束时统一结算用户应得的Token数量，由于操作较为复杂
+    // 结算在子拍卖合约中进行，函数要求合约地址才可以调用
     function exchangeTokens(
         address recepient,
         address user,
@@ -58,6 +61,7 @@ contract ITreasury {
             bool
         );
 
+    // 用于结算deposit时的手续费
     function sendFee(
         address recepient,
         address user,
@@ -69,7 +73,8 @@ contract ITreasury {
             bool
         );
 
-    //between treasury contract and auction contract
+    // 拍卖合约调用，属于Oedax内部“转账”
+    // between treasury contract and auction contract
     function auctionDeposit(
         address user,
         address token,
@@ -80,7 +85,7 @@ contract ITreasury {
             bool /* successful */
         );
 
-    //between treasury contract and auction contract
+    // between treasury contract and auction contract
     function auctionWithdraw(
         address user,
         address token,
@@ -91,7 +96,8 @@ contract ITreasury {
             bool /* successful */
         );
 
-    //between treasury contract and token contract
+    // treasuy合约与Token合约之间的转账
+    // between treasury contract and token contract
     function deposit(
         address token,
         uint    amount  // must be greater than 0.
@@ -101,7 +107,7 @@ contract ITreasury {
             bool /* successful */
         );
 
-    //between treasury contract and token contract
+    // between treasury contract and token contract
     function withdraw(
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
@@ -111,6 +117,7 @@ contract ITreasury {
             bool /* successful */
         );
 
+    // 获取用户实时余额
     function getBalance(
         address user,
         address token
@@ -123,6 +130,8 @@ contract ITreasury {
             uint /* locked */
         );
 
+    // 新增接口，用于查询用户授权的转账量
+    // treasury合约的转账只能由用户调用时生效
     function getApproval(
         address user,
         address token
@@ -153,7 +162,9 @@ contract ITreasury {
     // This method can only be called once.
     function terminate() external;
 
-
+    // 合约中用户参与的拍卖ID以及有余额的Token较为复杂
+    // 暂时决定方案时，紧急情况下用户可以提走自己所有的余额
+    // token列表可查询，也可自己给出
     function withdrawWhenTerminated(
         address[] calldata tokens
     )

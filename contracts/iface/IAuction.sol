@@ -83,6 +83,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     AuctionSettings public auctionSettings;  // immutable settings
 
     
+    // 结算包括Taker奖励后的Token数量
     function calcActualTokens(address user)
         public
         view
@@ -92,6 +93,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
         );
 
 
+    // taker指数，随时间减少
     function calcTakeRate()
         public
         view

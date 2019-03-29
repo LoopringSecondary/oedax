@@ -92,7 +92,9 @@ contract IAuctionData {
     }
 
     // The following are constant setups that never change.
-        
+    
+    // 拆分成struct，为了结构简洁，且解决stack too deep的问题
+
     struct AuctionSettings {
         
         address creator;            // The one crated this auction.
