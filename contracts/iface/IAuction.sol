@@ -75,6 +75,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     QueuedParticipation[] public bidQueue;
 
 
+
     Status  public  status;
     uint    public  constrainedTime;// time when entering constrained period
     uint    public  lastSynTime;// same as that in auctionState
@@ -82,7 +83,30 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     AuctionState    public auctionState; // mutable state
     AuctionSettings public auctionSettings;  // immutable settings
 
+
+
+    function simulatePrice(uint time)
+        public
+        view
+        returns(
+            uint askPrice,
+            uint bidPrice,
+            uint actualPrice
+        );
+
     
+    // 0 - no queue
+    // 1 - ask queue
+    // 2 - bid queue
+    // 3 - impossible
+    function getQueueStatus()
+        public
+        view
+        returns(
+            uint status,
+            uint amount
+        );
+
     function getActualPrice()
         public
         view

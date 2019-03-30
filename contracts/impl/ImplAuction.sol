@@ -83,6 +83,149 @@ contract ImplAuction is IAuction, MathLib{
 
     }
 
+    
+
+    // 初始总量为_ask, _bid
+    // price = _ask/_bid * priceScale
+    // ask越多 价格越高 
+    function getLimitsWithoutQueue(
+        uint _ask,
+        uint _bid,
+        uint askPrice,
+        uint bidPrice
+        )
+        internal
+        view
+        returns(
+            uint /* askDepositLimit */,
+            uint /* bidDepositLimit */,
+            uint /* askWithdrawalLimit */,
+            uint /* bidWithdrawalLimit */
+        )
+    {
+        require(
+            _bid > 0,
+            "bid amount should be larger than 0"
+        );
+        uint actualPrice = mul(_ask, auctionSettings.tokenInfo.priceScale)/_bid; 
+        
+    
+        
+        uint askDepositLimit = 0;
+        uint bidDepositLimit = 0;
+        uint askWithdrawLimit = 0;
+        uint bidWithdrawLimit = 0;
+        
+        if (actualPrice >= bidPrice){
+            bidDepositLimit = mul((actualPrice - bidPrice), _bid)/bidPrice;
+            askWithdrawLimit = mul((actualPrice - bidPrice), _bid);
+        }
+
+        if (actualPrice <= askPrice){
+            askDepositLimit = mul((askPrice - actualPrice), _bid);
+            bidWithdrawLimit = mul((askPrice - actualPrice), _bid)/askPrice;
+        }
+
+        return (
+            askDepositLimit,
+            bidDepositLimit,
+            askWithdrawLimit,
+            bidWithdrawLimit
+        );
+
+    }
+
+    function simulatePrice(uint time)
+        public
+        view
+        returns(
+            uint askPrice,
+            uint bidPrice,
+            uint actualPrice
+        )
+    {
+        require(
+            time >= lastSynTime,
+            "time should not be earlier than lastSynTime"
+        );
+
+        // TODO: simulate curve price to now
+
+    }
+    
+    /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
+    /// be considered in the calculations.
+    function getLimits()
+        public
+        view
+        returns(
+            uint /* askDepositLimit */,
+            uint /* bidDepositLimit */,
+            uint /* askWithdrawalLimit */,
+            uint /* bidWithdrawalLimit */
+        )
+    {
+        uint askPrice;
+        uint bidPrice;
+        uint actualPrice;
+        (askPrice, bidPrice, actualPrice) = simulatePrice(now);
+
+        uint ask = auctionState.totalAskAmount;
+        uint bid = auctionState.totalBidAmount;
+        
+        uint askDepositLimit;
+        uint bidDepositLimit;
+        uint askWithdrawLimit;
+        uint bidWithdrawLimit;
+
+        (askDepositLimit, , ,bidWithdrawLimit) = getLimitsWithoutQueue(
+            ask,
+            bid + auctionState.queuedBidAmount,
+            askPrice,
+            bidPrice
+        );
+
+
+        ( ,bidDepositLimit, askWithdrawLimit, ) = getLimitsWithoutQueue(
+            ask,
+            bid + auctionState.queuedBidAmount,
+            askPrice,
+            bidPrice
+        );
+
+        return (
+            askDepositLimit,
+            bidDepositLimit,
+            askWithdrawLimit,
+            bidWithdrawLimit
+        );
+    }
+
+
+    function getQueueStatus()
+        public
+        view
+        returns(
+            uint,
+            uint
+        )
+    {
+        uint s = 0;
+        uint amount = 0;
+        if (askQueue.length > 0){
+            s += 1;
+            amount = auctionState.queuedAskAmount;
+        }
+        
+        if (bidQueue.length > 0){
+            s += 2;
+            amount = auctionState.queuedBidAmount;
+        }
+        return (s, amount);
+
+    }
+
+
     function getActualPrice()
         public
         view
@@ -170,20 +313,7 @@ contract ImplAuction is IAuction, MathLib{
         return aucState;
     }
 
-    /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
-    /// be considered in the calculations.
-    function getLimits()
-        public
-        view
-        returns(
-            uint /* askDepositLimit */,
-            uint /* bidDepositLimit */,
-            uint /* askWithdrawalLimit */,
-            uint /* bidWithdrawalLimit */
-        )
-    {
 
-    }
 
     function calcAskPrice(
         uint t
