@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../iface/IAuction.sol";
 import "../lib/MathLib.sol";
-
+import "../lib/ERC20.sol";
 
 contract ImplCurve is ICurve, MathLib{
 
@@ -48,14 +48,14 @@ contract ImplCurve is ICurve, MathLib{
     /// @param M Price scale
     /// @param P Target price
     /// @param S Curve shape parameter
-    /// @param PriceScale precision of price,10^18
     /// @param curveName 32bytes, strictly 8 alphabets/numbers
     function createCurve(
+        address askToken,
+        address bidToken,
         uint T,
         uint M,
         uint P,
         uint S,
-        uint PriceScale,
         string memory curveName
         )
         public
@@ -71,6 +71,12 @@ contract ImplCurve is ICurve, MathLib{
         require(M>=2 && M<=100, "M should be between 2 and 100");
         require(S>=10 && S<=100*M, "S should be between 10 and 100*M");
 
+        uint    askDecimals = ERC20(askToken).decimals();
+        uint    bidDecimals = ERC20(bidToken).decimals();
+        uint    priceScale;
+        require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
+        priceScale = pow(10, 18 + askDecimals - bidDecimals);
+
         uint cid;
         CurveParams memory cP;
         BasicParams memory bP;
@@ -85,7 +91,7 @@ contract ImplCurve is ICurve, MathLib{
 
         cP.T = T;
         cP.P = P;
-        cP.priceScale = PriceScale;
+        cP.priceScale = priceScale;
         cP.curveName = name;
         cP.basicParams = bP;
 

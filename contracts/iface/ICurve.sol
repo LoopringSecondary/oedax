@@ -42,14 +42,14 @@ contract ICurve{
     /// @param M Price scale
     /// @param P Target price
     /// @param S Curve shape parameter
-    /// @param PriceScale precision of price
     /// @param curveName 32bytes, strictly 8 alphabets/numbers
     function createCurve(
+        address askToken,
+        address bidToken,
         uint T,
         uint M,
         uint P,
         uint S,
-        uint PriceScale,
         string memory curveName
         )
         public

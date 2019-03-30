@@ -83,6 +83,17 @@ contract ImplAuction is IAuction, MathLib{
 
     }
 
+    function getActualPrice()
+        public
+        view
+        returns(
+            uint
+        )
+    {
+        uint price = auctionState.actualPrice;
+        return price;    
+    }
+
 
     function calcActualTokens(address user)
         public
@@ -141,9 +152,9 @@ contract ImplAuction is IAuction, MathLib{
             AuctionSettings memory
         )
     {
-        AuctionSettings memory aucInfo;
-        aucInfo = auctionSettings;
-        return aucInfo;
+        AuctionSettings memory aucSettings;
+        aucSettings = auctionSettings;
+        return aucSettings;
     }
     
     
@@ -251,7 +262,7 @@ contract ImplAuction is IAuction, MathLib{
         }
 
 
-        while (dt1 > dt && isClosed(t1+dt1, t2+dt1)){
+        while (dt1 >= dt && isClosed(t1+dt1, t2+dt1)){
             dt1 = sub(dt1, dt);
         }
 

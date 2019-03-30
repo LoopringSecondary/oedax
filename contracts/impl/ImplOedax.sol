@@ -109,7 +109,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         uint    askDecimals = ERC20(askToken).decimals();
         uint    bidDecimals = ERC20(bidToken).decimals();
         uint    priceScale;
-        require(askDecimals <= bidDecimals && askDecimals +18 > bidDecimals, "decimals not correct");
+        require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
         priceScale = pow(10, 18 + askDecimals - bidDecimals);
         
         ICurve.CurveParams memory cp;
@@ -373,6 +373,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
 
         auctionSettings.info.startedTimestamp = now;
         auctionSettings.info.delaySeconds = delaySeconds;
+        auctionSettings.info.P = IAuction(auctionAddr).getActualPrice();
         
         uint id;
         address addressAuction;

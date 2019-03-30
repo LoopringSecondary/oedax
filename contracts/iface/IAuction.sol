@@ -83,6 +83,13 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     AuctionSettings public auctionSettings;  // immutable settings
 
     
+    function getActualPrice()
+        public
+        view
+        returns(
+            uint price
+        );
+
     // 结算包括Taker奖励后的Token数量
     function calcActualTokens(address user)
         public
