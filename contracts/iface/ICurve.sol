@@ -98,7 +98,10 @@ contract ICurve{
         )
         public
         view
-        returns (uint);
+        returns (
+            bool,
+            uint
+        );
 
 
     /// @dev Calculate bid/buy price on price curve
@@ -121,6 +124,9 @@ contract ICurve{
         )
         public
         view
-        returns (uint);
+        returns (
+            bool,
+            uint
+        );
 
 }

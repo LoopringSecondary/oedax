@@ -91,7 +91,9 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
         returns(
             uint askPrice,
             uint bidPrice,
-            uint actualPrice
+            uint actualPrice,
+            uint askPausedTime,
+            uint bidPausedTime
         );
 
     

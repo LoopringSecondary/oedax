@@ -101,7 +101,7 @@ contract ImplAuction is IAuction, MathLib{
             uint /* bidDepositLimit */,
             uint /* askWithdrawalLimit */,
             uint /* bidWithdrawalLimit */
-        )
+            )
     {
         require(
             _bid > 0,
@@ -126,7 +126,7 @@ contract ImplAuction is IAuction, MathLib{
             bidWithdrawLimit = mul((askPrice - actualPrice), _bid)/askPrice;
         }
 
-        return (
+        return(
             askDepositLimit,
             bidDepositLimit,
             askWithdrawLimit,
@@ -139,9 +139,11 @@ contract ImplAuction is IAuction, MathLib{
         public
         view
         returns(
-            uint askPrice,
-            uint bidPrice,
-            uint actualPrice
+            uint /*askPrice*/,
+            uint /*bidPrice*/,
+            uint /*actualPrice*/,
+            uint /*askPausedTime*/,
+            uint /*bidPausedTime*/
         )
     {
         require(
@@ -149,7 +151,46 @@ contract ImplAuction is IAuction, MathLib{
             "time should not be earlier than lastSynTime"
         );
 
+        uint askPrice;
+        uint bidPrice;
+
+        uint _askPausedTime = askPausedTime;
+        uint _bidPausedTime = bidPausedTime;
+
         // TODO: simulate curve price to now
+
+        bool success;
+        uint t1;
+        uint t2;
+ 
+        (success, t1) = curve.calcInvAskPrice(auctionSettings.curveID, auctionState.actualPrice);
+        //曲线没有相交
+        if (!success ||
+            t1 >= time - constrainedTime - askPausedTime
+        )
+        {
+            askPrice = calcAskPrice(time - constrainedTime - askPausedTime);
+        }
+        else
+        {
+            askPrice = auctionState.actualPrice;
+            _askPausedTime = time - constrainedTime - t1;
+        }
+        
+        (success, t2) = curve.calcInvBidPrice(auctionSettings.curveID, auctionState.actualPrice);
+        if (!success ||
+            t2 >= time - constrainedTime - bidPausedTime
+        )
+        {
+            bidPrice = calcBidPrice(time - constrainedTime - bidPausedTime);
+        }
+        else
+        {
+            bidPrice = auctionState.actualPrice;
+            _bidPausedTime = time - constrainedTime - t2;
+        }
+
+        return (askPrice, bidPrice, auctionState.actualPrice, _askPausedTime, _bidPausedTime);
 
     }
     
@@ -168,7 +209,7 @@ contract ImplAuction is IAuction, MathLib{
         uint askPrice;
         uint bidPrice;
         uint actualPrice;
-        (askPrice, bidPrice, actualPrice) = simulatePrice(now);
+        (askPrice, bidPrice, actualPrice,  ,  ) = simulatePrice(now);
 
         uint ask = auctionState.totalAskAmount;
         uint bid = auctionState.totalBidAmount;
@@ -187,8 +228,8 @@ contract ImplAuction is IAuction, MathLib{
 
 
         ( ,bidDepositLimit, askWithdrawLimit, ) = getLimitsWithoutQueue(
-            ask,
-            bid + auctionState.queuedBidAmount,
+            ask + auctionState.queuedAskAmount,
+            bid,
             askPrice,
             bidPrice
         );
