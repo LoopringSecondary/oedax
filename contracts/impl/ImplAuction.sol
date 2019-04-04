@@ -255,7 +255,10 @@ contract ImplAuction is IAuction, MathLib{
         askPausedTime = _askPausedTime;
         bidPausedTime = _bidPausedTime;
         lastSynTime = now;
-    
+        //结束
+        if (askPrice <= bidPrice){
+            status = Status.CLOSED;
+        }
     }
     
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
@@ -547,6 +550,13 @@ contract ImplAuction is IAuction, MathLib{
             "token not correct"
         );
 
+        if (status == Status.STARTED&&
+            now >= auctionSettings.info.startedTimestamp + auctionSettings.info.delaySeconds
+        )
+        {
+            status = Status.OPEN;
+        }
+
         require(
             status == Status.OPEN ||
             status == Status.CONSTRAINED,
@@ -586,6 +596,7 @@ contract ImplAuction is IAuction, MathLib{
         }
 
         // 从treasury提取token并收取手续费
+        // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
         success = treasury.auctionDeposit(
             msg.sender,
             token,
@@ -609,6 +620,8 @@ contract ImplAuction is IAuction, MathLib{
     
     }
 
+    
+    // 不考虑waitinglist情况下的limit
     // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw 
     function getLimits(
         uint action
@@ -652,14 +665,95 @@ contract ImplAuction is IAuction, MathLib{
         return limit;
     }
 
+    
+
+    // deposit - 1. 加队列 2. 反向减队列
+    // withdraw - 1. 减队列 2. 反向减队列
     // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw
+    // 合约内部调用，已保证只影响队列，不会改变价格
     function updateQueue(
         uint action,
         uint amount
     )
         internal
     {
-        // TODO: Update the queue
+        // TODO: Update the queue, put the amount into the pool
+
+        uint askQ;
+        uint bidQ;
+
+        QueuedParticipation memory q;
+        
+
+        
+        if (action == 1){
+            if (auctionState.queuedBidAmount == 0)
+            {
+                q.user = msg.sender;
+                q.amount = amount;
+                q.timestamp = now;
+                askQueue.push(q);
+            }
+            else{
+                // 要从队列中拿出的
+                bidQ = mul(amount, auctionSettings.tokenInfo.priceScale)/auctionState.actualPrice;
+                if (auctionState.queuedBidAmount == bidQ){
+                    // 清空
+
+                    // 双双加入
+
+                }
+                else
+                {
+                    //拿出部分
+
+                    // 双双加入
+
+                }
+
+            }
+            
+            
+        }
+
+        if (action == 2){
+
+            if (auctionState.queuedAskAmount == 0)
+            {
+                q.user = msg.sender;
+                q.amount = amount;
+                q.timestamp = now;
+                bidQueue.push(q);
+            }
+            else{
+                // 要从队列中拿出的
+                askQ = mul(amount, auctionState.actualPrice)/auctionSettings.tokenInfo.priceScale;
+                if (auctionState.queuedAskAmount == askQ){
+                    // 清空
+
+                    // 双双加入
+
+                }
+                else
+                {
+                    //拿出部分
+
+                    // 双双加入
+
+                }
+
+            }
+            
+        }
+
+        if (action == 3){
+            
+        }
+
+        if (action == 4){
+            
+        }
+        
     }
     
     // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw
@@ -670,44 +764,178 @@ contract ImplAuction is IAuction, MathLib{
         internal
     {
         uint nonQueue;
-        if (
-            auctionState.queuedAskAmount == 0 &&
-            auctionState.queuedBidAmount == 0
-        )
-        {
-            nonQueue = amount;
-        }
-        else
-        {
-            nonQueue = getLimits(action);
+
+        nonQueue = getLimits(action);
+
+        uint askQueuedSup = 0;
+        uint bidQueuedSup = 0;
+        
+        if (auctionState.queuedBidAmount > 0){
+            askQueuedSup = mul(auctionState.queuedBidAmount, auctionState.actualPrice)/
+                auctionSettings.tokenInfo.priceScale;
         }
         
+        if (auctionState.queuedAskAmount > 0){
+            bidQueuedSup = mul(auctionState.queuedAskAmount, auctionSettings.tokenInfo.priceScale)/
+                auctionState.actualPrice;
+        }
+
+        // nonQueue表示不考虑queue情况下最大的存取值
+        // askQueuedSup与bidQueuedSup表示“抵消掉”queue中的记录需要的值
+
+        // 只有两种情况 1 - 没有WaitingList，多的部分会加到WaitingList中
+        //            2 - 有WaitingList，必定有一个方向Pause，先抵消Pause方向队列，然后变动价格
+        
         // the addtional deposit will be inserted into the queue
+        uint amountQueue; // 用于更改Queue的数量
+        uint amountPrice = amount; // 用于更改价格的数量
         if (action == 1){
-            auctionState.totalAskAmount += nonQueue;
-            updateQueue(action, sub(amount, nonQueue));
+            // 1. askQueue有，直接askQueue增加
+            // 2. bidQueue有，先抵消bid，如果有剩余的进入3
+            // 3. 没有排队
+            // updateQueue()只处理队列的增加、减少，不改变价格
+
+            if (auctionState.queuedAskAmount > 0){
+                updateQueue(action, amount);
+                amountQueue = amount;
+                amountPrice = 0;
+            }
+            else{
+                if (auctionState.queuedBidAmount > 0){
+                    if (amount <= askQueuedSup){
+                        updateQueue(action, amount);
+                        amountQueue = amount;
+                        amountPrice = 0;
+                    }
+                    else{
+                        updateQueue(action, askQueuedSup);
+                        amountQueue = askQueuedSup;
+                        amountPrice = amount - askQueuedSup;
+                    }
+                }
+            }
+
+            if (amountPrice > 0){
+                if (amountPrice <= nonQueue){
+                    auctionState.totalAskAmount += amountPrice;
+                    updateActualPrice();
+                }
+                else{
+                    auctionState.totalAskAmount += nonQueue;
+                    updateActualPrice();
+                    updateQueue(action, amountPrice - nonQueue);
+                }
+
+            }
+
+            
         }
         
         // the addtional deposit will be inserted into the queue
         if (action == 2){
-            auctionState.totalBidAmount += nonQueue;
-            updateQueue(action, sub(amount, nonQueue));
+            
+            if (auctionState.queuedBidAmount > 0){
+                updateQueue(action, amount);
+                amountQueue = amount;
+                amountPrice = 0;
+            }
+            else{
+                if (auctionState.queuedAskAmount > 0){
+                    if (amount <= bidQueuedSup){
+                        updateQueue(action, amount);
+                        amountQueue = amount;
+                        amountPrice = 0;
+                    }
+                    else{
+                        updateQueue(action, bidQueuedSup);
+                        amountQueue = bidQueuedSup;
+                        amountPrice = amount - bidQueuedSup;
+                    }
+                }
+            }
+
+            if (amountPrice > 0){
+                if (amountPrice <= nonQueue){
+                    auctionState.totalBidAmount += amountPrice;
+                    updateActualPrice();
+                }
+                else{
+                    auctionState.totalBidAmount += nonQueue;
+                    updateActualPrice();
+                    updateQueue(action, amountPrice - nonQueue);
+                }
+            }
         }
 
         // the addtional withdraw will hedge the queue
+        // 如果bid有队列，不能取款
+        // 如果ask有队列，先去ask，然后调整价格
+
         if (action == 3){
-            auctionState.totalAskAmount -= nonQueue;
-            updateQueue(action, sub(amount, nonQueue));          
+            if (auctionState.queuedAskAmount > 0){
+                if (amount <= auctionState.queuedAskAmount){
+                    updateQueue(action, amount);
+                    amountQueue = amount;
+                    amountPrice = 0;
+                }
+                else{
+                    updateQueue(action, auctionState.queuedAskAmount);
+                    amountQueue = auctionState.queuedAskAmount;
+                    amountPrice = amount - auctionState.queuedAskAmount;
+                }   
+            }
+            
+            if (amountPrice > 0){
+
+                // amountPrice肯定在价格限制内
+                auctionState.totalAskAmount -= amountPrice;
+                updateActualPrice();
+
+            }         
         }
 
         // the addtional withdraw will hedge the queue
         if (action == 4){
-            auctionState.totalBidAmount -= nonQueue;
-            updateQueue(action, sub(amount, nonQueue));    
+            
+            if (auctionState.queuedBidAmount > 0){
+                if (amount <= auctionState.queuedBidAmount){
+                    updateQueue(action, amount);
+                    amountQueue = amount;
+                    amountPrice = 0;
+                }
+                else{
+                    updateQueue(action, auctionState.queuedBidAmount);
+                    amountQueue = auctionState.queuedBidAmount;
+                    amountPrice = amount - auctionState.queuedBidAmount;
+                }   
+            }
+            
+            if (amountPrice > 0){
+
+                // amountPrice肯定在价格限制内
+                auctionState.totalBidAmount -= amountPrice;
+                updateActualPrice();
+
+            }   
         }
 
     }
 
+    function updateActualPrice()
+        internal
+    {
+        auctionState.actualPrice = mul(
+            auctionState.totalAskAmount,
+            auctionState.totalBidAmount
+        )/auctionSettings.tokenInfo.priceScale; 
+        if (status == Status.OPEN &&
+            auctionState.actualPrice <= auctionSettings.info.P*auctionSettings.info.M &&
+            auctionState.actualPrice >= auctionSettings.info.P/auctionSettings.info.M
+        )
+        {
+            status == Status.CONSTRAINED;
+        }
+    }
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
     /// the auciton.
     function withdraw(
