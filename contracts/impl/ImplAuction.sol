@@ -83,7 +83,7 @@ contract ImplAuction is IAuction, MathLib{
 
     }
 
-    
+
 
     // 初始总量为_ask, _bid
     // price = _ask/_bid * priceScale
@@ -109,21 +109,57 @@ contract ImplAuction is IAuction, MathLib{
         );
         uint actualPrice = mul(_ask, auctionSettings.tokenInfo.priceScale)/_bid; 
         
-    
-        
-        uint askDepositLimit = 0;
-        uint bidDepositLimit = 0;
-        uint askWithdrawLimit = 0;
-        uint bidWithdrawLimit = 0;
+        if (status == Status.OPEN){
+            return (
+                auctionSettings.info.maxAskAmountPerAddr,
+                auctionSettings.info.maxBidAmountPerAddr,
+                auctionSettings.info.maxAskAmountPerAddr,
+                auctionSettings.info.maxBidAmountPerAddr
+            );
+        }
+
+        if (status == Status.STARTED ||
+            status >= Status.CLOSED
+        )
+        {
+            return (0,0,0,0);
+        }
+
+        uint askDepositLimit;
+        uint bidDepositLimit;
+        uint askWithdrawLimit;
+        uint bidWithdrawLimit;
         
         if (actualPrice >= bidPrice){
             bidDepositLimit = mul((actualPrice - bidPrice), _bid)/bidPrice;
+            if (bidDepositLimit > auctionSettings.info.maxBidAmountPerAddr){
+                bidDepositLimit = auctionSettings.info.maxBidAmountPerAddr;
+            }
+
             askWithdrawLimit = mul((actualPrice - bidPrice), _bid);
+            if (askWithdrawLimit > auctionSettings.info.maxAskAmountPerAddr){
+                askWithdrawLimit = auctionSettings.info.maxAskAmountPerAddr;
+            }
+        }
+        else{
+            bidDepositLimit = 0;
+            askWithdrawLimit = 0;
         }
 
         if (actualPrice <= askPrice){
             askDepositLimit = mul((askPrice - actualPrice), _bid);
+            if (askDepositLimit > auctionSettings.info.maxAskAmountPerAddr){
+                askDepositLimit = auctionSettings.info.maxAskAmountPerAddr;
+            }
+              
             bidWithdrawLimit = mul((askPrice - actualPrice), _bid)/askPrice;
+            if (bidWithdrawLimit > auctionSettings.info.maxBidAmountPerAddr){
+                bidWithdrawLimit = auctionSettings.info.maxBidAmountPerAddr;
+            }
+        }
+        else{
+            askDepositLimit = 0;
+            bidWithdrawLimit = 0; 
         }
 
         return(
@@ -151,13 +187,21 @@ contract ImplAuction is IAuction, MathLib{
             "time should not be earlier than lastSynTime"
         );
 
+        if (time == lastSynTime){
+            return(
+                auctionState.askPrice,
+                auctionState.bidPrice,
+                auctionState.actualPrice,
+                askPausedTime,
+                bidPausedTime
+            );
+        }
+
         uint askPrice;
         uint bidPrice;
 
         uint _askPausedTime = askPausedTime;
         uint _bidPausedTime = bidPausedTime;
-
-        // TODO: simulate curve price to now
 
         bool success;
         uint t1;
@@ -166,32 +210,52 @@ contract ImplAuction is IAuction, MathLib{
         (success, t1) = curve.calcInvAskPrice(auctionSettings.curveID, auctionState.actualPrice);
         //曲线没有相交
         if (!success ||
-            t1 >= time - constrainedTime - askPausedTime
+            t1 >= sub(time, constrainedTime + askPausedTime)
         )
         {
-            askPrice = calcAskPrice(time - constrainedTime - askPausedTime);
+            askPrice = calcAskPrice(sub(time, constrainedTime + askPausedTime));
         }
         else
         {
             askPrice = auctionState.actualPrice;
-            _askPausedTime = time - constrainedTime - t1;
+            _askPausedTime = sub(time, constrainedTime + t1);
         }
         
         (success, t2) = curve.calcInvBidPrice(auctionSettings.curveID, auctionState.actualPrice);
         if (!success ||
-            t2 >= time - constrainedTime - bidPausedTime
+            t2 >= sub(now, constrainedTime + bidPausedTime)
         )
         {
-            bidPrice = calcBidPrice(time - constrainedTime - bidPausedTime);
+            bidPrice = calcBidPrice(sub(now, constrainedTime + bidPausedTime));
         }
         else
         {
             bidPrice = auctionState.actualPrice;
-            _bidPausedTime = time - constrainedTime - t2;
+            _bidPausedTime = sub(time, constrainedTime + t2);
         }
 
         return (askPrice, bidPrice, auctionState.actualPrice, _askPausedTime, _bidPausedTime);
 
+    }
+
+
+    function updatePrice()
+        internal
+    {
+        if (now == lastSynTime){
+            return;
+        }
+        uint askPrice;
+        uint bidPrice;
+        uint _askPausedTime = askPausedTime;
+        uint _bidPausedTime = bidPausedTime;
+        (askPrice, bidPrice,  , _askPausedTime, _bidPausedTime) = simulatePrice(now);
+        auctionState.askPrice = askPrice;
+        auctionState.bidPrice = bidPrice;
+        askPausedTime = _askPausedTime;
+        bidPausedTime = _bidPausedTime;
+        lastSynTime = now;
+    
     }
     
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
@@ -243,6 +307,7 @@ contract ImplAuction is IAuction, MathLib{
     }
 
 
+    
     function getQueueStatus()
         public
         view
@@ -482,6 +547,12 @@ contract ImplAuction is IAuction, MathLib{
             "token not correct"
         );
 
+        require(
+            status == Status.OPEN ||
+            status == Status.CONSTRAINED,
+            "deposit not allowed"
+        );
+
         bool success;
         uint feeBips;
         uint realAmount;
@@ -493,6 +564,28 @@ contract ImplAuction is IAuction, MathLib{
             feeBips = auctionSettings.feeSettings.protocolBips + auctionSettings.feeSettings.walletBipts;
         }
         realAmount = amount*(10000-feeBips)/10000;
+
+        // 同步参数到now
+        updatePrice();
+        
+        uint askDepositLimit;
+        uint bidDepositLimit;
+        uint askWithdrawLimit;
+        uint bidWithdrawLimit;
+
+        // 算上Queue的
+        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+
+        if (token == auctionSettings.tokenInfo.askToken &&
+            realAmount > askDepositLimit ||
+            token == auctionSettings.tokenInfo.bidToken &&
+            realAmount > bidDepositLimit
+        )
+        {
+            return 0;
+        }
+
+        // 从treasury提取token并收取手续费
         success = treasury.auctionDeposit(
             msg.sender,
             token,
@@ -506,11 +599,113 @@ contract ImplAuction is IAuction, MathLib{
                 amount - realAmount
             );
         }
+
+        // TODO: 处理等待队列和实际价格的变化
         
-        // TODO: update price & waiting list in auction contract
+
+
 
         return realAmount;
     
+    }
+
+    // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw 
+    function getLimits(
+        uint action
+    )
+        internal
+        view
+        returns(
+            uint
+        )
+    {
+        uint limit = 0;
+
+        if (action == 1){
+            limit = mul(
+                sub(auctionState.askPrice, auctionState.actualPrice), 
+                auctionState.totalBidAmount
+                );
+        }
+        
+        if (action == 2){
+            limit = mul(
+                sub(auctionState.actualPrice, auctionState.bidPrice), 
+                auctionState.totalBidAmount
+                )/auctionState.bidPrice;
+        }
+        
+        if (action == 3){
+            limit = mul(
+                sub(auctionState.actualPrice, auctionState.bidPrice), 
+                auctionState.totalBidAmount
+                );
+        }
+        
+        if (action == 4){
+            limit = mul(
+                sub(auctionState.askPrice, auctionState.actualPrice), 
+                auctionState.totalBidAmount
+                )/auctionState.askPrice;
+        }
+
+        return limit;
+    }
+
+    // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw
+    function updateQueue(
+        uint action,
+        uint amount
+    )
+        internal
+    {
+        // TODO: Update the queue
+    }
+    
+    // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw
+    function updateAfterAction(
+        uint action,
+        uint amount
+    )
+        internal
+    {
+        uint nonQueue;
+        if (
+            auctionState.queuedAskAmount == 0 &&
+            auctionState.queuedBidAmount == 0
+        )
+        {
+            nonQueue = amount;
+        }
+        else
+        {
+            nonQueue = getLimits(action);
+        }
+        
+        // the addtional deposit will be inserted into the queue
+        if (action == 1){
+            auctionState.totalAskAmount += nonQueue;
+            updateQueue(action, sub(amount, nonQueue));
+        }
+        
+        // the addtional deposit will be inserted into the queue
+        if (action == 2){
+            auctionState.totalBidAmount += nonQueue;
+            updateQueue(action, sub(amount, nonQueue));
+        }
+
+        // the addtional withdraw will hedge the queue
+        if (action == 3){
+            auctionState.totalAskAmount -= nonQueue;
+            updateQueue(action, sub(amount, nonQueue));          
+        }
+
+        // the addtional withdraw will hedge the queue
+        if (action == 4){
+            auctionState.totalBidAmount -= nonQueue;
+            updateQueue(action, sub(amount, nonQueue));    
+        }
+
     }
 
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
@@ -531,6 +726,12 @@ contract ImplAuction is IAuction, MathLib{
         );
         
         require(
+            status == Status.OPEN ||
+            status == Status.CONSTRAINED,
+            "withdraw not allowed"
+        );
+
+        require(
             amount > 0,
             "amount should not be 0"
         );
@@ -542,9 +743,25 @@ contract ImplAuction is IAuction, MathLib{
         );
 
         
-
-        // TODO: check whether the user can withdraw
+        updatePrice();
         
+        uint askDepositLimit;
+        uint bidDepositLimit;
+        uint askWithdrawLimit;
+        uint bidWithdrawLimit;
+
+        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+
+        if (token == auctionSettings.tokenInfo.askToken &&
+            amount > askWithdrawLimit ||
+            token == auctionSettings.tokenInfo.bidToken &&
+            amount > bidWithdrawLimit
+        )
+        {
+            return 0;
+        }
+
+        // 以上检查了是否可以取款
 
         uint penaltyBips = auctionSettings.feeSettings.withdrawalPenaltyBips;
         uint realAmount = amount; 
@@ -567,10 +784,11 @@ contract ImplAuction is IAuction, MathLib{
             realAmount  // must be greater than 0.
         );
 
-        // TODO: update price
+        // TODO: 处理等待队列和实际价格的变化
 
         return realAmount;
     }
+
 
     // function only works within a block
     function simulateDeposit(

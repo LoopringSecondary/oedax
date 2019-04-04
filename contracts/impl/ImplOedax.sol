@@ -160,7 +160,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             P,
             M,
             T,
-            block.timestamp,
+            now,
             delaySeconds,
             maxAskAmountPerAddr,
             maxBidAmountPerAddr,
@@ -361,7 +361,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         )
     {
         require(
-            block.timestamp - IAuction(auctionAddr).lastSynTime() <= 7 days,
+            now - IAuction(auctionAddr).lastSynTime() <= 7 days,
             "auction should be closed less than 7 days ago"
         );    
         require(
