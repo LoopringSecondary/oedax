@@ -685,7 +685,7 @@ contract ImplAuction is IAuction, MathLib{
         QueuedParticipation memory q;
         
 
-        
+        // 1 - askDeposit
         if (action == 1){
             if (auctionState.queuedBidAmount == 0)
             {
@@ -699,6 +699,12 @@ contract ImplAuction is IAuction, MathLib{
                 bidQ = mul(amount, auctionSettings.tokenInfo.priceScale)/auctionState.actualPrice;
                 if (auctionState.queuedBidAmount == bidQ){
                     // 清空
+                    uint len = askQueue.length;
+                    while(len > 0){
+                        q = bidQueue[len -1];
+                        bidAmount[q.user] += q.amount;
+                        len--;
+                    }
 
                     // 双双加入
 
@@ -716,6 +722,7 @@ contract ImplAuction is IAuction, MathLib{
             
         }
 
+        // 2 - bidDeposit
         if (action == 2){
 
             if (auctionState.queuedAskAmount == 0)
@@ -746,10 +753,13 @@ contract ImplAuction is IAuction, MathLib{
             
         }
 
+
+        // 3 - askWithdraw
         if (action == 3){
             
         }
 
+        // 4 - bidWithdraw
         if (action == 4){
             
         }

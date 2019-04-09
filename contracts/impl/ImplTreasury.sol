@@ -341,6 +341,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     // This method can only be called once.
     function terminate() 
         external
+        onlyOwner
         whenRunning
     {
         terminated = true;
