@@ -619,11 +619,18 @@ contract ImplAuction is IAuction, MathLib{
         */
 
         // TODO: 处理等待队列和实际价格的变化
-        
+        uint action;
+        if (token == auctionSettings.tokenInfo.askToken){
+            action = 1;
+        }
+        if (token == auctionSettings.tokenInfo.bidToken){
+            action = 2;
+        }
+        updateAfterAction(action,amount);
 
 
-        //return amount;
-        return realAmount;
+        return amount;
+        //return realAmount;
     
     }
 
@@ -711,87 +718,171 @@ contract ImplAuction is IAuction, MathLib{
 
         uint askQ;
         uint bidQ;
+        uint len;
 
         QueuedParticipation memory q;
         
+        uint amountQ = amount;
 
         // 1 - askDeposit
         if (action == 1){
-            if (auctionState.queuedBidAmount == 0)
-            {
+            // 首先抵消Bid，然后追加Ask
+            if (auctionState.queuedBidAmount > 0){
+                askQ = queueExchange(2, auctionState.queuedBidAmount);
+                if (amountQ >= askQ){
+                    // 全部清空
+                    len = bidQueue.length;
+                    while(len > 0){
+                        q = bidQueue[len - 1];
+                        bidAmount[q.user] += q.amount;
+                        auctionState.queuedBidAmount -= q.amount;
+                        len--;
+                    }
+                    askQueue.length = 0; // delete
+                    askAmount[msg.sender] += askQ;
+                    amountQ -= askQ;    
+                }
+                else{
+                     // 部分清空
+                    len = bidQueue.length;
+                    askAmount[msg.sender] += amountQ;
+                    while(len > 0 && amountQ > 0){
+                        q = bidQueue[len - 1];
+                        if (amountQ >= queueExchange(2, q.amount)){
+                            bidAmount[q.user] += q.amount;
+                            auctionState.queuedBidAmount -= q.amount;
+                            amountQ -= queueExchange(2, q.amount);
+                            len--;
+                        }
+                        else{
+                            bidAmount[q.user] += queueExchange(1, amountQ);
+                            auctionState.queuedBidAmount -= queueExchange(1, amountQ);
+                            bidQueue[len - 1].amount -= queueExchange(1, amountQ);
+                            amountQ = 0;
+                            askQueue.length = len;
+                            break;
+                        }
+                    }
+                }
+                
+            }
+
+            // 还有多的放入等待序列
+            if (amountQ > 0){
                 q.user = msg.sender;
-                q.amount = amount;
+                q.amount = amountQ;
                 q.timestamp = now;
                 askQueue.push(q);
             }
-            else{
-                // 要从队列中拿出的, A->B
-                bidQ = queueExchange(1, amount); 
-                if (auctionState.queuedBidAmount == bidQ){
-                    // 清空
-                    uint len = askQueue.length;
-                    while(len > 0){
-                        q = bidQueue[len -1];
-                        bidAmount[q.user] += q.amount;
-                        len--;
-                    }
 
-                    // 双双加入
-
-                }
-                else
-                {
-                    //拿出部分
-
-                    // 双双加入
-
-                }
-
-            }
-            
-            
         }
 
         // 2 - bidDeposit
         if (action == 2){
+            // 首先抵消Ask，然后追加Bid
+            if (auctionState.queuedAskAmount > 0){
+                bidQ = queueExchange(1, auctionState.queuedAskAmount);
+                if (amountQ >= bidQ){
+                    // 全部清空
+                    len = askQueue.length;
+                    while(len > 0){
+                        q = askQueue[len - 1];
+                        askAmount[q.user] += q.amount;
+                        auctionState.queuedAskAmount -= q.amount;
+                        len--;
+                    }
+                    bidQueue.length = 0; // delete
+                    bidAmount[msg.sender] += bidQ;
+                    amountQ -= bidQ;    
+                }
+                else{
+                     // 部分清空
+                    len = askQueue.length;
+                    bidAmount[msg.sender] += amountQ;
+                    while(len > 0 && amountQ > 0){
+                        q = askQueue[len - 1];
+                        if (amountQ >= queueExchange(1, q.amount)){
+                            askAmount[q.user] += q.amount;
+                            auctionState.queuedAskAmount -= q.amount;
+                            amountQ -= queueExchange(1, q.amount);
+                            len--;
+                        }
+                        else{
+                            askAmount[q.user] += queueExchange(2, amountQ);
+                            auctionState.queuedAskAmount -= queueExchange(2, amountQ);
+                            askQueue[len - 1].amount -= queueExchange(2, amountQ);
+                            amountQ = 0;
+                            bidQueue.length = len;
+                            break;
+                        }
+                    }
+                }
+                
+            }
 
-            if (auctionState.queuedAskAmount == 0)
-            {
+            if (amountQ > 0){
                 q.user = msg.sender;
-                q.amount = amount;
+                q.amount = amountQ;
                 q.timestamp = now;
                 bidQueue.push(q);
             }
-            else{
-                // 要从队列中拿出的
-                askQ = queueExchange(2, amount); 
-                if (auctionState.queuedAskAmount == askQ){
-                    // 清空
-
-                    // 双双加入
-
-                }
-                else
-                {
-                    //拿出部分
-
-                    // 双双加入
-
-                }
-
-            }
-            
         }
 
 
         // 3 - askWithdraw
+        // 只减少ask
         if (action == 3){
-            
+            require(
+                amountQ <= auctionState.queuedAskAmount,
+                "amount beyond the limit!"
+            );
+             // 部分清空
+            len = askQueue.length;
+            askAmount[msg.sender] += amountQ;
+            while(len > 0 && amountQ > 0){
+                q = askQueue[len - 1];
+                if (amountQ >= q.amount){
+                    askAmount[q.user] += q.amount;
+                    auctionState.queuedAskAmount -= q.amount;
+                    amountQ -= q.amount;
+                    len--;
+                }
+                else{
+                    askAmount[q.user] += amountQ;
+                    auctionState.queuedAskAmount -= q.amount;
+                    askQueue[len - 1].amount -= amountQ;
+                    amountQ = 0;
+                    askQueue.length = len;
+                    break;
+                }
+            }  
         }
 
         // 4 - bidWithdraw
         if (action == 4){
-            
+            require(
+                amountQ <= auctionState.queuedBidAmount,
+                "amount beyond the limit!"
+            );
+            len = bidQueue.length;
+            bidAmount[msg.sender] += amount;
+            while(len > 0 && amountQ > 0){
+                q = bidQueue[len - 1];
+                if (amountQ >= q.amount){
+                    bidAmount[q.user] += q.amount;
+                    auctionState.queuedBidAmount -= q.amount;
+                    amountQ -= q.amount;
+                    len--;
+                }
+                else{
+                    bidAmount[q.user] += amountQ;
+                    auctionState.queuedBidAmount -= q.amount;
+                    bidQueue[len - 1].amount -= amountQ;
+                    amountQ = 0;
+                    bidQueue.length = len;
+                    break;
+                }
+            }      
         }
         
     }
@@ -834,11 +925,13 @@ contract ImplAuction is IAuction, MathLib{
             // 3. 没有排队
             // updateQueue()只处理队列的增加、减少，不改变价格
 
+            /*
             if (auctionState.queuedAskAmount > 0){
                 updateQueue(action, amount);
                 amountQueue = amount;
                 amountPrice = 0;
             }
+            */
 
             if (amountPrice > 0){
                 if (amountPrice <= nonQueue){
@@ -861,11 +954,13 @@ contract ImplAuction is IAuction, MathLib{
         // the addtional deposit will be inserted into the queue
         if (action == 2){
             
+            /*
             if (auctionState.queuedBidAmount > 0){
                 updateQueue(action, amount);
                 amountQueue = amount;
                 amountPrice = 0;
             }
+            */
 
             if (amountPrice > 0){
                 if (amountPrice <= nonQueue){
@@ -1033,6 +1128,14 @@ contract ImplAuction is IAuction, MathLib{
         );
 
         // TODO: 处理等待队列和实际价格的变化
+        uint action;
+        if (token == auctionSettings.tokenInfo.askToken){
+            action = 3;
+        }
+        if (token == auctionSettings.tokenInfo.bidToken){
+            action = 4;
+        }
+        updateAfterAction(action, amount);
 
         return realAmount;
     }
