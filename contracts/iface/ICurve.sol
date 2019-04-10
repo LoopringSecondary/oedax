@@ -26,6 +26,8 @@ contract ICurve{
 
     // 此处优化priceScale含义，定义na/nb*priceScale为实际价格乘以1e18
     struct CurveParams {
+        address askToken;
+        address bidToken;
         uint T; // integer(100-100000)
         uint P; // decimal(P*priceScale)
         uint priceScale;    // priceScale

@@ -10,7 +10,7 @@ import "../iface/ICurve.sol";
 contract ImplAuction is IAuction, MathLib{
 
 
-    mapping(address => uint[])   private participationIndex;  // user address => index of Participation[]
+    mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
 
     uint private askPausedTime;//time on askCurve = now-contrainedTime-askPausedTime
     uint private bidPausedTime;//time on bidCurve = now-contrainedTime-bidPausedTime
@@ -532,7 +532,7 @@ contract ImplAuction is IAuction, MathLib{
 
 
 
-    /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
+    /// @dev Make a deposit and returns the amount that has been successfully deposited into the
     /// auciton, the rest is put into the waiting list (queue).
     /// Set `wallet` to 0x0 will avoid paying wallet a fee. Note only deposit has fee.
     function deposit(
@@ -595,27 +595,34 @@ contract ImplAuction is IAuction, MathLib{
             return 0;
         }
 
-        // 从treasury提取token并收取手续费
+        // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
         success = treasury.auctionDeposit(
             msg.sender,
             token,
             amount  // must be greater than 0.
         );
+
+        
+        // deposit时的手续费，若结束时单独收取，需要区分每一笔deposit的wallet情况
+        // 对于actualPrice的计算，手续费也参与了价格的计算，可能会导致价格计算不准确
+        // 针对流拍等情况，若要分离影响，需要增加数组记录手续费的情况
+        /*
         if (success && feeBips>0){
-            treasury.sendFee(
+            treasury.sendFee( 
                 auctionSettings.feeSettings.recepient,
                 msg.sender,
                 token,
                 amount - realAmount
             );
         }
+        */
 
         // TODO: 处理等待队列和实际价格的变化
         
 
 
-
+        //return amount;
         return realAmount;
     
     }
@@ -638,7 +645,7 @@ contract ImplAuction is IAuction, MathLib{
             limit = mul(
                 sub(auctionState.askPrice, auctionState.actualPrice), 
                 auctionState.totalBidAmount
-                );
+                )/auctionSettings.tokenInfo.priceScale;
         }
         
         if (action == 2){
@@ -652,7 +659,7 @@ contract ImplAuction is IAuction, MathLib{
             limit = mul(
                 sub(auctionState.actualPrice, auctionState.bidPrice), 
                 auctionState.totalBidAmount
-                );
+                )/auctionSettings.tokenInfo.priceScale;
         }
         
         if (action == 4){
@@ -666,6 +673,29 @@ contract ImplAuction is IAuction, MathLib{
     }
 
     
+    function queueExchange(
+        uint action,
+        uint amount
+    )
+        internal
+        returns(
+            uint
+        )
+    {
+        uint res = amount;
+        // tokenA exchange queueB
+        if (action == 1){
+            res = mul(amount, auctionSettings.tokenInfo.priceScale)/auctionState.actualPrice;
+        }
+        
+        // tokenB exchange queueA
+        if (action == 2){
+            res = mul(amount, auctionState.actualPrice)/auctionSettings.tokenInfo.priceScale;
+        }
+
+        return res;
+
+    }
 
     // deposit - 1. 加队列 2. 反向减队列
     // withdraw - 1. 减队列 2. 反向减队列

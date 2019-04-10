@@ -19,6 +19,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
 
     address[] public users; // users participating in the auction
 
+    mapping(address => bool) public userParticipated;
 
     // 拍卖过程中交互的逻辑：
     // 1. 用户Deposit X个 tokenA
@@ -46,19 +47,21 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
     mapping(address => uint256) public takerRateB;
 
     // clear to sync with oedax/treasury
-    mapping(address => uint256) public oedaxLockedA;
-    mapping(address => uint256) public oedaxLockedB;
-
-    mapping(address => bool) public isSettled;
-
-    uint public totalRecipientAmountA;
-    uint public totalRecipientAmountB;
+   
 
     uint public totalTakerRateA;
     uint public totalTakerRateB;
 
     uint public totalTakerAmountA;
     uint public totalTakerAmountB;
+
+    mapping(address => bool) public isSettled;
+
+    mapping(address => uint256) public oedaxLockedA;
+    mapping(address => uint256) public oedaxLockedB;
+
+    uint public totalRecipientAmountA;
+    uint public totalRecipientAmountB;
 
 
     
@@ -105,7 +108,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
         public
         view
         returns(
-            uint status,
+            uint queueStatus,
             uint amount
         );
 

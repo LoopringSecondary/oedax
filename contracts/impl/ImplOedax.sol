@@ -53,7 +53,6 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         FeeSettings memory feeS,
         TokenInfo   memory tokenInfo,
         Info        memory info
-
     )
         internal
         returns (
@@ -125,6 +124,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
   
 
         require(
+            initialAskAmount == 0 ||
             true == treasury.auctionWithdraw(
                 msg.sender,
                 askToken,
@@ -134,6 +134,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         );
 
         require(
+            initialBidAmount == 0 ||
             true == treasury.auctionWithdraw(
                 msg.sender,
                 bidToken,
@@ -375,6 +376,26 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         auctionSettings.info.delaySeconds = delaySeconds;
         auctionSettings.info.P = IAuction(auctionAddr).getActualPrice();
         
+        require(
+            initialAskAmount == 0 ||
+            true == treasury.auctionWithdraw(
+                msg.sender,
+                auctionSettings.tokenInfo.askToken,
+                initialAskAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
+        require(
+            initialBidAmount == 0 ||
+            true == treasury.auctionWithdraw(
+                msg.sender,
+                auctionSettings.tokenInfo.bidToken,
+                initialBidAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
         uint id;
         address addressAuction;
         (addressAuction, id) = createAuction(

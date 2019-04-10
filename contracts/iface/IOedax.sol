@@ -55,6 +55,17 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
         );
 
     function getAuctions(
+        address creator,
+        Status status
+    )
+        external
+        view
+        returns (
+            uint /*  count */, 
+            uint[] memory /* auction index */
+        );
+
+    function getAuctions(
         uint    skip,
         uint    count,
         address creator,

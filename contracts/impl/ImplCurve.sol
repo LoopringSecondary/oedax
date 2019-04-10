@@ -89,6 +89,8 @@ contract ImplCurve is ICurve, MathLib{
         bP.c = 1e18*(100+S);
         bP.d = 1e18*S/(M-1);
 
+        cP.askToken = askToken;
+        cP.bidToken = bidToken;
         cP.T = T;
         cP.P = P;
         cP.priceScale = priceScale;

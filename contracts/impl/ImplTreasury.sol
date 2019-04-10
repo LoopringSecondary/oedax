@@ -12,9 +12,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     using ERC20SafeTransfer for address;
 
-    address oedax;
+    address public oedax;
 
-    bool    terminated;
+    bool    public terminated;
 
     modifier whenRunning(){
         require(
@@ -242,6 +242,10 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         if (success) {
             userAvailableBalances[msg.sender][token] = add(userAvailableBalances[msg.sender][token], amount);
             userTotalBalances[msg.sender][token] = add(userTotalBalances[msg.sender][token], amount);
+        }
+        if (!userTokens[msg.sender][token]){
+            userTokens[msg.sender][token] = true;
+            userTokenList[msg.sender].push(token);
         }
         return success;
     }

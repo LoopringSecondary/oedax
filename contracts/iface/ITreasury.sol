@@ -28,6 +28,12 @@ contract ITreasury {
     // contractLockedBalances用于存储总量，不代表可以提币数量
     mapping (address => mapping(address => uint)) public contractLockedBalances;
 
+    // 用于记录用户存有资产的Token, 以便查询功能
+    mapping (address => address[]) public userTokenList;
+    
+    // 用于记录用户是否存有资产 user=>token=>bool
+    mapping (address => mapping(address=>bool)) public userTokens;
+
     // 获得用户创建的Auction的Index数组
     function getAuctionIndex(
         address creator

@@ -97,8 +97,8 @@ contract IAuctionData {
 
     struct AuctionSettings {
         
-        address creator;            // The one crated this auction.
-        uint    auctionID;          // 0-based ever increasing id
+        address creator;
+        uint    auctionID;
         uint    curveID;
         Info    info;
         FeeSettings feeSettings;
