@@ -680,7 +680,7 @@ contract ImplAuction is IAuction, MathLib{
     }
 
     
-    function queueExchange(
+    function tokenExchange(
         uint dir,
         uint amount
     )
@@ -728,7 +728,7 @@ contract ImplAuction is IAuction, MathLib{
         if (action == 1){
             // 首先抵消Bid，然后追加Ask
             if (auctionState.queuedBidAmount > 0){
-                askQ = queueExchange(2, auctionState.queuedBidAmount);
+                askQ = tokenExchange(2, auctionState.queuedBidAmount);
                 if (amountQ >= askQ){
                     // 全部清空
                     len = bidQueue.length;
@@ -748,16 +748,16 @@ contract ImplAuction is IAuction, MathLib{
                     askAmount[msg.sender] += amountQ;
                     while(len > 0 && amountQ > 0){
                         q = bidQueue[len - 1];
-                        if (amountQ >= queueExchange(2, q.amount)){
+                        if (amountQ >= tokenExchange(2, q.amount)){
                             bidAmount[q.user] += q.amount;
                             auctionState.queuedBidAmount -= q.amount;
-                            amountQ -= queueExchange(2, q.amount);
+                            amountQ -= tokenExchange(2, q.amount);
                             len--;
                         }
                         else{
-                            bidAmount[q.user] += queueExchange(1, amountQ);
-                            auctionState.queuedBidAmount -= queueExchange(1, amountQ);
-                            bidQueue[len - 1].amount -= queueExchange(1, amountQ);
+                            bidAmount[q.user] += tokenExchange(1, amountQ);
+                            auctionState.queuedBidAmount -= tokenExchange(1, amountQ);
+                            bidQueue[len - 1].amount -= tokenExchange(1, amountQ);
                             amountQ = 0;
                             askQueue.length = len;
                             break;
@@ -781,7 +781,7 @@ contract ImplAuction is IAuction, MathLib{
         if (action == 2){
             // 首先抵消Ask，然后追加Bid
             if (auctionState.queuedAskAmount > 0){
-                bidQ = queueExchange(1, auctionState.queuedAskAmount);
+                bidQ = tokenExchange(1, auctionState.queuedAskAmount);
                 if (amountQ >= bidQ){
                     // 全部清空
                     len = askQueue.length;
@@ -801,16 +801,16 @@ contract ImplAuction is IAuction, MathLib{
                     bidAmount[msg.sender] += amountQ;
                     while(len > 0 && amountQ > 0){
                         q = askQueue[len - 1];
-                        if (amountQ >= queueExchange(1, q.amount)){
+                        if (amountQ >= tokenExchange(1, q.amount)){
                             askAmount[q.user] += q.amount;
                             auctionState.queuedAskAmount -= q.amount;
-                            amountQ -= queueExchange(1, q.amount);
+                            amountQ -= tokenExchange(1, q.amount);
                             len--;
                         }
                         else{
-                            askAmount[q.user] += queueExchange(2, amountQ);
-                            auctionState.queuedAskAmount -= queueExchange(2, amountQ);
-                            askQueue[len - 1].amount -= queueExchange(2, amountQ);
+                            askAmount[q.user] += tokenExchange(2, amountQ);
+                            auctionState.queuedAskAmount -= tokenExchange(2, amountQ);
+                            askQueue[len - 1].amount -= tokenExchange(2, amountQ);
                             amountQ = 0;
                             bidQueue.length = len;
                             break;
@@ -903,11 +903,11 @@ contract ImplAuction is IAuction, MathLib{
         uint bidQueuedSup = 0;
         
         if (auctionState.queuedBidAmount > 0){
-            askQueuedSup = queueExchange(2, auctionState.queuedBidAmount);
+            askQueuedSup = tokenExchange(2, auctionState.queuedBidAmount);
         }
         
         if (auctionState.queuedAskAmount > 0){
-            bidQueuedSup = queueExchange(1, auctionState.queuedAskAmount);
+            bidQueuedSup = tokenExchange(1, auctionState.queuedAskAmount);
         }
 
         // nonQueue表示不考虑queue情况下最大的存取值
@@ -1169,19 +1169,88 @@ contract ImplAuction is IAuction, MathLib{
             AuctionState memory
         )
     {
-        //TODO: simulate the price changes
+        // TODO: simulate the price changes
 
     }
 
+    // 拍卖结束后提款
+    function settle()
+        external
+        returns (
+            bool /* settled */
+        )
+    {
+        require(
+            status >= Status.CLOSED &&
+            !isSettled[msg.sender],
+            "the auction should be later than CLOSED status"
+        );
+        
+
+        uint lockedA;
+        uint lockedB;
+        uint exchangedA; 
+        uint exchangedB;
+
+        (lockedA, lockedB) = calcActualTokens(msg.sender); 
+        exchangedA = tokenExchange(2, lockedB);
+        exchangedB = tokenExchange(1, lockedA);
+
+        treasury.exchangeTokens(
+            auctionSettings.feeSettings.recepient,
+            msg.sender,
+            auctionSettings.tokenInfo.askToken,
+            auctionSettings.tokenInfo.bidToken,
+            exchangedA,
+            exchangedB
+        );
+   
+    } 
+
     // Try to settle the auction.
+    // 用于返还等待序列中的Token
     function triggerSettle()
         external
         returns (
             bool /* settled */
         )
     {
+        require(
+            status >= Status.CLOSED,
+            "the auction should be later than CLOSED status"
+        );
         // TODO: settle
-        return true;
+        uint len;
+        bool success;
+        QueuedParticipation memory q;
+
+        len = askQueue.length;
+        while(len > 0){
+            q = askQueue[len - 1];
+            success = treasury.auctionWithdraw(
+                q.user,
+                auctionSettings.tokenInfo.askToken,
+                q.amount
+            );
+            auctionState.queuedAskAmount -= q.amount;
+            len--;
+        }
+        askQueue.length = 0; // delete
+
+        len = bidQueue.length;
+        while(len > 0){
+            q = bidQueue[len - 1];
+            success = treasury.auctionWithdraw(
+                q.user,
+                auctionSettings.tokenInfo.bidToken,
+                q.amount
+            );
+            auctionState.queuedBidAmount -= q.amount;
+            len--;
+        }
+        bidQueue.length = 0; // delete
+
+        return success;
     }
 
 

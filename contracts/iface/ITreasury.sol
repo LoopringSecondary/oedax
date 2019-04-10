@@ -88,7 +88,7 @@ contract ITreasury {
     )
         external
         returns (
-            bool /* successful */
+            bool /* successful */ 
         );
 
     // between treasury contract and auction contract
