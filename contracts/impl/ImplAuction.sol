@@ -674,7 +674,7 @@ contract ImplAuction is IAuction, MathLib{
 
     
     function queueExchange(
-        uint action,
+        uint dir,
         uint amount
     )
         internal
@@ -683,13 +683,13 @@ contract ImplAuction is IAuction, MathLib{
         )
     {
         uint res = amount;
-        // tokenA exchange queueB
-        if (action == 1){
+        // input amountA, output amountB
+        if (dir == 1){
             res = mul(amount, auctionSettings.tokenInfo.priceScale)/auctionState.actualPrice;
         }
         
-        // tokenB exchange queueA
-        if (action == 2){
+        // input amountB, output amountA
+        if (dir == 2){
             res = mul(amount, auctionState.actualPrice)/auctionSettings.tokenInfo.priceScale;
         }
 
@@ -725,8 +725,8 @@ contract ImplAuction is IAuction, MathLib{
                 askQueue.push(q);
             }
             else{
-                // 要从队列中拿出的
-                bidQ = mul(amount, auctionSettings.tokenInfo.priceScale)/auctionState.actualPrice;
+                // 要从队列中拿出的, A->B
+                bidQ = queueExchange(1, amount); 
                 if (auctionState.queuedBidAmount == bidQ){
                     // 清空
                     uint len = askQueue.length;
@@ -764,7 +764,7 @@ contract ImplAuction is IAuction, MathLib{
             }
             else{
                 // 要从队列中拿出的
-                askQ = mul(amount, auctionState.actualPrice)/auctionSettings.tokenInfo.priceScale;
+                askQ = queueExchange(2, amount); 
                 if (auctionState.queuedAskAmount == askQ){
                     // 清空
 
@@ -805,27 +805,26 @@ contract ImplAuction is IAuction, MathLib{
     {
         uint nonQueue;
 
+        // 曲线到达暂停位置需要的值
         nonQueue = getLimits(action);
 
         uint askQueuedSup = 0;
         uint bidQueuedSup = 0;
         
         if (auctionState.queuedBidAmount > 0){
-            askQueuedSup = mul(auctionState.queuedBidAmount, auctionState.actualPrice)/
-                auctionSettings.tokenInfo.priceScale;
+            askQueuedSup = queueExchange(2, auctionState.queuedBidAmount);
         }
         
         if (auctionState.queuedAskAmount > 0){
-            bidQueuedSup = mul(auctionState.queuedAskAmount, auctionSettings.tokenInfo.priceScale)/
-                auctionState.actualPrice;
+            bidQueuedSup = queueExchange(1, auctionState.queuedAskAmount);
         }
 
         // nonQueue表示不考虑queue情况下最大的存取值
-        // askQueuedSup与bidQueuedSup表示“抵消掉”queue中的记录需要的值
+        // askQueuedSup与bidQueuedSup表示可以“抵消掉”queue中的记录需要的值
 
         // 只有两种情况 1 - 没有WaitingList，多的部分会加到WaitingList中
-        //            2 - 有WaitingList，必定有一个方向Pause，先抵消Pause方向队列，然后变动价格
-        
+        //            2 - 有WaitingList，必定有一个方向Pause，先改变价格，然后抵消Pause方向队列
+
         // the addtional deposit will be inserted into the queue
         uint amountQueue; // 用于更改Queue的数量
         uint amountPrice = amount; // 用于更改价格的数量
@@ -840,20 +839,6 @@ contract ImplAuction is IAuction, MathLib{
                 amountQueue = amount;
                 amountPrice = 0;
             }
-            else{
-                if (auctionState.queuedBidAmount > 0){
-                    if (amount <= askQueuedSup){
-                        updateQueue(action, amount);
-                        amountQueue = amount;
-                        amountPrice = 0;
-                    }
-                    else{
-                        updateQueue(action, askQueuedSup);
-                        amountQueue = askQueuedSup;
-                        amountPrice = amount - askQueuedSup;
-                    }
-                }
-            }
 
             if (amountPrice > 0){
                 if (amountPrice <= nonQueue){
@@ -863,8 +848,10 @@ contract ImplAuction is IAuction, MathLib{
                 else{
                     auctionState.totalAskAmount += nonQueue;
                     updateActualPrice();
+                    // 此时到达卖出价格，先抵消bid，再增加ask，逻辑在updateQueue中实现
                     updateQueue(action, amountPrice - nonQueue);
                 }
+                 
 
             }
 
@@ -878,20 +865,6 @@ contract ImplAuction is IAuction, MathLib{
                 updateQueue(action, amount);
                 amountQueue = amount;
                 amountPrice = 0;
-            }
-            else{
-                if (auctionState.queuedAskAmount > 0){
-                    if (amount <= bidQueuedSup){
-                        updateQueue(action, amount);
-                        amountQueue = amount;
-                        amountPrice = 0;
-                    }
-                    else{
-                        updateQueue(action, bidQueuedSup);
-                        amountQueue = bidQueuedSup;
-                        amountPrice = amount - bidQueuedSup;
-                    }
-                }
             }
 
             if (amountPrice > 0){
@@ -908,10 +881,14 @@ contract ImplAuction is IAuction, MathLib{
         }
 
         // the addtional withdraw will hedge the queue
-        // 如果bid有队列，不能取款
         // 如果ask有队列，先去ask，然后调整价格
 
         if (action == 3){
+            require(
+                auctionState.queuedAskAmount + nonQueue <= amount,
+                "withdrawal amount beyond limit"
+            );
+
             if (auctionState.queuedAskAmount > 0){
                 if (amount <= auctionState.queuedAskAmount){
                     updateQueue(action, amount);
@@ -936,7 +913,10 @@ contract ImplAuction is IAuction, MathLib{
 
         // the addtional withdraw will hedge the queue
         if (action == 4){
-            
+            require(
+                auctionState.queuedBidAmount + nonQueue <= amount,
+                "withdrawal amount beyond limit"
+            );
             if (auctionState.queuedBidAmount > 0){
                 if (amount <= auctionState.queuedBidAmount){
                     updateQueue(action, amount);
