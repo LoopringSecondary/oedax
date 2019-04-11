@@ -24,12 +24,7 @@ contract IAuctionData {
     
 
 
-    struct AuctionLimits{
-        uint    askDepositLimit;
-        uint    bidDepositLimit;
-        uint    askWithdrawalLimit;
-        uint    bidWithdrawalLimit;
-    }
+
 
     struct AuctionState {
         // The following are state information that changes while the auction is still active.
@@ -50,7 +45,10 @@ contract IAuctionData {
 
         // Deposit & Withdrawal limits. Withdrawal limit should be 0 if withdrawal is disabled;
         // deposit limit should put waiting list in consideration.
-        AuctionLimits    auctionLimits;
+        uint    askDepositLimit;
+        uint    bidDepositLimit;
+        uint    askWithdrawalLimit;
+        uint    bidWithdrawalLimit;
     }
 
     //sub-structs to prevent deep stack
@@ -78,8 +76,7 @@ contract IAuctionData {
 
        
 
-    struct Info{
-
+    struct AuctionInfo{
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
         uint    T;                  // Duration in seconds
@@ -100,7 +97,7 @@ contract IAuctionData {
         uint    auctionID;
         uint    curveID;
         uint    startedTimestamp;   // Timestamp when this auction is started.
-        Info    info;
+        //AuctionInfo info;
         FeeSettings feeSettings;
         TokenInfo   tokenInfo;
 

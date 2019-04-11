@@ -17,7 +17,7 @@ contract IAuctionGenerator{
         uint        initialBidAmount,         // The initial amount of tokenB from the creator's account.
         IAuctionData.FeeSettings memory feeS,
         IAuctionData.TokenInfo   memory tokenInfo,
-        IAuctionData.Info        memory info,
+        IAuctionData.AuctionInfo memory info,
         uint        id,
         address     creator
 

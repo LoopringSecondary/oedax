@@ -51,7 +51,7 @@ contract ImplAuction is IAuction, MathLib{
 
         FeeSettings memory feeSettings,
         TokenInfo   memory tokenInfo,
-        Info        memory info,
+        AuctionInfo memory info,
 
         uint    id,
         address creator
@@ -68,7 +68,7 @@ contract ImplAuction is IAuction, MathLib{
         auctionSettings.curveID = _curveID;
         auctionSettings.startedTimestamp = now;
         
-        auctionSettings.info = info;
+        auctionInfo = info;
         auctionSettings.feeSettings = feeSettings;
         auctionSettings.tokenInfo = tokenInfo;
         
@@ -112,10 +112,10 @@ contract ImplAuction is IAuction, MathLib{
         
         if (status == Status.OPEN){
             return (
-                auctionSettings.info.maxAskAmountPerAddr,
-                auctionSettings.info.maxBidAmountPerAddr,
-                auctionSettings.info.maxAskAmountPerAddr,
-                auctionSettings.info.maxBidAmountPerAddr
+                auctionInfo.maxAskAmountPerAddr,
+                auctionInfo.maxBidAmountPerAddr,
+                auctionInfo.maxAskAmountPerAddr,
+                auctionInfo.maxBidAmountPerAddr
             );
         }
 
@@ -133,13 +133,13 @@ contract ImplAuction is IAuction, MathLib{
         
         if (actualPrice >= bidPrice){
             bidDepositLimit = mul((actualPrice - bidPrice), _bid)/bidPrice;
-            if (bidDepositLimit > auctionSettings.info.maxBidAmountPerAddr){
-                bidDepositLimit = auctionSettings.info.maxBidAmountPerAddr;
+            if (bidDepositLimit > auctionInfo.maxBidAmountPerAddr){
+                bidDepositLimit = auctionInfo.maxBidAmountPerAddr;
             }
 
             askWithdrawLimit = mul((actualPrice - bidPrice), _bid);
-            if (askWithdrawLimit > auctionSettings.info.maxAskAmountPerAddr){
-                askWithdrawLimit = auctionSettings.info.maxAskAmountPerAddr;
+            if (askWithdrawLimit > auctionInfo.maxAskAmountPerAddr){
+                askWithdrawLimit = auctionInfo.maxAskAmountPerAddr;
             }
         }
         else{
@@ -149,13 +149,13 @@ contract ImplAuction is IAuction, MathLib{
 
         if (actualPrice <= askPrice){
             askDepositLimit = mul((askPrice - actualPrice), _bid);
-            if (askDepositLimit > auctionSettings.info.maxAskAmountPerAddr){
-                askDepositLimit = auctionSettings.info.maxAskAmountPerAddr;
+            if (askDepositLimit > auctionInfo.maxAskAmountPerAddr){
+                askDepositLimit = auctionInfo.maxAskAmountPerAddr;
             }
               
             bidWithdrawLimit = mul((askPrice - actualPrice), _bid)/askPrice;
-            if (bidWithdrawLimit > auctionSettings.info.maxBidAmountPerAddr){
-                bidWithdrawLimit = auctionSettings.info.maxBidAmountPerAddr;
+            if (bidWithdrawLimit > auctionInfo.maxBidAmountPerAddr){
+                bidWithdrawLimit = auctionInfo.maxBidAmountPerAddr;
             }
         }
         else{
@@ -382,10 +382,10 @@ contract ImplAuction is IAuction, MathLib{
             "The auction is not open yet"
         );
 
-        uint time = sub(now, auctionSettings.startedTimestamp + auctionSettings.info.delaySeconds);
+        uint time = sub(now, auctionSettings.startedTimestamp + auctionInfo.delaySeconds);
         // rate drops when time goes on
 
-        rate = time*100/auctionSettings.info.T;
+        rate = time*100/auctionInfo.T;
 
         if (rate < 100){
             rate = 100 - rate;
@@ -410,7 +410,20 @@ contract ImplAuction is IAuction, MathLib{
         return aucSettings;
     }
     
-    
+
+    function getAuctionInfo()
+        public
+        view
+        returns(
+            AuctionInfo memory
+        )
+    {
+        AuctionInfo memory aucInfo;
+        aucInfo = auctionInfo;
+        return aucInfo;
+    }
+
+
     function getAuctionState()
         public
         view
@@ -474,7 +487,7 @@ contract ImplAuction is IAuction, MathLib{
             uint /* ttlSeconds */
         )
     {
-        uint period = auctionSettings.info.T;
+        uint period = auctionInfo.T;
         
         if (status <= Status.OPEN){
             return period;
@@ -552,7 +565,7 @@ contract ImplAuction is IAuction, MathLib{
         );
 
         if (status == Status.STARTED&&
-            now >= auctionSettings.startedTimestamp + auctionSettings.info.delaySeconds
+            now >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         )
         {
             status = Status.OPEN;
@@ -1046,8 +1059,8 @@ contract ImplAuction is IAuction, MathLib{
             auctionState.totalBidAmount
         )/auctionSettings.tokenInfo.priceScale; 
         if (status == Status.OPEN &&
-            auctionState.actualPrice <= auctionSettings.info.P*auctionSettings.info.M &&
-            auctionState.actualPrice >= auctionSettings.info.P/auctionSettings.info.M
+            auctionState.actualPrice <= auctionInfo.P*auctionInfo.M &&
+            auctionState.actualPrice >= auctionInfo.P/auctionInfo.M
         )
         {
             status == Status.CONSTRAINED;
@@ -1066,7 +1079,7 @@ contract ImplAuction is IAuction, MathLib{
 
 
         require(
-            auctionSettings.info.isWithdrawalAllowed,
+            auctionInfo.isWithdrawalAllowed,
             "withdraw is not allowed"
         );
         

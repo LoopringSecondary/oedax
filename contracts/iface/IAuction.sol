@@ -85,6 +85,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
 
     AuctionState    public auctionState; // mutable state
     AuctionSettings public auctionSettings;  // immutable settings
+    AuctionInfo     public auctionInfo;
 
 
 
@@ -150,6 +151,13 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
         view
         returns(
             AuctionState memory
+        );
+
+    function getAuctionInfo()
+        public
+        view
+        returns(
+            AuctionInfo memory
         );
 
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should

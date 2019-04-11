@@ -15,6 +15,7 @@ contract ICurve{
 
     // 此处一是为了简洁表示，而是T与P的影响从表达式中分离
     // BasicParams可以表示一类倍数下降的曲线，因此是可扩展的
+    /*
     struct BasicParams {
         uint M; // integer(2-100)
         uint S; // integer(10-100*M),precision=0.01,K=1+0.01*S
@@ -23,6 +24,7 @@ contract ICurve{
         uint c; // c=K
         uint d; // d=(K-1)*T/(M-1) => d=(K-1)/(M-1) *T
     }
+    */
 
     // 此处优化priceScale含义，定义na/nb*priceScale为实际价格乘以1e18
     struct CurveParams {
@@ -31,8 +33,15 @@ contract ICurve{
         uint T; // integer(100-100000)
         uint P; // decimal(P*priceScale)
         uint priceScale;    // priceScale
-        BasicParams basicParams; // common part which can be cloned
+        //BasicParams basicParams; // common part which can be cloned
         bytes32 curveName;  // curve name
+        
+        uint M; // integer(2-100)
+        uint S; // integer(10-100*M),precision=0.01,K=1+0.01*S
+        uint a; // a=P => a=1*P
+        uint b; // b=(K-1)*M*P*T/(M-1) => b=(K-1)*M/(M-1) *P*T
+        uint c; // c=K
+        uint d; // d=(K-1)*T/(M-1) => d=(K-1)/(M-1) *T
     }
 
 

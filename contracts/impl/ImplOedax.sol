@@ -15,7 +15,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
     ITreasury           public  treasury;
     ICurve              public  curve;
     FeeSettings         public  feeSettings;
-    IAuctionGenerator   public  auctionGenerator;
+    IAuctionGenerator     public  auctionGenerator;
     
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -57,7 +57,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         uint        initialBidAmount,         // The initial amount of tokenB from the creator's account.
         FeeSettings memory feeS,
         TokenInfo   memory tokenInfo,
-        Info        memory info
+        AuctionInfo memory info
     )
         internal
         returns (
@@ -106,7 +106,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         uint    curveId,
         address askToken,
         address bidToken,
-        Info    memory  info 
+        AuctionInfo    memory  info 
     )
         internal
         view
@@ -125,7 +125,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
 
         require(
             cp.T == info.T &&
-            cp.basicParams.M == info.M &&
+            cp.M == info.M &&
             cp.P == info.P &&
             cp.priceScale == priceScale,
             "curve does not match the auction parameters"
@@ -153,7 +153,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         address bidToken,
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        Info    memory  info 
+        AuctionInfo    memory  info 
     )
         public
         returns (
@@ -399,10 +399,11 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         );
 
         AuctionSettings memory auctionSettings = IAuction(auctionAddr).getAuctionSettings();
+        AuctionInfo memory auctionInfo = IAuction(auctionAddr).getAuctionInfo();
 
         auctionSettings.startedTimestamp = now;
-        auctionSettings.info.delaySeconds = delaySeconds;
-        auctionSettings.info.P = IAuction(auctionAddr).getActualPrice();
+        auctionInfo.delaySeconds = delaySeconds;
+        auctionInfo.P = IAuction(auctionAddr).getActualPrice();
         
         require(
             initialAskAmount == 0 ||
@@ -432,7 +433,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
             auctionSettings.feeSettings,
             auctionSettings.tokenInfo,
-            auctionSettings.info
+            auctionInfo
         );
 
         return (addressAuction, id, true);
