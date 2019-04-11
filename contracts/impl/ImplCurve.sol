@@ -1,9 +1,9 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IAuction.sol";
-import "../lib/MathLib.sol";
-import "../lib/ERC20.sol";
+import "./IAuction.sol";
+import "./MathLib.sol";
+import "./ERC20.sol";
 
 contract ImplCurve is ICurve, MathLib{
 
@@ -176,7 +176,7 @@ contract ImplCurve is ICurve, MathLib{
         BasicParams memory bP;
         cP = curveParams[cid-1];
         bP = cP.basicParams;
-        if (p <= cP.P*bP.M && p > cP.P*bP.a/bP.c){
+        if (p > cP.P*bP.M || p <= cP.P*bP.a/bP.c){
             return (false, 0);
         }
 
@@ -205,7 +205,7 @@ contract ImplCurve is ICurve, MathLib{
         BasicParams memory bP;
         cP = curveParams[cid-1];
         bP = cP.basicParams;
-        p = mul(cP.P, add(mul(t, bP.c), mul(cP.T, bP.d))/add(mul(t, bP.a), mul(cP.T, bP.b)));
+        p = mul(cP.P, add(mul(t, bP.c), mul(cP.T, bP.d)))/add(mul(t, bP.a), mul(cP.T, bP.b));
         return p; 
     }
 
@@ -227,7 +227,7 @@ contract ImplCurve is ICurve, MathLib{
         BasicParams memory bP;
         cP = curveParams[cid-1];
         bP = cP.basicParams;
-        if (p >= cP.P/bP.M && p < cP.P*bP.c/bP.a){
+        if (p < cP.P/bP.M || p >= cP.P*bP.c/bP.a){
             return (false, 0);
         }
         uint t;
