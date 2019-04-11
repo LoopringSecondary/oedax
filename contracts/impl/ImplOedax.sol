@@ -4,16 +4,18 @@ pragma experimental ABIEncoderV2;
 import "../iface/IOedax.sol";
 import "../iface/ITreasury.sol";
 import "../lib/Ownable.sol";
-import "../impl/ImplAuction.sol";
 import "../lib/ERC20.sol";
 import "../lib/MathLib.sol";
+//import "../impl/ImplAuction.sol";
+import "../iface/IAuctionGenerator.sol";
+import "../iface/IAuction.sol";
 
 contract ImplOedax is IOedax, Ownable, MathLib {
 
-    ITreasury   public  treasury;
-    ICurve      public  curve;
-    
-    FeeSettings public  feeSettings;
+    ITreasury           public  treasury;
+    ICurve              public  curve;
+    FeeSettings         public  feeSettings;
+    IAuctionGenerator   public  auctionGenerator;
     
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -29,12 +31,14 @@ contract ImplOedax is IOedax, Ownable, MathLib {
     constructor(
         address _treasury,
         address _curve,
+        address _auctionGenerator,
         address _recepient
     )
         public
     {
         treasury = ITreasury(_treasury);
         curve = ICurve(_curve);
+        auctionGenerator = IAuctionGenerator(_auctionGenerator);
         feeSettings.recepient = _recepient;
         feeSettings.creationFeeEth = 0;
         feeSettings.protocolBips = 5;
@@ -43,9 +47,10 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         feeSettings.withdrawalPenaltyBips = 250;
     }
     
+
+
     
-    
-        // Initiate an auction
+    // Initiate an auction
     function createAuction(
         uint        curveId,
         uint        initialAskAmount,         // The initial amount of tokenA from the creator's account.
@@ -62,6 +67,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
     {
         uint    id = treasury.getNextAuctionID();
 
+        /*
         ImplAuction auction = new ImplAuction(
             address(this),
             address(treasury), 
@@ -75,10 +81,24 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             id,
             msg.sender
         );
+        */
+        address auctionAddr;
+        auctionAddr = auctionGenerator.createAuction(
+            address(curve),
+            curveId,
+            initialAskAmount,
+            initialBidAmount,
+            feeS,
+            tokenInfo,
+            info,
+            id,
+            msg.sender
+        );
 
         bool success;
-        (success, id) = treasury.registerAuction(address(auction), msg.sender);
-        return (address(auction), id);
+        //(success, id) = treasury.registerAuction(address(auction), msg.sender);
+        (success, id) = treasury.registerAuction(auctionAddr, msg.sender);
+        return (auctionAddr, id);
 
     }
 
