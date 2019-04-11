@@ -82,29 +82,18 @@ contract ImplOedax is IOedax, Ownable, MathLib {
 
     }
 
-    // Initiate an auction
-    function createAuction(
-        uint    delaySeconds,
+    function checkTokenInfo(
         uint    curveId,
         address askToken,
         address bidToken,
-        uint    P,  // target price
-        uint    M,  // prixce factor
-        uint    T,  // duration
-        uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
-        uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        uint    maxAskAmountPerAddr,      // The max amount of tokenA per address, 0 for unlimited.
-        uint    maxBidAmountPerAddr,      // The max amount of tokenB per address, 0 for unlimited.
-        bool    isWithdrawalAllowed,
-        bool    isTakerFeeDisabled      // Disable using takerBips
+        Info    memory  info 
     )
-        external
-        returns (
-            address /* auction */,
-            uint    /* id */
+        internal
+        view
+        returns(
+            TokenInfo memory
         )
     {
-        uint    id = treasury.auctionAmount() + 1;
         uint    askDecimals = ERC20(askToken).decimals();
         uint    bidDecimals = ERC20(bidToken).decimals();
         uint    priceScale;
@@ -115,13 +104,45 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         cp = curve.getCurveByID(curveId);   
 
         require(
-            cp.T == T &&
-            cp.basicParams.M == M &&
-            cp.P == P &&
+            cp.T == info.T &&
+            cp.basicParams.M == info.M &&
+            cp.P == info.P &&
             cp.priceScale == priceScale,
             "curve does not match the auction parameters"
-        );     
-  
+        ); 
+                
+        TokenInfo   memory tokenInfo;
+
+        tokenInfo = TokenInfo(
+            askToken,
+            bidToken,
+            askDecimals,
+            bidDecimals,
+            priceScale
+        );  
+
+        return tokenInfo;
+        
+    }
+
+
+    // Initiate an auction
+    function createAuction(
+        uint    curveId,
+        address askToken,
+        address bidToken,
+        uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
+        uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
+        Info    memory  info 
+    )
+        public
+        returns (
+            address /* auction */,
+            uint    /* id */
+        )
+    {
+        uint    id = treasury.auctionAmount() + 1;
+
 
         require(
             initialAskAmount == 0 ||
@@ -145,29 +166,16 @@ contract ImplOedax is IOedax, Ownable, MathLib {
 
         FeeSettings memory feeS;
         TokenInfo   memory tokenInfo;
-        Info        memory info;
         
         feeS = feeSettings;
         
-        tokenInfo = TokenInfo(
+        tokenInfo = checkTokenInfo(
+            curveId,
             askToken,
             bidToken,
-            askDecimals,
-            bidDecimals,
-            priceScale
+            info 
         );
- 
-        info = Info(
-            P,
-            M,
-            T,
-            now,
-            delaySeconds,
-            maxAskAmountPerAddr,
-            maxBidAmountPerAddr,
-            isWithdrawalAllowed,
-            isTakerFeeDisabled
-        );
+
 
         address addressAuction;
         (addressAuction, id) = createAuction(
@@ -372,7 +380,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
 
         AuctionSettings memory auctionSettings = IAuction(auctionAddr).getAuctionSettings();
 
-        auctionSettings.info.startedTimestamp = now;
+        auctionSettings.startedTimestamp = now;
         auctionSettings.info.delaySeconds = delaySeconds;
         auctionSettings.info.P = IAuction(auctionAddr).getActualPrice();
         

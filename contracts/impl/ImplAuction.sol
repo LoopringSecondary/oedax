@@ -66,7 +66,8 @@ contract ImplAuction is IAuction, MathLib{
         auctionSettings.creator = creator;
         auctionSettings.auctionID = id; //given by Oedax contract
         auctionSettings.curveID = _curveID;
-
+        auctionSettings.startedTimestamp = now;
+        
         auctionSettings.info = info;
         auctionSettings.feeSettings = feeSettings;
         auctionSettings.tokenInfo = tokenInfo;
@@ -381,7 +382,7 @@ contract ImplAuction is IAuction, MathLib{
             "The auction is not open yet"
         );
 
-        uint time = sub(now, auctionSettings.info.startedTimestamp + auctionSettings.info.delaySeconds);
+        uint time = sub(now, auctionSettings.startedTimestamp + auctionSettings.info.delaySeconds);
         // rate drops when time goes on
 
         rate = time*100/auctionSettings.info.T;
@@ -551,7 +552,7 @@ contract ImplAuction is IAuction, MathLib{
         );
 
         if (status == Status.STARTED&&
-            now >= auctionSettings.info.startedTimestamp + auctionSettings.info.delaySeconds
+            now >= auctionSettings.startedTimestamp + auctionSettings.info.delaySeconds
         )
         {
             status = Status.OPEN;
@@ -685,6 +686,7 @@ contract ImplAuction is IAuction, MathLib{
         uint amount
     )
         internal
+        view
         returns(
             uint
         )

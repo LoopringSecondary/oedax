@@ -222,6 +222,14 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
             AuctionState memory
         );
 
+
+    // 拍卖结束后提款
+    function settle()
+        external
+        returns (
+            bool /* settled */
+        );
+        
     // Try to settle the auction.
     function triggerSettle()
         external

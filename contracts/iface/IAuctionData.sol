@@ -83,7 +83,6 @@ contract IAuctionData {
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
         uint    T;                  // Duration in seconds
-        uint    startedTimestamp;   // Timestamp when this auction is started.
         uint    delaySeconds;       // The delay for open participation.
         uint    maxAskAmountPerAddr;
         uint    maxBidAmountPerAddr;
@@ -100,6 +99,7 @@ contract IAuctionData {
         address creator;
         uint    auctionID;
         uint    curveID;
+        uint    startedTimestamp;   // Timestamp when this auction is started.
         Info    info;
         FeeSettings feeSettings;
         TokenInfo   tokenInfo;

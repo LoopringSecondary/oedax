@@ -12,21 +12,14 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
 
     // Initiate an auction
     function createAuction(
-        //uint    delaySeconds,
         uint    curveId,
         address askToken,
         address bidToken,
-        uint    P,  // target price
-        uint    M,  // prixce factor
-        uint    T,  // duration
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        uint    maxAskAmountPerAddr,      // The max amount of tokenA per address, 0 for unlimited.
-        uint    maxBidAmountPerAddr,      // The max amount of tokenB per address, 0 for unlimited.
-        bool    isWithdrawalAllowed,
-        bool    isTakerFeeDisabled      // Disable using takerBips
+        Info    memory  info 
     )
-        external
+        public
         returns (
             address /* auction */,
             uint    /* id */
