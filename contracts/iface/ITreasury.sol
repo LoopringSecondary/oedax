@@ -47,6 +47,7 @@ contract ITreasury {
     // auctionID递增，用于创建拍卖时获得ID
     function getNextAuctionID()
         public
+        view
         returns (
             uint /* auctionID */
         );
@@ -178,6 +179,7 @@ contract ITreasury {
 
     function isTerminated()
         external
+        view
         returns (
             bool /* terminated */
         );

@@ -77,6 +77,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function getNextAuctionID()
         public
+        view
         returns (
             uint /* auctionID */
         )
@@ -266,8 +267,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "Not enough token!"
         );
         bool success;
-        success = token.safeTransferFrom(
-            address(this),
+        success = token.safeTransfer(
             msg.sender,
             amount
         );
@@ -391,6 +391,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function isTerminated()
         external
+        view
         returns (
             bool /* terminated */
         )

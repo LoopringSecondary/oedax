@@ -1,9 +1,9 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "./IAuction.sol";
-import "./MathLib.sol";
-import "./ERC20.sol";
+import "../iface/IAuction.sol";
+import "../lib/MathLib.sol";
+import "../lib/ERC20.sol";
 
 contract ImplCurve is ICurve, MathLib{
 
