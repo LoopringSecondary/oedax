@@ -7,7 +7,6 @@ import "../iface/IOedax.sol";
 import "../lib/MathLib.sol";
 import "../iface/ICurve.sol";
 
-
 contract ImplAuction is IAuction, MathLib{
 
 
