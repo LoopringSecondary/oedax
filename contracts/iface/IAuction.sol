@@ -57,8 +57,8 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
 
     mapping(address => bool) public isSettled;
 
-    mapping(address => uint256) public oedaxLockedA;
-    mapping(address => uint256) public oedaxLockedB;
+    //mapping(address => uint256) public oedaxLockedA;
+    //mapping(address => uint256) public oedaxLockedB;
 
     uint public totalRecipientAmountA;
     uint public totalRecipientAmountB;
