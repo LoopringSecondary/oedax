@@ -4,8 +4,9 @@ pragma experimental ABIEncoderV2;
 import "../impl/ImplAuction.sol";
 import "../iface/IAuctionGenerator.sol";
 import "../lib/Ownable.sol";
+import "../helper/DataHelper.sol";
 
-contract ImplAuctionGenerator is Ownable{
+contract ImplAuctionGenerator is Ownable, DataHelper{
 
     address public  oedax;
     address public  treasury;
@@ -50,9 +51,9 @@ contract ImplAuctionGenerator is Ownable{
         uint        curveId,
         uint        initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint        initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        IAuctionData.FeeSettings memory feeS,
-        IAuctionData.TokenInfo   memory tokenInfo,
-        IAuctionData.AuctionInfo memory info,
+        bytes  memory   bFeeS,
+        bytes  memory   bTokenInfo,
+        bytes  memory   bAuctionInfo,
         uint        id,
         address     creator
 
@@ -72,9 +73,9 @@ contract ImplAuctionGenerator is Ownable{
             curveId,
             initialAskAmount,
             initialBidAmount,
-            feeS,
-            tokenInfo,
-            info,
+            bytesToFeeSettings(bFeeS),
+            bytesToTokenInfo(bTokenInfo),
+            bytesToAuctionInfo(bAuctionInfo),
             id,
             creator
         );

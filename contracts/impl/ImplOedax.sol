@@ -6,16 +6,16 @@ import "../iface/ITreasury.sol";
 import "../lib/Ownable.sol";
 import "../lib/ERC20.sol";
 import "../lib/MathLib.sol";
-//import "../impl/ImplAuction.sol";
 import "../iface/IAuctionGenerator.sol";
 import "../iface/IAuction.sol";
+import "../helper/DataHelper.sol";
 
-contract ImplOedax is IOedax, Ownable, MathLib {
+contract ImplOedax is IOedax, Ownable, MathLib, DataHelper {
 
     ITreasury           public  treasury;
     ICurve              public  curve;
     FeeSettings         public  feeSettings;
-    IAuctionGenerator     public  auctionGenerator;
+    IAuctionGenerator   public  auctionGenerator;
     
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -83,14 +83,22 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         );
         */
         address auctionAddr;
+
+        bytes memory bF;
+        bytes memory bT;
+        bytes memory bA;
+        bF = feeSettingsToBytes(feeS);
+        bT = tokenInfoToBytes(tokenInfo);
+        bA = auctionInfoToBytes(info);
+
         auctionAddr = auctionGenerator.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
             initialBidAmount,
-            feeS,
-            tokenInfo,
-            info,
+            bF,
+            bT,
+            bA,
             id,
             msg.sender
         );
@@ -119,9 +127,12 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         uint    priceScale;
         require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
         priceScale = pow(10, 18 + askDecimals - bidDecimals);
-        
+
         ICurve.CurveParams memory cp;
-        cp = curve.getCurveByID(curveId);   
+
+        cp = bytesToCurveParams(
+            curve.getCurveBytes(curveId)
+        );  
 
         require(
             cp.T == info.T &&
@@ -131,9 +142,9 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             "curve does not match the auction parameters"
         ); 
                 
-        TokenInfo   memory tokenInfo;
+        TokenInfo   memory _tokenInfo;
 
-        tokenInfo = TokenInfo(
+        _tokenInfo = TokenInfo(
             askToken,
             bidToken,
             askDecimals,
@@ -141,7 +152,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             priceScale
         );  
 
-        return tokenInfo;
+        return _tokenInfo;
         
     }
 
@@ -224,9 +235,13 @@ contract ImplOedax is IOedax, Ownable, MathLib {
         address auctionAddr;
         auctionAddr = treasury.auctionIdMap(id);
         uint    lastSynTime = IAuction(auctionAddr).lastSynTime();
-        AuctionSettings memory aucInfo = IAuction(auctionAddr).getAuctionSettings(); 
-        AuctionState memory aucState = IAuction(auctionAddr).getAuctionState();
-        return (lastSynTime, aucInfo, aucState); 
+        AuctionSettings memory _auctionSettings = bytesToAuctionSettings(
+            IAuction(auctionAddr).getAuctionSettingsBytes()
+        );
+        AuctionState memory _auctionState = bytesToAuctionState(
+            IAuction(auctionAddr).getAuctionStateBytes()
+        );
+        return (lastSynTime, _auctionSettings, _auctionState); 
     }
 
     
@@ -398,8 +413,19 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             "only closed auction can be cloned!" 
         );
 
-        AuctionSettings memory auctionSettings = IAuction(auctionAddr).getAuctionSettings();
-        AuctionInfo memory auctionInfo = IAuction(auctionAddr).getAuctionInfo();
+        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
+            IAuction(auctionAddr).getAuctionSettingsBytes()
+        );
+        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
+            IAuction(auctionAddr).getAuctionInfoBytes()
+        );
+        TokenInfo memory tokenInfo = bytesToTokenInfo(
+            IAuction(auctionAddr).getTokenInfoBytes()
+        );
+        FeeSettings memory feeSettings = bytesToFeeSettings(
+            IAuction(auctionAddr).getFeeSettingsBytes()
+        );
+
 
         auctionSettings.startedTimestamp = now;
         auctionInfo.delaySeconds = delaySeconds;
@@ -409,7 +435,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             initialAskAmount == 0 ||
             true == treasury.auctionWithdraw(
                 msg.sender,
-                auctionSettings.tokenInfo.askToken,
+                tokenInfo.askToken,
                 initialAskAmount 
             ),
             "Not enough tokens!" 
@@ -419,7 +445,7 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             initialBidAmount == 0 ||
             true == treasury.auctionWithdraw(
                 msg.sender,
-                auctionSettings.tokenInfo.bidToken,
+                tokenInfo.bidToken,
                 initialBidAmount 
             ),
             "Not enough tokens!" 
@@ -431,8 +457,8 @@ contract ImplOedax is IOedax, Ownable, MathLib {
             auctionSettings.curveID,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
-            auctionSettings.feeSettings,
-            auctionSettings.tokenInfo,
+            feeSettings,
+            tokenInfo,
             auctionInfo
         );
 

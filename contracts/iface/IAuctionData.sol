@@ -97,9 +97,10 @@ contract IAuctionData {
         uint    auctionID;
         uint    curveID;
         uint    startedTimestamp;   // Timestamp when this auction is started.
+
         //AuctionInfo info;
-        FeeSettings feeSettings;
-        TokenInfo   tokenInfo;
+        //FeeSettings feeSettings;
+        //TokenInfo   tokenInfo;
 
 
     }

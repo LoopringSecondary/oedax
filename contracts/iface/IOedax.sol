@@ -17,7 +17,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
         address bidToken,
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        IAuctionData.AuctionInfo    memory  info 
+        AuctionInfo    memory  info 
     )
         public
         returns (
