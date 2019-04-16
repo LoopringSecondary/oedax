@@ -69,10 +69,15 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         auctionSettings.curveID = _curveID;
         auctionSettings.startedTimestamp = now;
         
+
+
         auctionInfo = _auctionInfo;
         feeSettings = _feeSettings;
         tokenInfo = _tokenInfo;
         
+        lastSynTime = now;
+        auctionState.askPrice = auctionInfo.P*auctionInfo.M;
+        auctionState.bidPrice = auctionInfo.P/auctionInfo.M;
 
         status = Status.STARTED;
         //transfer complete in Oedax contract
@@ -1091,7 +1096,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             auctionState.actualPrice >= auctionInfo.P/auctionInfo.M
         )
         {
-            status == Status.CONSTRAINED;
+            status = Status.CONSTRAINED;
         }
     }
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
