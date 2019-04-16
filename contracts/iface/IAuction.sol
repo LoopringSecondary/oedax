@@ -6,7 +6,7 @@ import "./IAuctionEvents.sol";
 import "./IParticipationEvents.sol";
 
 
-contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents {
+contract IAuction is IAuctionData {
     struct Participation {
         uint    index;             // start from 0
         address user;

@@ -5,7 +5,7 @@ import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
 import "./IOedaxEvents.sol";
 
-contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
+contract IOedax is IAuctionData{
 
 
 

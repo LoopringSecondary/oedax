@@ -46,6 +46,17 @@ contract ICurve{
         
     }
 
+    function calcEstimatedTTL(
+        uint cid,
+        uint t1,
+        uint t2
+        )
+        public
+        view
+        returns(
+            uint /* ttlSeconds */
+        );
+
 
     CurveParams[] public curveParams;
     mapping(bytes32 => uint) public cidByName;

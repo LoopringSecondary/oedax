@@ -10,7 +10,7 @@ import "../iface/IAuctionGenerator.sol";
 import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
 
-contract ImplOedax is IOedax, Ownable, MathLib, DataHelper {
+contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
 
     ITreasury           public  treasury;
     ICurve              public  curve;
@@ -67,21 +67,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper {
     {
         uint    id = treasury.getNextAuctionID();
 
-        /*
-        ImplAuction auction = new ImplAuction(
-            address(this),
-            address(treasury), 
-            address(curve),
-            curveId,
-            initialAskAmount,
-            initialBidAmount,
-            feeS,
-            tokenInfo,
-            info,
-            id,
-            msg.sender
-        );
-        */
         address auctionAddr;
 
         bytes memory bF;
@@ -177,7 +162,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper {
 
         require(
             initialAskAmount == 0 ||
-            true == treasury.auctionWithdraw(
+            true == treasury.auctionDeposit(
                 msg.sender,
                 askToken,
                 initialAskAmount 
@@ -187,7 +172,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper {
 
         require(
             initialBidAmount == 0 ||
-            true == treasury.auctionWithdraw(
+            true == treasury.auctionDeposit(
                 msg.sender,
                 bidToken,
                 initialBidAmount 

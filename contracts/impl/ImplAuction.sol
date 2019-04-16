@@ -8,7 +8,7 @@ import "../lib/MathLib.sol";
 import "../iface/ICurve.sol";
 import "../helper/DataHelper.sol";
 
-contract ImplAuction is IAuction, MathLib, DataHelper{
+contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticipationEvents{
 
 
     mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
@@ -90,7 +90,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
         
         auctionState.estimatedTTLSeconds = _auctionInfo.delaySeconds + _auctionInfo.T;
         
-        if (initialAskAmount != 0){
+        if (initialBidAmount != 0){
             auctionState.actualPrice = mul(tokenInfo.priceScale, initialAskAmount)/initialBidAmount;
         }
 
@@ -116,27 +116,15 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
             uint /* bidWithdrawalLimit */
             )
     {
+
+        
         require(
             _bid > 0,
             "bid amount should be larger than 0"
         );
         uint actualPrice = mul(_ask, tokenInfo.priceScale)/_bid; 
         
-        if (status == Status.OPEN){
-            return (
-                auctionInfo.maxAskAmountPerAddr,
-                auctionInfo.maxBidAmountPerAddr,
-                auctionInfo.maxAskAmountPerAddr,
-                auctionInfo.maxBidAmountPerAddr
-            );
-        }
 
-        if (status == Status.STARTED ||
-            status >= Status.CLOSED
-        )
-        {
-            return (0,0,0,0);
-        }
 
         uint askDepositLimit;
         uint bidDepositLimit;
@@ -198,6 +186,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
         require(
             time >= lastSynTime,
             "time should not be earlier than lastSynTime"
+        );
+
+        require(
+            auctionState.actualPrice > 0,
+            "actualPrice should not be 0"
         );
 
         if (time == lastSynTime){
@@ -286,6 +279,30 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
             uint /* bidWithdrawalLimit */
         )
     {
+        
+        if (status == Status.OPEN){
+            return (
+                auctionInfo.maxAskAmountPerAddr,
+                auctionInfo.maxBidAmountPerAddr,
+                auctionInfo.maxAskAmountPerAddr,
+                auctionInfo.maxBidAmountPerAddr
+            );
+        }
+        
+
+        if (status == Status.STARTED ||
+            status >= Status.CLOSED
+        )
+        {
+            return (0,0,0,0);
+        }
+
+
+        require(
+            auctionState.actualPrice > 0,
+            "actualPrice should not be 0"
+        );
+
         uint askPrice;
         uint bidPrice;
         uint actualPrice;
@@ -570,20 +587,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
         return p;
     }
 
-    function isClosed(
-        uint t1,
-        uint t2
-    )
-        internal
-        view
-        returns(
-            bool
-        )
-    {   
-        uint p1 = curve.calcAskPrice(auctionSettings.curveID, t1);
-        uint p2 = curve.calcBidPrice(auctionSettings.curveID, t2);
-        return p1<=p2;
-    }
+
 
     /// @dev Return the estimated time to end
     function getEstimatedTTL()
@@ -604,49 +608,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
 
         uint t1 = sub(now, constrainedTime + askPausedTime);
         uint t2 = sub(now, constrainedTime + bidPausedTime);
-        uint dt1;
-        uint dt2;
-
-        if (isClosed(t1,t2)){
-            return 0;
-        }
-
-        uint dt = period/100;
-
-        if (t1+t2 < period*2 - dt*2){
-            dt1 = sub(period*2, t1+t2)/2;
-        } 
-        else{
-            dt1 = dt;
-        }
-
-
-        while (dt1 >= dt && isClosed(t1+dt1, t2+dt1)){
-            dt1 = sub(dt1, dt);
-        }
-
-        while (!isClosed(t1+dt1+dt, t2+dt1+dt)){
-            dt1 = add(dt1, dt);
-        }
-
-        dt2 = add(dt1, dt);
-
-        // now the point is between dt1 and dt2
-        while (
-            dt2-dt1>1 && 
-            isClosed(t1+dt2, t2+dt2)
-        )
-        {
-            uint dt3 = (dt1+dt2)/2;
-            if (isClosed(t1+dt3, t2+dt3)){
-                dt2 = dt3;
-            }
-            else{
-                dt1 = dt3;
-            }
-        }
-
-        return dt2;
+  
+        return curve.calcEstimatedTTL(auctionSettings.curveID, t1, t2);
         
     }
 
@@ -766,6 +729,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper{
             uint
         )
     {
+        require(
+            auctionState.actualPrice > 0,
+            "actualPrice should not be 0"
+        );
+        
         uint limit = 0;
 
         if (action == 1){

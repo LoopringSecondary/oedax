@@ -1,7 +1,6 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IAuction.sol";
 import "../lib/MathLib.sol";
 import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
@@ -247,5 +246,87 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         return (true, t);
 
     }
+
+
+    function isClosed(
+        uint cid,
+        uint t1,
+        uint t2
+    )
+        internal
+        view
+        returns(
+            bool
+        )
+    {   
+        uint p1 = calcAskPrice(cid, t1);
+        uint p2 = calcBidPrice(cid, t2);
+        return p1 <= p2;
+    }
+
+    function calcEstimatedTTL(
+        uint cid,
+        uint t1,
+        uint t2
+        )
+        public
+        view
+        returns(
+            uint /* ttlSeconds */
+        )
+    {
+
+        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+
+        uint period = curveParams[cid-1].T;
+        
+        uint dt1;
+        uint dt2;
+
+        if (isClosed(cid,t1,t2)){
+            return 0;
+        }
+
+        uint dt = period/100;
+
+        if (t1+t2 < period*2 - dt*2){
+            dt1 = sub(period*2, t1+t2)/2;
+        } 
+        else{
+            dt1 = dt;
+        }
+
+
+        while (dt1 >= dt && isClosed(cid, t1+dt1, t2+dt1)){
+            dt1 = sub(dt1, dt);
+        }
+
+        while (!isClosed(cid, t1+dt1+dt, t2+dt1+dt)){
+            dt1 = add(dt1, dt);
+        }
+
+        dt2 = add(dt1, dt);
+
+        // now the point is between dt1 and dt2
+        while (
+            dt2-dt1>1 && 
+            isClosed(cid, t1+dt2, t2+dt2)
+        )
+        {
+            uint dt3 = (dt1+dt2)/2;
+            if (isClosed(cid, t1+dt3, t2+dt3)){
+                dt2 = dt3;
+            }
+            else{
+                dt1 = dt3;
+            }
+        }
+
+        return dt2;
+
+
+
+    }
+
 
 }
