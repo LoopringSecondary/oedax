@@ -77,13 +77,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         status = Status.STARTED;
         //transfer complete in Oedax contract
         if (initialAskAmount > 0){
-            auctionState.totalAskAmount = initialAskAmount;
             askAmount[creator] += initialAskAmount;
             auctionState.totalAskAmount += initialAskAmount;
         }
 
         if (initialBidAmount > 0){
-            auctionState.totalBidAmount = initialBidAmount;
             bidAmount[creator] += initialBidAmount;
             auctionState.totalBidAmount += initialBidAmount;
         }
@@ -671,26 +669,29 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
         realAmount = amount*(10000-feeBips)/10000;
 
-        // 同步参数到now
-        updatePrice();
         
-        uint askDepositLimit;
-        uint bidDepositLimit;
-        uint askWithdrawLimit;
-        uint bidWithdrawLimit;
-
-        // 算上Queue的
-        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
-
-        if (token == tokenInfo.askToken &&
-            realAmount > askDepositLimit ||
-            token == tokenInfo.bidToken &&
-            realAmount > bidDepositLimit
-        )
+        if (status == Status.CONSTRAINED)
         {
-            return 0;
-        }
+            // 同步参数到now
+            updatePrice();
+            
+            uint askDepositLimit;
+            uint bidDepositLimit;
+            uint askWithdrawLimit;
+            uint bidWithdrawLimit;
 
+            // 算上Queue的
+            (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+
+            if (token == tokenInfo.askToken &&
+                realAmount > askDepositLimit ||
+                token == tokenInfo.bidToken &&
+                realAmount > bidDepositLimit
+            )
+            {
+                return 0;
+            }
+        }
         // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
         success = treasury.auctionDeposit(

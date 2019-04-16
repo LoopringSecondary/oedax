@@ -160,6 +160,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    id = treasury.auctionAmount() + 1;
 
 
+        /*
         require(
             initialAskAmount == 0 ||
             true == treasury.auctionDeposit(
@@ -170,6 +171,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             "Not enough tokens!" 
         );
 
+        
         require(
             initialBidAmount == 0 ||
             true == treasury.auctionDeposit(
@@ -179,6 +181,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             ),
             "Not enough tokens!" 
         );
+        */
 
         FeeSettings memory feeS;
         TokenInfo   memory tokenInfo;
@@ -201,6 +204,30 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             feeS,
             tokenInfo,
             info
+        );
+
+
+        require(
+            initialAskAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                addressAuction,
+                askToken,
+                initialAskAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
+        
+        require(
+            initialBidAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                addressAuction,
+                bidToken,
+                initialBidAmount 
+            ),
+            "Not enough tokens!" 
         );
 
         return (addressAuction, id);
@@ -416,25 +443,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
         
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.auctionWithdraw(
-                msg.sender,
-                tokenInfo.askToken,
-                initialAskAmount 
-            ),
-            "Not enough tokens!" 
-        );
-
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.auctionWithdraw(
-                msg.sender,
-                tokenInfo.bidToken,
-                initialBidAmount 
-            ),
-            "Not enough tokens!" 
-        );
 
         uint id;
         address addressAuction;
@@ -446,6 +454,30 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             tokenInfo,
             auctionInfo
         );
+
+
+        require(
+            initialAskAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                addressAuction,
+                tokenInfo.askToken,
+                initialAskAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
+        require(
+            initialBidAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                addressAuction,
+                tokenInfo.bidToken,
+                initialBidAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
 
         return (addressAuction, id, true);
 

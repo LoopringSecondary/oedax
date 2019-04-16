@@ -196,6 +196,31 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         contractLockedBalances[msg.sender][token] = add(contractLockedBalances[msg.sender][token], amount);
     }
 
+    function initDeposit(
+        address user,
+        address auctionAddr,
+        address token,
+        uint    amount  // must be greater than 0.
+    )
+        external
+        isOedax
+        whenRunning
+        returns (
+            bool /* successful */
+        )
+    {
+        require(
+            amount <= userAvailableBalances[user][token],
+            "not enough token"
+        );
+
+        uint id = auctionAddressMap[auctionAddr];
+
+        userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
+        userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
+        contractLockedBalances[auctionAddr][token] = add(contractLockedBalances[auctionAddr][token], amount);
+    }    
+
     //between treasury contract and auction contract
     function auctionWithdraw(
         address user,
@@ -297,6 +322,22 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         available = userAvailableBalances[user][token];
         locked = sub(total, available);
         return (total, available, locked);
+    }
+
+
+    function getAvailableBalance(
+        address user,
+        address token
+    )
+        external
+        view
+        returns (
+            uint /* available */
+        )
+    {
+        uint available = userAvailableBalances[user][token];
+
+        return available;
     }
 
     function getApproval(

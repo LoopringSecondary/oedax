@@ -80,6 +80,17 @@ contract ITreasury {
             bool
         );
 
+    function initDeposit(
+        address user,
+        address auctionAddr,
+        address token,
+        uint    amount  // must be greater than 0.
+    )
+        external
+        returns (
+            bool /* successful */
+        );
+
     // 拍卖合约调用，属于Oedax内部“转账”
     // between treasury contract and auction contract
     function auctionDeposit(
@@ -137,6 +148,17 @@ contract ITreasury {
             uint /* locked */
         );
 
+    // 获取用户实时余额
+    function getAvailableBalance(
+        address user,
+        address token
+    )
+        external
+        view
+        returns (
+            uint /* available */
+        );
+        
     // 新增接口，用于查询用户授权的转账量
     // treasury合约的转账只能由用户调用时生效
     function getApproval(
