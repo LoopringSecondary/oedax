@@ -194,6 +194,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
         contractLockedBalances[msg.sender][token] = add(contractLockedBalances[msg.sender][token], amount);
+
+        return true;
+
     }
 
     function initDeposit(
@@ -219,6 +222,8 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
         contractLockedBalances[auctionAddr][token] = add(contractLockedBalances[auctionAddr][token], amount);
+
+        return true;
     }    
 
     //between treasury contract and auction contract
@@ -242,6 +247,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = add(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = sub(userLockedBalances[user][id][token], amount);
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
+
+        return true;
+
     }
 
 
