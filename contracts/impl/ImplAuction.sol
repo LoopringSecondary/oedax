@@ -675,15 +675,16 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         realAmount = amount*(10000-feeBips)/10000;
 
         
+        uint askDepositLimit;
+        uint bidDepositLimit;
+        uint askWithdrawLimit;
+        uint bidWithdrawLimit;
+
         if (status == Status.CONSTRAINED)
         {
             // 同步参数到now
             updatePrice();
             
-            uint askDepositLimit;
-            uint bidDepositLimit;
-            uint askWithdrawLimit;
-            uint bidWithdrawLimit;
 
             // 算上Queue的
             (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
@@ -730,6 +731,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
         updateAfterAction(action,amount);
 
+
+        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+        auctionState.askDepositLimit = askDepositLimit;
+        auctionState.bidDepositLimit = bidDepositLimit;
+        auctionState.askWithdrawalLimit = askWithdrawLimit;
+        auctionState.bidWithdrawalLimit = bidWithdrawLimit;
 
         return amount;
         //return realAmount;
@@ -1097,6 +1104,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         {
             status = Status.CONSTRAINED;
+            constrainedTime = now;
+            auctionState.estimatedTTLSeconds = auctionInfo.T;
         }
     }
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from

@@ -423,8 +423,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         for (uint i = 0; i < tokens.length; i++){
             token = tokens[i];
             if (userTotalBalances[msg.sender][token] > 0 &&
-                token.safeTransferFrom(
-                    address(this),
+                token.safeTransfer(
                     msg.sender,
                     userTotalBalances[msg.sender][token]
                 )
