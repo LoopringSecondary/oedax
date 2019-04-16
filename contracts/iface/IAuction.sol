@@ -235,6 +235,15 @@ contract IAuction is IAuctionData {
 
 
 
+
+    function deposit(
+        address token,
+        uint    amount)
+        public
+        returns (
+            uint /* amount */
+        );
+
     /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
     /// auciton, the rest is put into the waiting list (queue).
     /// Set `wallet` to 0x0 will avoid paying wallet a fee. Note only deposit has fee.

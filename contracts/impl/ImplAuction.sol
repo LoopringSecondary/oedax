@@ -280,6 +280,14 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
     {
         
+        if (status == Status.STARTED ||
+            status >= Status.CLOSED
+        )
+        {
+            return (0,0,0,0);
+        }
+
+       
         if (status == Status.OPEN){
             return (
                 auctionInfo.maxAskAmountPerAddr,
@@ -290,12 +298,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
         
 
-        if (status == Status.STARTED ||
-            status >= Status.CLOSED
-        )
-        {
-            return (0,0,0,0);
-        }
 
 
         require(
@@ -615,6 +617,17 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
 
 
+    function deposit(
+        address token,
+        uint    amount)
+        public
+        returns (
+            uint /* amount */
+        )
+    {
+        return deposit(address(0x0), token, amount);
+    }
+
     /// @dev Make a deposit and returns the amount that has been successfully deposited into the
     /// auciton, the rest is put into the waiting list (queue).
     /// Set `wallet` to 0x0 will avoid paying wallet a fee. Note only deposit has fee.
@@ -729,10 +742,23 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint
         )
     {
-        require(
-            auctionState.actualPrice > 0,
-            "actualPrice should not be 0"
-        );
+                
+        if (status == Status.STARTED ||
+            status >= Status.CLOSED
+        )
+        {
+            return 0;
+        }
+
+        if (status == Status.OPEN){
+            if (action == 1 || action == 3){
+                return auctionInfo.maxAskAmountPerAddr;
+            }
+            else{
+                return auctionInfo.maxBidAmountPerAddr;
+            }
+        }
+
         
         uint limit = 0;
 
@@ -934,6 +960,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     )
         internal
     {
+        
+        
         uint nonQueue;
 
         // 曲线到达暂停位置需要的值
@@ -1050,10 +1078,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function updateActualPrice()
         internal
     {
+        if (auctionState.totalBidAmount == 0){
+            return;
+        }
         auctionState.actualPrice = mul(
             auctionState.totalAskAmount,
-            auctionState.totalBidAmount
-        )/tokenInfo.priceScale; 
+            tokenInfo.priceScale
+        )/auctionState.totalBidAmount; 
         if (status == Status.OPEN &&
             auctionState.actualPrice <= auctionInfo.P*auctionInfo.M &&
             auctionState.actualPrice >= auctionInfo.P/auctionInfo.M
@@ -1107,9 +1138,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
 
         if (token == tokenInfo.askToken &&
-            amount > askWithdrawLimit ||
+            amount > min(askAmount[msg.sender], askWithdrawLimit) ||
             token == tokenInfo.bidToken &&
-            amount > bidWithdrawLimit
+            amount > min(bidAmount[msg.sender], bidWithdrawLimit)
         )
         {
             return 0;
@@ -1146,6 +1177,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         if (token == tokenInfo.bidToken){
             action = 4;
         }
+        
         updateAfterAction(action, amount);
 
         return realAmount;
