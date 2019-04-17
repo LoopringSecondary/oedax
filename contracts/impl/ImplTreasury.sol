@@ -331,7 +331,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         uint locked;
         total = userTotalBalances[user][token];
         available = userAvailableBalances[user][token];
-        locked = sub(total, available);
+        //locked = sub(total, available);
         return (total, available, locked);
     }
 

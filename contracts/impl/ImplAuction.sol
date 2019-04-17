@@ -97,6 +97,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             auctionState.actualPrice = mul(tokenInfo.priceScale, initialAskAmount)/initialBidAmount;
         }
 
+
+
     }
 
 
@@ -252,6 +254,24 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function updatePrice()
         public
     {
+
+        if (status == Status.STARTED&&
+            now >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
+        )
+        {
+            status = Status.OPEN;
+        }
+
+        if (status == Status.OPEN &&
+            auctionState.actualPrice <= auctionInfo.P*auctionInfo.M &&
+            auctionState.actualPrice >= auctionInfo.P/auctionInfo.M
+        )
+        {
+            status = Status.CONSTRAINED;
+            constrainedTime = now;
+            auctionState.estimatedTTLSeconds = auctionInfo.T;
+        }
+
         if (now == lastSynTime || status != Status.CONSTRAINED){
             return;
         }
@@ -1064,7 +1084,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         if (action == 3){
             require(
-                auctionState.queuedAskAmount + nonQueue <= amount,
+                auctionState.queuedAskAmount + nonQueue >= amount,
                 "withdrawal amount beyond limit"
             );
 
@@ -1089,7 +1109,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         // the addtional withdraw will hedge the queue
         if (action == 4){
             require(
-                auctionState.queuedBidAmount + nonQueue <= amount,
+                auctionState.queuedBidAmount + nonQueue >= amount,
                 "withdrawal amount beyond limit"
             );
 
@@ -1204,7 +1224,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         // 以上检查了是否可以取款
 
-        uint penaltyBips = feeSettings.withdrawalPenaltyBips;
+        //uint penaltyBips = feeSettings.withdrawalPenaltyBips;
+        uint penaltyBips = 0; // 先测试排除手续费的情况
+        
         uint realAmount = amount; 
         
         bool success;
@@ -1294,6 +1316,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         (lockedA, lockedB) = calcActualTokens(msg.sender); 
         exchangedA = tokenExchange(2, lockedB);
         exchangedB = tokenExchange(1, lockedA);
+
+        isSettled[msg.sender] = true;
 
         treasury.exchangeTokens(
             feeSettings.recepient,

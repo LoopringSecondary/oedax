@@ -8,13 +8,13 @@ contract ITreasury {
     
     
     // user => (token => amount)
-    mapping (address => mapping (address => uint)) userTotalBalances;
+    mapping (address => mapping (address => uint)) public userTotalBalances;
 
     // user => (token => amount)
-    mapping (address => mapping (address => uint)) userAvailableBalances;
+    mapping (address => mapping (address => uint)) public userAvailableBalances;
 
     // user => (auction_id => （token => amount))
-    mapping (address => mapping (uint => mapping (address => uint))) userLockedBalances;
+    mapping (address => mapping (uint => mapping (address => uint))) public userLockedBalances;
 
 
     mapping (uint => address) public auctionIdMap;
