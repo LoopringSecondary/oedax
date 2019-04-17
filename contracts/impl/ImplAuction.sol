@@ -175,6 +175,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     }
 
+
     function simulatePrice(uint time)
         public
         view
@@ -249,9 +250,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
 
     function updatePrice()
-        internal
+        public
     {
-        if (now == lastSynTime){
+        if (now == lastSynTime || status != Status.CONSTRAINED){
             return;
         }
         uint askPrice;
@@ -264,10 +265,31 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         askPausedTime = _askPausedTime;
         bidPausedTime = _bidPausedTime;
         lastSynTime = now;
+        
+        /*
+        uint askDepositLimit; 
+        uint bidDepositLimit; 
+        uint askWithdrawLimit; 
+        uint bidWithdrawLimit;
+        */
+        /*
+        (auctionState.askDepositLimit,
+            auctionState.bidDepositLimit,
+            auctionState.askWithdrawalLimit,
+            auctionState.bidWithdrawalLimit)=getLimits();
+        */
+        /*
+        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+        auctionState.askDepositLimit = askDepositLimit;
+        auctionState.bidDepositLimit = bidDepositLimit;
+        auctionState.askWithdrawalLimit = askWithdrawLimit;
+        auctionState.bidWithdrawalLimit = bidWithdrawLimit;
+        */
         //结束
         if (askPrice <= bidPrice){
             status = Status.CLOSED;
         }
+        updateLimits();
     }
     
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
@@ -396,10 +418,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         );
         uint amountA = askAmount[user];
         uint amountB = bidAmount[user];
-        uint takerAmountA = totalTakerAmountA*takerRateA[user]/totalTakerRateA;
-        uint takerAmountB = totalTakerAmountA*takerRateB[user]/totalTakerRateB;
-        amountA += takerAmountA;
-        amountB += takerAmountB;
+        if (totalTakerRateA > 0){
+            amountA += totalTakerAmountA*takerRateA[user]/totalTakerRateA;
+        }
+        if (totalTakerRateB > 0){         
+            amountB += totalTakerAmountB*takerRateB[user]/totalTakerRateB;  
+        }
         return (amountA, amountB); 
     }
     
@@ -649,6 +673,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             "token not correct"
         );
 
+        require(
+            msg.sender != feeSettings.recepient,
+            "recepient is not allowed"
+        );
+
         if (status == Status.STARTED&&
             now >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         )
@@ -675,10 +704,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         realAmount = amount*(10000-feeBips)/10000;
 
         
+        /*
         uint askDepositLimit;
         uint bidDepositLimit;
         uint askWithdrawLimit;
         uint bidWithdrawLimit;
+        */
 
         if (status == Status.CONSTRAINED)
         {
@@ -687,12 +718,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             
 
             // 算上Queue的
-            (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
+            //(askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
 
             if (token == tokenInfo.askToken &&
-                realAmount > askDepositLimit ||
+                realAmount > auctionState.askDepositLimit ||
                 token == tokenInfo.bidToken &&
-                realAmount > bidDepositLimit
+                realAmount > auctionState.bidDepositLimit
             )
             {
                 return 0;
@@ -732,11 +763,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         updateAfterAction(action,amount);
 
 
-        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
-        auctionState.askDepositLimit = askDepositLimit;
-        auctionState.bidDepositLimit = bidDepositLimit;
-        auctionState.askWithdrawalLimit = askWithdrawLimit;
-        auctionState.bidWithdrawalLimit = bidWithdrawLimit;
+
 
         return amount;
         //return realAmount;
@@ -1088,6 +1115,15 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     }
 
+    function updateLimits()
+        internal
+    {
+        (auctionState.askDepositLimit,
+            auctionState.bidDepositLimit,
+            auctionState.askWithdrawalLimit,
+            auctionState.bidWithdrawalLimit)=getLimits();
+    }
+
     function updateActualPrice()
         internal
     {
@@ -1097,7 +1133,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         auctionState.actualPrice = mul(
             auctionState.totalAskAmount,
             tokenInfo.priceScale
-        )/auctionState.totalBidAmount; 
+        )/auctionState.totalBidAmount;
+         
+        
         if (status == Status.OPEN &&
             auctionState.actualPrice <= auctionInfo.P*auctionInfo.M &&
             auctionState.actualPrice >= auctionInfo.P/auctionInfo.M
@@ -1107,7 +1145,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             constrainedTime = now;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
         }
+        
+        updateLimits();
+
     }
+
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
     /// the auciton.
     function withdraw(
@@ -1125,6 +1167,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             "withdraw is not allowed"
         );
         
+        require(
+            msg.sender != feeSettings.recepient,
+            "recepient is not allowed"
+        );
+
         require(
             status == Status.OPEN ||
             status == Status.CONSTRAINED,
@@ -1145,17 +1192,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         
         updatePrice();
         
-        uint askDepositLimit;
-        uint bidDepositLimit;
-        uint askWithdrawLimit;
-        uint bidWithdrawLimit;
-
-        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
 
         if (token == tokenInfo.askToken &&
-            amount > min(askAmount[msg.sender], askWithdrawLimit) ||
+            amount > min(askAmount[msg.sender], auctionState.askWithdrawalLimit) ||
             token == tokenInfo.bidToken &&
-            amount > min(bidAmount[msg.sender], bidWithdrawLimit)
+            amount > min(bidAmount[msg.sender], auctionState.bidWithdrawalLimit)
         )
         {
             return 0;

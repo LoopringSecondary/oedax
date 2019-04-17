@@ -102,6 +102,8 @@ contract IAuction is IAuctionData {
             uint bidPausedTime
         );
 
+
+    function updatePrice() public;
     
     // 0 - no queue
     // 1 - ask queue

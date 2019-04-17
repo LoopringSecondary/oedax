@@ -138,6 +138,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     }
     
+
     /// Auction合约直接在user和recepient之间完成“转账”，保证所有变量总额不变
     /// recepient获得相应的抽成（在拍卖结束后提取）
     function sendFee(
@@ -165,7 +166,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
         
-        userLockedBalances[recepient][id][token] = add(userLockedBalances[recepient][id][token], amount);
+        //userLockedBalances[recepient][id][token] = add(userLockedBalances[recepient][id][token], amount);
+        userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
+        
         userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
 
         return true;
