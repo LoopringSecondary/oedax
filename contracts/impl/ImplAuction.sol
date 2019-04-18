@@ -751,10 +751,21 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             // 算上Queue的
             //(askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
 
+            /*
             if (token == tokenInfo.askToken &&
                 realAmount > auctionState.askDepositLimit ||
                 token == tokenInfo.bidToken &&
                 realAmount > auctionState.bidDepositLimit
+            )
+            {
+                return 0;
+            }
+            */
+
+            if (token == tokenInfo.askToken &&
+                realAmount > auctionInfo.maxAskAmountPerAddr ||
+                token == tokenInfo.bidToken &&
+                realAmount > auctionInfo.maxBidAmountPerAddr
             )
             {
                 return 0;
