@@ -289,26 +289,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         bidPausedTime = _bidPausedTime;
         lastSynTime = now;
         
-        /*
-        uint askDepositLimit; 
-        uint bidDepositLimit; 
-        uint askWithdrawLimit; 
-        uint bidWithdrawLimit;
-        */
-        /*
-        (auctionState.askDepositLimit,
-            auctionState.bidDepositLimit,
-            auctionState.askWithdrawalLimit,
-            auctionState.bidWithdrawalLimit)=getLimits();
-        */
-        /*
-        (askDepositLimit, bidDepositLimit, askWithdrawLimit, bidWithdrawLimit) = getLimits();
-        auctionState.askDepositLimit = askDepositLimit;
-        auctionState.bidDepositLimit = bidDepositLimit;
-        auctionState.askWithdrawalLimit = askWithdrawLimit;
-        auctionState.bidWithdrawalLimit = bidWithdrawLimit;
-        */
-        //结束
         if (askPrice <= bidPrice){
             status = Status.CLOSED;
         }
@@ -344,9 +324,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 auctionInfo.maxBidAmountPerAddr
             );
         }
-        
-
-
 
         require(
             auctionState.actualPrice > 0,
@@ -1010,6 +987,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
             // 还有多的放入等待序列
             if (amountQ > 0){
+                auctionState.queuedAskAmount += amountQ;
                 q.user = msg.sender;
                 q.amount = amountQ;
                 q.timestamp = now;
@@ -1036,6 +1014,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
             // 还有多的放入等待序列
             if (amountQ > 0){
+                auctionState.queuedAskAmount += amountQ;
                 q.user = msg.sender;
                 q.amount = amountQ;
                 q.timestamp = now;

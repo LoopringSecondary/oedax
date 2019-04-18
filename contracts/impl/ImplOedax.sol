@@ -147,8 +147,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    curveId,
         address askToken,
         address bidToken,
-        uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
-        uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
+        uint    initialAskAmount,
+        uint    initialBidAmount,
         AuctionInfo    memory  info 
     )
         public
@@ -158,30 +158,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
     {
         uint    id = treasury.auctionAmount() + 1;
-
-
-        /*
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.auctionDeposit(
-                msg.sender,
-                askToken,
-                initialAskAmount 
-            ),
-            "Not enough tokens!" 
-        );
-
-        
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.auctionDeposit(
-                msg.sender,
-                bidToken,
-                initialBidAmount 
-            ),
-            "Not enough tokens!" 
-        );
-        */
 
         FeeSettings memory feeS;
         TokenInfo   memory tokenInfo;
