@@ -48,7 +48,14 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     }
     
 
-
+    function setAuctionGenerator(
+        address addr
+    )
+        public
+        onlyOwner
+    {
+        auctionGenerator = IAuctionGenerator(addr);
+    }
     
     // Initiate an auction
     function createAuction(

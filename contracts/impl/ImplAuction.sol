@@ -922,14 +922,16 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             auctionState.totalAskAmount += amountRes;
             while(len > 0 && amountRes > 0){
                 q = askQueue[len - 1];
-                if (amountRes > q.amount){
+                if (amountRes >= q.amount){
                     askAmount[q.user] += q.amount;
                     auctionState.queuedAskAmount -= q.amount;
                     amountRes -= q.amount;
+                    askQueue[len - 1].amount = 0;
                 }
                 else{
                     askAmount[q.user] += amountRes;
                     auctionState.queuedAskAmount -= amountRes;
+                    askQueue[len - 1].amount = q.amount - amountRes;
                     amountRes -= amountRes;
                     break;
                 }
@@ -946,11 +948,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 if (amountRes > q.amount){
                     bidAmount[q.user] += q.amount;
                     auctionState.queuedBidAmount -= q.amount;
+                    askQueue[len - 1].amount = 0;
                     amountRes -= q.amount;
                 }
                 else{
                     bidAmount[q.user] += amountRes;
                     auctionState.queuedBidAmount -= amountRes;
+                    askQueue[len - 1].amount = q.amount - amountRes;
                     amountRes -= amountRes;
                     break;
                 }
