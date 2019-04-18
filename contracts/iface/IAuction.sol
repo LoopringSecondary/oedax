@@ -238,6 +238,33 @@ contract IAuction is IAuctionData {
 
 
 
+    function askDeposit(uint amount)
+        public
+        returns (
+            uint /* amount */
+        );
+
+
+    function bidDeposit(uint amount)
+        public
+        returns (
+            uint /* amount */
+        );
+
+
+    function askWithdraw(uint amount)
+        public
+        returns (
+            uint /* amount */
+        );
+
+    function bidWithdraw(uint amount)
+        public
+        returns (
+            uint /* amount */
+        );
+
+
     function deposit(
         address token,
         uint    amount)

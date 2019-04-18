@@ -130,6 +130,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint actualPrice = mul(_ask, tokenInfo.priceScale)/_bid; 
         
 
+    
 
         uint askDepositLimit;
         uint bidDepositLimit;
@@ -142,7 +143,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 bidDepositLimit = auctionInfo.maxBidAmountPerAddr;
             }
 
-            askWithdrawLimit = mul((actualPrice - bidPrice), _bid);
+            askWithdrawLimit = mul((actualPrice - bidPrice), _bid)/tokenInfo.priceScale;
             if (askWithdrawLimit > auctionInfo.maxAskAmountPerAddr){
                 askWithdrawLimit = auctionInfo.maxAskAmountPerAddr;
             }
@@ -153,7 +154,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
 
         if (actualPrice <= askPrice){
-            askDepositLimit = mul((askPrice - actualPrice), _bid);
+            askDepositLimit = mul((askPrice - actualPrice), _bid)/tokenInfo.priceScale;
             if (askDepositLimit > auctionInfo.maxAskAmountPerAddr){
                 askDepositLimit = auctionInfo.maxAskAmountPerAddr;
             }
@@ -178,7 +179,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     }
 
 
-    function simulatePrice(uint time)
+    function simulatePrice(uint dt)
         public
         view
         returns(
@@ -189,6 +190,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint /*bidPausedTime*/
         )
     {
+        uint time = add(now, dt);
         require(
             time >= lastSynTime,
             "time should not be earlier than lastSynTime"
@@ -279,7 +281,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint bidPrice;
         uint _askPausedTime = askPausedTime;
         uint _bidPausedTime = bidPausedTime;
-        (askPrice, bidPrice,  , _askPausedTime, _bidPausedTime) = simulatePrice(now);
+        (askPrice, bidPrice,  , _askPausedTime, _bidPausedTime) = simulatePrice(0);
+        auctionState.estimatedTTLSeconds = getEstimatedTTL();
         auctionState.askPrice = askPrice;
         auctionState.bidPrice = bidPrice;
         askPausedTime = _askPausedTime;
@@ -353,7 +356,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint askPrice;
         uint bidPrice;
         uint actualPrice;
-        (askPrice, bidPrice, actualPrice,  ,  ) = simulatePrice(now);
+        (askPrice, bidPrice, actualPrice,  ,  ) = simulatePrice(0);
 
         uint ask = auctionState.totalAskAmount;
         uint bid = auctionState.totalBidAmount;
@@ -455,12 +458,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
     {
         uint rate;
-        require(
-            status >= Status.OPEN,
-            "The auction is not open yet"
-        );
+        if (status <= Status.OPEN){
+            return 100;
+        }
 
-        uint time = sub(now, auctionSettings.startedTimestamp + auctionInfo.delaySeconds);
+        //uint time = sub(now, auctionSettings.startedTimestamp + auctionInfo.delaySeconds);
+        uint time = sub(now, constrainedTime);
         // rate drops when time goes on
 
         rate = time*100/auctionInfo.T;
@@ -663,6 +666,42 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     }
 
 
+    function askDeposit(uint amount)
+        public
+        returns (
+            uint /* amount */
+        )
+    {
+        return deposit(tokenInfo.askToken, amount);
+    }
+
+    function bidDeposit(uint amount)
+        public
+        returns (
+            uint /* amount */
+        )
+    {
+        return deposit(tokenInfo.bidToken, amount);
+    }
+
+    function askWithdraw(uint amount)
+        public
+        returns (
+            uint /* amount */
+        )
+    {
+        return withdraw(tokenInfo.askToken, amount);
+    }
+
+    function bidWithdraw(uint amount)
+        public
+        returns (
+            uint /* amount */
+        )
+    {
+        return withdraw(tokenInfo.bidToken, amount);
+    }
+
 
     function deposit(
         address token,
@@ -724,12 +763,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         realAmount = amount*(10000-feeBips)/10000;
 
         
-        /*
-        uint askDepositLimit;
-        uint bidDepositLimit;
-        uint askWithdrawLimit;
-        uint bidWithdrawLimit;
-        */
+
 
         if (status == Status.CONSTRAINED)
         {

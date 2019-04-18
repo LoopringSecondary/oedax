@@ -120,9 +120,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userLockedBalances[user][id][tokenA] = 0;
         userLockedBalances[user][id][tokenB] = 0;
 
-        // clear loceked in userTotalBalances
-        userTotalBalances[user][tokenA] = sub(userAvailableBalances[user][tokenA], lockedA);
-        userTotalBalances[user][tokenB] = sub(userAvailableBalances[user][tokenB], lockedB);
+        // clear locked in userTotalBalances
+        userTotalBalances[user][tokenA] = sub(userTotalBalances[user][tokenA], lockedA);
+        userTotalBalances[user][tokenB] = sub(userTotalBalances[user][tokenB], lockedB);
         
         // update contractLockedBalances
         contractLockedBalances[msg.sender][tokenA] = sub(contractLockedBalances[msg.sender][tokenA], amountA);
@@ -331,7 +331,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         uint locked;
         total = userTotalBalances[user][token];
         available = userAvailableBalances[user][token];
-        //locked = sub(total, available);
+        locked = sub(total, available);
         return (total, available, locked);
     }
 
