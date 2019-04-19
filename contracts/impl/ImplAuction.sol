@@ -1159,6 +1159,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
        
         }
 
+        updateLimits();
 
 
     }
@@ -1194,7 +1195,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             auctionState.estimatedTTLSeconds = auctionInfo.T;
         }
         
-        updateLimits();
+        //updateLimits();
 
     }
 
