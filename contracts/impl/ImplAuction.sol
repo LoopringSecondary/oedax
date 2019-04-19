@@ -948,13 +948,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 if (amountRes > q.amount){
                     bidAmount[q.user] += q.amount;
                     auctionState.queuedBidAmount -= q.amount;
-                    askQueue[len - 1].amount = 0;
+                    bidQueue[len - 1].amount = 0;
                     amountRes -= q.amount;
                 }
                 else{
                     bidAmount[q.user] += amountRes;
                     auctionState.queuedBidAmount -= amountRes;
-                    askQueue[len - 1].amount = q.amount - amountRes;
+                    bidQueue[len - 1].amount = q.amount - amountRes;
                     amountRes -= amountRes;
                     break;
                 }
@@ -1015,13 +1015,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         if (action == 2){
             // 首先抵消Ask，然后追加Bid
             if (amountQ >= bidQ){
-                releaseQueue(2, auctionState.queuedAskAmount); 
+                releaseQueue(1, auctionState.queuedAskAmount); 
                 bidAmount[msg.sender] += bidQ;
                 auctionState.totalBidAmount += bidQ;
                 amountQ -= bidQ;
             }
             else{
-                releaseQueue(2, tokenExchange(1, amountQ)); 
+                releaseQueue(1, tokenExchange(2, amountQ)); 
                 bidAmount[msg.sender] += amountQ;
                 auctionState.totalBidAmount += amountQ;
                 amountQ = 0;  
@@ -1029,7 +1029,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
             // 还有多的放入等待序列
             if (amountQ > 0){
-                auctionState.queuedAskAmount += amountQ;
+                auctionState.queuedBidAmount += amountQ;
                 q.user = msg.sender;
                 q.amount = amountQ;
                 q.timestamp = now;
