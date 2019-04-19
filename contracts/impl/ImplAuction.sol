@@ -18,7 +18,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     IOedax public oedax;
     ITreasury public treasury;
-    ICurve public curve;
+    address public curve;
 
     modifier isStatus(Status stat){
         require(status == stat, "Status not correct");
@@ -62,7 +62,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         
         oedax = IOedax(_oedax);
         treasury = ITreasury(_treasury);
-        curve = ICurve(_curve);
+        //curve = ICurve(_curve);
+        curve = _curve;
 
         auctionSettings.creator = creator;
         auctionSettings.auctionID = id; //given by Oedax contract
@@ -221,7 +222,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint t1;
         uint t2;
  
-        (success, t1) = curve.calcInvAskPrice(auctionSettings.curveID, auctionState.actualPrice);
+        (success, t1) = ICurve(curve).calcInvAskPrice(auctionSettings.curveID, auctionState.actualPrice);
         //曲线没有相交
         if (!success ||
             t1 >= sub(time, constrainedTime + askPausedTime)
@@ -235,7 +236,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             _askPausedTime = sub(time, constrainedTime + t1);
         }
         
-        (success, t2) = curve.calcInvBidPrice(auctionSettings.curveID, auctionState.actualPrice);
+        (success, t2) = ICurve(curve).calcInvBidPrice(auctionSettings.curveID, auctionState.actualPrice);
         if (!success ||
             t2 >= sub(now, constrainedTime + bidPausedTime)
         )
@@ -599,7 +600,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint
         )
     {
-        uint p = curve.calcAskPrice(auctionSettings.curveID, t);
+        uint p = ICurve(curve).calcAskPrice(auctionSettings.curveID, t);
         return p;
     }
 
@@ -612,7 +613,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint
         )
     {
-        uint p = curve.calcBidPrice(auctionSettings.curveID, t);
+        uint p = ICurve(curve).calcBidPrice(auctionSettings.curveID, t);
         return p;
     }
 
@@ -638,7 +639,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint t1 = sub(now, constrainedTime + askPausedTime);
         uint t2 = sub(now, constrainedTime + bidPausedTime);
   
-        return curve.calcEstimatedTTL(auctionSettings.curveID, t1, t2);
+        return ICurve(curve).calcEstimatedTTL(auctionSettings.curveID, t1, t2);
         
     }
 
