@@ -45,6 +45,7 @@ contract DataHelper is BytesToTypes, IAuctionData{
         res = abi.encodePacked(
             auctionInfo.P,
             auctionInfo.M,
+            auctionInfo.S,
             auctionInfo.T,
             auctionInfo.delaySeconds,
             auctionInfo.maxAskAmountPerAddr,
@@ -149,18 +150,19 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 194,
+            len == 226,
             "length of bytes not correct"
         );
 
         auctionInfo.P = bytesToUint256(32, b);
         auctionInfo.M = bytesToUint256(64, b);
-        auctionInfo.T = bytesToUint256(96, b);
-        auctionInfo.delaySeconds = bytesToUint256(128, b);
-        auctionInfo.maxAskAmountPerAddr = bytesToUint256(160, b);
-        auctionInfo.maxBidAmountPerAddr = bytesToUint256(192, b);
-        auctionInfo.isWithdrawalAllowed = bytesToBool(193, b);
-        auctionInfo.isTakerFeeDisabled = bytesToBool(194, b);
+        auctionInfo.S = bytesToUint256(96, b);
+        auctionInfo.T = bytesToUint256(128, b);
+        auctionInfo.delaySeconds = bytesToUint256(160, b);
+        auctionInfo.maxAskAmountPerAddr = bytesToUint256(192, b);
+        auctionInfo.maxBidAmountPerAddr = bytesToUint256(224, b);
+        auctionInfo.isWithdrawalAllowed = bytesToBool(225, b);
+        auctionInfo.isTakerFeeDisabled = bytesToBool(226, b);
 
     }
 

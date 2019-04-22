@@ -79,6 +79,7 @@ contract IAuctionData {
     struct AuctionInfo{
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
+        uint    S;                  // ShapeFacor
         uint    T;                  // Duration in seconds
         uint    delaySeconds;       // The delay for open participation.
         uint    maxAskAmountPerAddr;
@@ -88,8 +89,6 @@ contract IAuctionData {
     }
 
     // The following are constant setups that never change.
-    
-    // 拆分成struct，为了结构简洁，且解决stack too deep的问题
 
     struct AuctionSettings {
         
@@ -97,11 +96,6 @@ contract IAuctionData {
         uint    auctionID;
         uint    curveID;
         uint    startedTimestamp;   // Timestamp when this auction is started.
-
-        //AuctionInfo info;
-        //FeeSettings feeSettings;
-        //TokenInfo   tokenInfo;
-
 
     }
 }

@@ -9,7 +9,11 @@ contract IOedax is IAuctionData{
 
 
 
-
+    function receiveEvents(
+        Status status
+    )
+        external;
+        
     // Initiate an auction
     function createAuction(
         uint    curveId,

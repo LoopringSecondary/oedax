@@ -42,7 +42,49 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         return res;
     }
     
+
+    function getOriginCurveID(uint cid)
+        public
+        view
+        returns(
+            uint
+        )
+    {
+        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        return cidByName[curveParams[cid-1].curveName];
+    }
+
+    function getNextCurveID()
+        public
+        view
+        returns(
+            uint
+        )
+    {
+        return curveParams.length + 1;
+    }
     
+
+    function cloneCurve(
+        uint cid,
+        uint T,
+        uint P
+    )
+        public
+        returns(
+            bool /* success */,
+            uint /* cid */     
+        )
+    {
+        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        uint newId = getNextCurveID();
+        CurveParams memory newCurve = curveParams[cid-1];
+        newCurve.T = T;
+        newCurve.P = P;
+        curveParams.push(newCurve);
+        return (true, newId);     
+    }
+
     /// @dev Init parameters of price curves
     /// @param T Time to reach P (second)
     /// @param M Price scale

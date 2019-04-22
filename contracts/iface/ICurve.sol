@@ -61,6 +61,37 @@ contract ICurve{
     CurveParams[] public curveParams;
     mapping(bytes32 => uint) public cidByName;
 
+    
+    function getOriginCurveID()
+        public
+        view
+        returns(
+            uint
+        );
+
+        
+    function getNextCurveID()
+        public
+        view
+        returns(
+            uint
+        );
+
+    /// @dev Clone a curve with different parameters
+    /// @param cid The id of curve to be cloned
+    /// @param T The duration of new curve
+    /// @param P The target price of new curve
+    function cloneCurve(
+        uint cid,
+        uint T,
+        uint P
+    )
+        public
+        returns(
+            bool /* success */,
+            uint /* cid */     
+        );
+    
     /// @dev Init parameters of price curves
     /// @param T Time to reach P (second)
     /// @param M Price scale

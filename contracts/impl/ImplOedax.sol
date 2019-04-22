@@ -45,9 +45,108 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         feeSettings.walletBipts = 5;
         feeSettings.takerBips = 25;
         feeSettings.withdrawalPenaltyBips = 250;
+
+        emit FeeSettingsUpdated (
+            feeSettings.recepient,
+            feeSettings.creationFeeEth,
+            feeSettings.protocolBips,
+            feeSettings.walletBipts,
+            feeSettings.takerBips,
+            feeSettings.withdrawalPenaltyBips,
+            now
+        );
     }
     
 
+    function receiveEvents(
+        Status status
+    )
+        external
+    {
+        address auctionAddr = msg.sender;
+        require(
+            treasury.auctionAddressMap(auctionAddr) != 0,
+            "auction does not exist"
+        );
+
+        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
+            IAuction(auctionAddr).getAuctionSettingsBytes()
+        );
+        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
+            IAuction(auctionAddr).getAuctionInfoBytes()
+        );
+        AuctionState memory auctionState = bytesToAuctionState(
+            IAuction(auctionAddr).getAuctionStateBytes()
+        );
+        TokenInfo memory tokenInfo = bytesToTokenInfo(
+            IAuction(auctionAddr).getTokenInfoBytes()
+        );
+
+
+        if (status == Status.STARTED){
+
+            emit AuctionCreated(
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                auctionAddr,
+                auctionInfo.delaySeconds,
+                auctionInfo.P,
+                tokenInfo.priceScale,
+                auctionInfo.M,
+                auctionInfo.S,
+                auctionInfo.T,
+                auctionInfo.isWithdrawalAllowed
+            );
+        }
+
+        if (status == Status.OPEN){
+            emit AuctionOpened (
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                auctionAddr,
+                now
+            );    
+        }
+
+        if (status == Status.CONSTRAINED){
+            emit AuctionConstrained(
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                auctionAddr,
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                now
+            );    
+        }
+
+        if (status == Status.CLOSED){
+            emit AuctionClosed(
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                address(this),
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                now,
+                true
+            );
+        }
+
+        if (status == Status.SETTLED){
+            emit AuctionSettled (
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                address(this),
+                now
+            );
+        }
+
+    }
+    
+    
     function setAuctionGenerator(
         address addr
     )
@@ -64,7 +163,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint        initialBidAmount,         // The initial amount of tokenB from the creator's account.
         FeeSettings memory feeS,
         TokenInfo   memory tokenInfo,
-        AuctionInfo memory info
+        AuctionInfo memory auctionInfo
     )
         internal
         returns (
@@ -81,7 +180,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         bytes memory bA;
         bF = feeSettingsToBytes(feeS);
         bT = tokenInfoToBytes(tokenInfo);
-        bA = auctionInfoToBytes(info);
+        bA = auctionInfoToBytes(auctionInfo);
 
         auctionAddr = auctionGenerator.createAuction(
             address(curve),
@@ -96,8 +195,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
 
         bool success;
-        //(success, id) = treasury.registerAuction(address(auction), msg.sender);
         (success, id) = treasury.registerAuction(auctionAddr, msg.sender);
+
         return (auctionAddr, id);
 
     }
@@ -130,6 +229,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             cp.T == info.T &&
             cp.M == info.M &&
             cp.P == info.P &&
+            cp.S == info.S &&
             cp.priceScale == priceScale,
             "curve does not match the auction parameters"
         ); 
@@ -417,7 +517,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         TokenInfo memory tokenInfo = bytesToTokenInfo(
             IAuction(auctionAddr).getTokenInfoBytes()
         );
-        FeeSettings memory feeSettings = bytesToFeeSettings(
+        FeeSettings memory _feeSettings = bytesToFeeSettings(
             IAuction(auctionAddr).getFeeSettingsBytes()
         );
 
@@ -425,42 +525,25 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionSettings.startedTimestamp = now;
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
+
+        uint cid;
+        (, cid) = ICurve(curve).cloneCurve(
+            auctionSettings.curveID,
+            auctionInfo.T,
+            auctionInfo.P
+        );
         
 
         uint id;
         address addressAuction;
         (addressAuction, id) = createAuction(
-            auctionSettings.curveID,
+            cid,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
-            feeSettings,
+            _feeSettings,
             tokenInfo,
             auctionInfo
         );
-
-
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.initDeposit(
-                msg.sender,
-                addressAuction,
-                tokenInfo.askToken,
-                initialAskAmount 
-            ),
-            "Not enough tokens!" 
-        );
-
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.initDeposit(
-                msg.sender,
-                addressAuction,
-                tokenInfo.bidToken,
-                initialBidAmount 
-            ),
-            "Not enough tokens!" 
-        );
-
 
         return (addressAuction, id, true);
 
@@ -501,6 +584,16 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         feeSettings.walletBipts = walletBipts;
         feeSettings.takerBips = takerBips;
         feeSettings.withdrawalPenaltyBips = withdrawalPenaltyBips;
+
+        emit FeeSettingsUpdated (
+            recepient,
+            creationFeeEth,
+            protocolBips,
+            walletBipts,
+            takerBips,
+            withdrawalPenaltyBips,
+            now
+        );
     }
 
     function getFeeSettings(
