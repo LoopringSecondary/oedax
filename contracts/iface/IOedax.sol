@@ -10,7 +10,7 @@ contract IOedax is IAuctionData{
 
 
     function receiveEvents(
-        Status status
+        uint status
     )
         external;
         

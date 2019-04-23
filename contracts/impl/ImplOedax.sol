@@ -57,13 +57,21 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
     
-
     function receiveEvents(
-        Status status
+        uint status
     )
         external
     {
-        address auctionAddr = msg.sender;
+        receiveEvents(status, msg.sender);
+    }
+
+    function receiveEvents(
+        uint status,
+        address auctionAddr
+    )
+        internal
+    {
+        
         require(
             treasury.auctionAddressMap(auctionAddr) != 0,
             "auction does not exist"
@@ -83,12 +91,12 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
 
 
-        if (status == Status.STARTED){
+        if (status == 1){
 
             emit AuctionCreated(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
-                auctionAddr,
+                msg.sender,
                 auctionInfo.delaySeconds,
                 auctionInfo.P,
                 tokenInfo.priceScale,
@@ -99,20 +107,20 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == Status.OPEN){
+        if (status == 2){
             emit AuctionOpened (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
-                auctionAddr,
+                msg.sender,
                 now
             );    
         }
 
-        if (status == Status.CONSTRAINED){
+        if (status == 3){
             emit AuctionConstrained(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
-                auctionAddr,
+                msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
@@ -121,11 +129,11 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );    
         }
 
-        if (status == Status.CLOSED){
+        if (status == 4){
             emit AuctionClosed(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
-                address(this),
+                msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
@@ -135,11 +143,11 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == Status.SETTLED){
+        if (status == 5){
             emit AuctionSettled (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
-                address(this),
+                msg.sender,
                 now
             );
         }
@@ -196,6 +204,12 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         bool success;
         (success, id) = treasury.registerAuction(auctionAddr, msg.sender);
+
+        receiveEvents(1, auctionAddr);
+
+        if (IAuction(auctionAddr).status() == Status.OPEN){
+            receiveEvents(2, auctionAddr);
+        }
 
         return (auctionAddr, id);
 
@@ -525,6 +539,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionSettings.startedTimestamp = now;
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
+
 
         uint cid;
         (, cid) = ICurve(curve).cloneCurve(

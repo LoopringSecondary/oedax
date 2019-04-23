@@ -62,14 +62,14 @@ contract ICurve{
     mapping(bytes32 => uint) public cidByName;
 
     
-    function getOriginCurveID()
+    function getOriginCurveID(uint cid)
         public
         view
         returns(
             uint
         );
 
-        
+
     function getNextCurveID()
         public
         view
