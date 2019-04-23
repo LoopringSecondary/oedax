@@ -103,6 +103,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         if (auctionInfo.delaySeconds == 0){
             status = Status.OPEN;
+            oedax.receiveEvents(2);
             /*
             emit AuctionOpened (
                 creator,
@@ -833,6 +834,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         {
             status = Status.OPEN;
+            oedax.receiveEvents(2);
         }
 
         require(
@@ -1299,6 +1301,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             status = Status.CONSTRAINED;
             constrainedTime = now;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
+            oedax.receiveEvents(3);
         }
         
         //updateLimits();
