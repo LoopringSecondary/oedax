@@ -211,6 +211,29 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             receiveEvents(2, auctionAddr);
         }
 
+        require(
+            initialAskAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                auctionAddr,
+                tokenInfo.askToken,
+                initialAskAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
+        
+        require(
+            initialBidAmount == 0 ||
+            true == treasury.initDeposit(
+                msg.sender,
+                auctionAddr,
+                tokenInfo.bidToken,
+                initialBidAmount 
+            ),
+            "Not enough tokens!" 
+        );
+
         return (auctionAddr, id);
 
     }
@@ -304,29 +327,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
 
 
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.initDeposit(
-                msg.sender,
-                addressAuction,
-                askToken,
-                initialAskAmount 
-            ),
-            "Not enough tokens!" 
-        );
 
         
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.initDeposit(
-                msg.sender,
-                addressAuction,
-                bidToken,
-                initialBidAmount 
-            ),
-            "Not enough tokens!" 
-        );
-
         return (addressAuction, id);
 
     }
