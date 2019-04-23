@@ -164,6 +164,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionGenerator = IAuctionGenerator(addr);
     }
     
+    
+
     // Initiate an auction
     function createAuction(
         uint        curveId,
@@ -183,21 +185,21 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         address auctionAddr;
 
-        bytes memory bF;
-        bytes memory bT;
-        bytes memory bA;
-        bF = feeSettingsToBytes(feeS);
-        bT = tokenInfoToBytes(tokenInfo);
-        bA = auctionInfoToBytes(auctionInfo);
+        //bytes memory bF;
+        //bytes memory bT;
+        //bytes memory bA;
+        //bF = feeSettingsToBytes(feeS);
+        //bT = tokenInfoToBytes(tokenInfo);
+        //bA = auctionInfoToBytes(auctionInfo);
 
         auctionAddr = auctionGenerator.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bF,
-            bT,
-            bA,
+            feeSettingsToBytes(feeS),
+            tokenInfoToBytes(tokenInfo),
+            auctionInfoToBytes(auctionInfo),
             id,
             msg.sender
         );

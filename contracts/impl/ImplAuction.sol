@@ -103,7 +103,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         if (auctionInfo.delaySeconds == 0){
             status = Status.OPEN;
-            oedax.receiveEvents(2);
+            
             /*
             emit AuctionOpened (
                 creator,
@@ -112,6 +112,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 now
             );
             */
+            // 此处event在oedax合约中完成
             //oedax.receiveEvents(2);
         }
 
