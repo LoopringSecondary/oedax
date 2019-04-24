@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../lib/MathLib.sol";
 import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
+import "../iface/ICurve.sol";
 
 contract ImplCurve is ICurve, MathLib, DataHelper{
 
@@ -70,7 +71,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         uint T,
         uint P
     )
-        public
+        external
         returns(
             bool /* success */,
             uint /* cid */     
@@ -158,7 +159,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         )
         public
         view
-        returns (CurveParams memory)
+        returns (ICurveData.CurveParams memory)
     {
         require(cid>0 && cid <= curveParams.length, "curve does not exist");
         return curveParams[cid-1];
@@ -169,7 +170,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
     function getCurveBytes(
         uint cid
         )
-        public
+        external
         view
         returns (bytes memory)
     {
@@ -188,7 +189,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         )
         public
         view
-        returns (CurveParams memory)
+        returns (ICurveData.CurveParams memory)
     {
         bytes32 name = nameCheck(curveName);
         require(cidByName[name] > 0, "curve does not exist");

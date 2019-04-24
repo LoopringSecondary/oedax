@@ -3,10 +3,11 @@ pragma experimental ABIEncoderV2;
 
 import "../impl/ImplAuction.sol";
 import "../iface/IAuctionGenerator.sol";
-import "../lib/Ownable.sol";
 import "../helper/DataHelper.sol";
 
-contract ImplAuctionGenerator is Ownable, DataHelper{
+contract ImplAuctionGenerator is DataHelper{
+
+    address public owner;
 
     address public  oedax;
     address public  treasury;
@@ -26,6 +27,7 @@ contract ImplAuctionGenerator is Ownable, DataHelper{
     )
         public
     {
+        owner = msg.sender;
         oedax = address(0x0);
         treasury = _treasury;
     }
@@ -35,12 +37,12 @@ contract ImplAuctionGenerator is Ownable, DataHelper{
         address _oedax
         )
         public
-        onlyOwner
     {
         require(
             oedax == address(0x0), 
             "Oedax could only be set once!"
         );
+        require(msg.sender == owner, "NOT_OWNER");
         oedax = _oedax;
     } 
 

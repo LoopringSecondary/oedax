@@ -2,13 +2,13 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../iface/IAuctionData.sol";
-import "../iface/ICurve.sol";
+import "../iface/ICurveData.sol";
 import "./BytesToTypes.sol";
-
 
 contract DataHelper is BytesToTypes, IAuctionData{
     
-    function curveParamsToBytes(ICurve.CurveParams memory curveParams)
+    
+    function curveParamsToBytes(ICurveData.CurveParams memory curveParams)
         internal
         pure
         returns (
@@ -261,7 +261,7 @@ contract DataHelper is BytesToTypes, IAuctionData{
         internal
         pure
         returns (
-            ICurve.CurveParams memory curveParams
+            ICurveData.CurveParams memory curveParams
         )
     {
         uint len = b.length;

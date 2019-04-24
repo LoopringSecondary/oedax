@@ -9,6 +9,27 @@ import "../lib/MathLib.sol";
 import "../iface/IAuctionGenerator.sol";
 import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
+import "../iface/ICurveData.sol";
+
+interface ICurve{
+    function getCurveBytes(
+        uint cid
+        )
+        external
+        view
+        returns (bytes memory);
+
+    function cloneCurve(
+        uint cid,
+        uint T,
+        uint P
+    )
+        external
+        returns(
+            bool /* success */,
+            uint /* cid */     
+        );
+}
 
 contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
 
@@ -258,7 +279,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
         priceScale = pow(10, 18 + askDecimals - bidDecimals);
 
-        ICurve.CurveParams memory cp;
+        ICurveData.CurveParams memory cp;
 
         cp = bytesToCurveParams(
             curve.getCurveBytes(curveId)

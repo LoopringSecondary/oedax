@@ -22,12 +22,10 @@ contract IAuction is IAuctionData {
     mapping(address => bool) public userParticipated;
 
     // 拍卖过程中交互的逻辑：
-    // 1. 用户Deposit X个 tokenA
-    // 2. X中，一部分作为固定的fee给recepient，一部分作为takerFee，剩下的参与
-    // 3. 拍卖过程中提取，一部分作为penalty，剩下的返回钱包
-    // 4. 拍卖全部结束，有效的总TokenA与TokenB作为兑换价格依据
-    // 过程中要求，TokenA与TokenB与实际兑换时总量一致
-    // 紧急terminate时，可以全部提出Token，仅扣除给recepient的，takerFee从简结算
+    // 1. 用户Deposit时，一部分作为takerFee，剩下的参与拍卖
+    // 2. 拍卖过程中withdraw，一部分作为penalty，剩下的返回钱包
+    // 3. 拍卖全部结束，有效的总TokenA与TokenB作为兑换价格依据
+
 
     // userTotalBalances = userAvailableBalances + ∑userLockedBalances 需要始终满足
     // 简化逻辑，拍卖过程中的fee结算，仅在auction合约中记录，拍卖结束后整体进行结算
@@ -35,9 +33,8 @@ contract IAuction is IAuctionData {
     // 25%的takerFee暂存至auction合约中，结束后进行再分配
     // 合约结束后，用户lock的部分根据auction合约计算，在tokenA与tokenB中结算
     // 中途退出时，takeFee不退还，但是takerRateA按比例扣除
-
     // totalAskAmount = ∑askAmount + totalTakerAmountA
-    // totalRecipientAmountA 在 Deposit 时扣除，放入recipient账户
+
 
     mapping(address => uint256) public askAmount; // the amount of tokenA
     mapping(address => uint256) public bidAmount; // the amount of tokenB
@@ -105,6 +102,7 @@ contract IAuction is IAuctionData {
 
     function updatePrice() public;
     
+    /*
     // 0 - no queue
     // 1 - ask queue
     // 2 - bid queue
@@ -116,13 +114,14 @@ contract IAuction is IAuctionData {
             uint queueStatus,
             uint amount
         );
-
+*/
     function getActualPrice()
         public
         view
         returns(
             uint price
         );
+    
 
     // 结算包括Taker奖励后的Token数量
     function calcActualTokens(address user)

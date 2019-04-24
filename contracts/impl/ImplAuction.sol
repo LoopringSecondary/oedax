@@ -2,11 +2,118 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../iface/IAuction.sol";
-import "../iface/ITreasury.sol";
-import "../iface/IOedax.sol";
 import "../lib/MathLib.sol";
-import "../iface/ICurve.sol";
 import "../helper/DataHelper.sol";
+
+interface IOedax{
+    function receiveEvents(
+        uint status
+    )
+        external;
+}
+
+
+contract ICurve{
+    function calcEstimatedTTL(
+        uint cid,
+        uint t1,
+        uint t2
+        )
+        public
+        view
+        returns(
+            uint /* ttlSeconds */
+        );
+
+    function calcAskPrice(
+        uint cid,
+        uint t
+        )
+        public
+        view
+        returns (uint);
+
+    function calcInvAskPrice(
+        uint cid,
+        uint p
+        )
+        public
+        view
+        returns (
+            bool,
+            uint
+        );
+
+    function calcBidPrice(
+        uint cid,
+        uint t
+        )
+        public
+        view
+        returns (uint);
+
+    function calcInvBidPrice(
+        uint cid,
+        uint p
+        )
+        public
+        view
+        returns (
+            bool,
+            uint
+        );
+ 
+}
+
+
+interface ITreasury{
+
+    function auctionDeposit(
+        address user,
+        address token,
+        uint    amount
+    )
+        external
+        returns (
+            bool /* successful */ 
+        );
+
+
+    function auctionWithdraw(
+        address user,
+        address token,
+        uint    amount
+    )
+        external
+        returns (
+            bool /* successful */
+        );
+
+    function sendFee(
+        address recepient,
+        address user,
+        address token,
+        uint    amount
+    )
+        external
+        returns(
+            bool
+        );
+
+    function exchangeTokens(
+        address recepient,
+        address user,
+        address tokenA,
+        address tokenB,
+        uint    amountA,
+        uint    amountB
+    )
+        external
+        returns(
+            bool
+        );
+}
+
 
 contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticipationEvents{
 
@@ -448,8 +555,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         uint askPrice;
         uint bidPrice;
-        uint actualPrice;
-        (askPrice, bidPrice, actualPrice,  ,  ) = simulatePrice(0);
+
+        (askPrice, bidPrice, ,  ,  ) = simulatePrice(0);
 
         uint ask = auctionState.totalAskAmount;
         uint bid = auctionState.totalBidAmount;
@@ -482,30 +589,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         );
     }
 
-
-    
-    function getQueueStatus()
-        public
-        view
-        returns(
-            uint,
-            uint
-        )
-    {
-        uint s = 0;
-        uint amount = 0;
-        if (askQueue.length > 0){
-            s += 1;
-            amount = auctionState.queuedAskAmount;
-        }
-        
-        if (bidQueue.length > 0){
-            s += 2;
-            amount = auctionState.queuedBidAmount;
-        }
-        return (s, amount);
-
-    }
 
 
     function getActualPrice()
@@ -555,9 +638,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             return 100;
         }
 
-        //uint time = sub(now, auctionSettings.startedTimestamp + auctionInfo.delaySeconds);
         uint time = sub(now, constrainedTime);
-        // rate drops when time goes on
 
         rate = time*100/auctionInfo.T;
 
@@ -1021,7 +1102,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                     askAmount[q.user] += amountRes;
                     auctionState.queuedAskAmount -= amountRes;
                     askQueue[len - 1].amount = q.amount - amountRes;
-                    amountRes -= amountRes;
+                    amountRes = 0;
                     break;
                 }
                 len--;
@@ -1044,7 +1125,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                     bidAmount[q.user] += amountRes;
                     auctionState.queuedBidAmount -= amountRes;
                     bidQueue[len - 1].amount = q.amount - amountRes;
-                    amountRes -= amountRes;
+                    amountRes = 0;
                     break;
                 }
                 len--;
@@ -1374,7 +1455,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         uint penaltyBips = feeSettings.withdrawalPenaltyBips;         
         uint realAmount = toWithdraw;         
-        bool success;
 
         if (penaltyBips > 0){
             realAmount = realAmount - amount*penaltyBips/10000;
@@ -1386,7 +1466,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             );
         }
 
-        success = treasury.auctionWithdraw(
+        treasury.auctionWithdraw(
             msg.sender,
             token,
             realAmount
