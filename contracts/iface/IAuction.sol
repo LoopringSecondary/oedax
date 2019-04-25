@@ -49,8 +49,8 @@ contract IAuction is IAuctionData {
     uint public totalTakerRateA;
     uint public totalTakerRateB;
 
-    uint public totalTakerAmountA;
-    uint public totalTakerAmountB;
+    //uint public totalTakerAmountA;
+    //uint public totalTakerAmountB;
 
     mapping(address => bool) public isSettled;
 

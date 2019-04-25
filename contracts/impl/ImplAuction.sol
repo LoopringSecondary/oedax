@@ -486,19 +486,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         if (now == lastSynTime || status != Status.CONSTRAINED){
             return;
         }
-        uint askPrice;
-        uint bidPrice;
-        uint _askPausedTime = askPausedTime;
-        uint _bidPausedTime = bidPausedTime;
-        (askPrice, bidPrice,  , _askPausedTime, _bidPausedTime) = simulatePrice(0);
-        auctionState.askPrice = askPrice;
-        auctionState.bidPrice = bidPrice;
-        askPausedTime = _askPausedTime;
-        bidPausedTime = _bidPausedTime;
+
+        (auctionState.askPrice, auctionState.bidPrice,  , askPausedTime, bidPausedTime) = simulatePrice(0);
+     
         auctionState.estimatedTTLSeconds = getEstimatedTTL();
         lastSynTime = now;
         
-        if (askPrice <= bidPrice){
+        if (auctionState.askPrice <= auctionState.bidPrice){
             status = Status.CLOSED;
             /*
             emit AuctionClosed(
@@ -618,10 +612,16 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint amountA = askAmount[user];
         uint amountB = bidAmount[user];
         if (totalTakerRateA > 0){
-            amountA += totalTakerAmountA*takerRateA[user]/totalTakerRateA;
+            amountA = amountA - feeSettings.takerBips*amountA/10000 + 
+                auctionState.totalAskAmount*feeSettings.takerBips/10000
+                *takerRateA[user]/totalTakerRateA;
+            
+            //amountA += totalTakerAmountA*takerRateA[user]/totalTakerRateA;
         }
         if (totalTakerRateB > 0){         
-            amountB += totalTakerAmountB*takerRateB[user]/totalTakerRateB;  
+            amountB = amountB - feeSettings.takerBips*amountB/10000 + 
+                auctionState.totalBidAmount*feeSettings.takerBips/10000
+                *takerRateB[user]/totalTakerRateB; 
         }
         return (amountA, amountB); 
     }
@@ -925,19 +925,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             "deposit not allowed"
         );
 
-        bool success;
-        uint feeBips;
-        uint realAmount;
+        uint realAmount = amount;
 
-        if (wallet == address(0x0)){
-            feeBips = 0;
-        }
-        else{
-            feeBips = feeSettings.protocolBips + feeSettings.walletBipts;
-        }
-        realAmount = amount*(10000-feeBips)/10000;
-
-        
         newParticipation(token, int(amount));
     
 
@@ -958,14 +947,17 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
-        success = treasury.auctionDeposit(
+        treasury.auctionDeposit(
             msg.sender,
             token,
             amount  // must be greater than 0.
         );
 
 
+        
+        
         uint action;
+        
         if (token == tokenInfo.askToken){
             action = 1;
         }
@@ -973,14 +965,83 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             action = 2;
         }
 
-        updateAfterAction(action,amount);
 
+        
+        
+        // creationFeeEth       - 给creator
+        // protocolBips         - 给recepient
+        // walletBipts          - 給wallet或者recepient
+        // takerBips            - 所有人共享
+        // withdrawalPenaltyBips- 给recepient
 
+        /*
+        treasury.sendFee(
+            auctionSettings.creator,
+            msg.sender,
+            token,
+            amount*feeSettings.creationFeeEth/10000 
+        );
 
+        treasury.sendFee(
+            feeSettings.recepient,
+            msg.sender,
+            token,
+            amount*feeSettings.protocolBips/10000 
+        );
+        */
+        uint fee;
+
+        fee = amount*feeSettings.protocolBips/10000;
+
+        if (wallet == address(0x0)){
+            treasury.sendFee(
+                feeSettings.recepient,
+                msg.sender,
+                token,
+                fee 
+            );
+        }
+        else{
+            treasury.sendFee(
+                wallet,
+                msg.sender,
+                token,
+                fee 
+            );
+        }
+
+        recordTaker(
+            msg.sender,
+            token,
+            amount-fee
+        );
+        
+
+        updateAfterAction(action, amount-fee);
 
         return amount;
     
     }
+
+    function recordTaker(
+        address user,
+        address token,
+        uint amount
+    )
+        internal
+    {
+        uint userTake = amount*calcTakeRate();
+        if (token == tokenInfo.askToken){
+            takerRateA[user] += userTake;
+            totalTakerRateA += userTake;
+        }
+
+        if (token == tokenInfo.bidToken){
+            takerRateB[user] += userTake;
+            totalTakerRateB += userTake;           
+        }
+    }
+
 
     
     // 不考虑waitinglist情况下的limit
@@ -1519,18 +1580,22 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     }
 
-    // 拍卖结束后提款
-    function settle()
-        external
+    
+    
+    function settle(
+        address user 
+        )
+        public
         returns (
             bool /* settled */
         )
     {
         require(
             status >= Status.CLOSED &&
-            !isSettled[msg.sender],
+            !isSettled[user],
             "the auction should be later than CLOSED status"
         );
+        
         
         if (status == Status.CLOSED){
             triggerSettle();
@@ -1542,21 +1607,32 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint exchangedA; 
         uint exchangedB;
 
-        (lockedA, lockedB) = calcActualTokens(msg.sender); 
+        (lockedA, lockedB) = calcActualTokens(user); 
         exchangedA = tokenExchange(2, lockedB);
         exchangedB = tokenExchange(1, lockedA);
 
-        isSettled[msg.sender] = true;
+        isSettled[user] = true;
 
         treasury.exchangeTokens(
             feeSettings.recepient,
-            msg.sender,
+            user,
             tokenInfo.askToken,
             tokenInfo.bidToken,
             exchangedA,
             exchangedB
-        );
-   
+        );  
+
+        return true;  
+    }
+
+    // 拍卖结束后提款
+    function settle()
+        external
+        returns (
+            bool /* settled */
+        )
+    {    
+        settle(msg.sender);
     } 
 
     // Try to settle the auction.
