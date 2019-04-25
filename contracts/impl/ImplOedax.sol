@@ -618,6 +618,14 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         external
         onlyOwner
     {
+        require(
+            feeSettings.creationFeeEth +
+            feeSettings.protocolBips +
+            feeSettings.walletBipts +
+            feeSettings.takerBips < 10000,
+            "feeSetting not correct"
+        );
+        
         feeSettings.recepient = recepient;
         feeSettings.creationFeeEth = creationFeeEth;
         feeSettings.protocolBips = protocolBips;

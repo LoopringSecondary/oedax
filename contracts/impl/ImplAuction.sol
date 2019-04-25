@@ -112,6 +112,16 @@ interface ITreasury{
         returns(
             bool
         );
+
+    function sendFeeAll(
+        address recepient,
+        address token,
+        uint    amount
+    )
+        external
+        returns(
+            bool
+        );
 }
 
 
@@ -612,19 +622,29 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint amountA = askAmount[user];
         uint amountB = bidAmount[user];
         if (totalTakerRateA > 0){
-            amountA = amountA - feeSettings.takerBips*amountA/10000 + 
+            amountA = amountA - totalFeeBips()*amountA/10000 + 
                 auctionState.totalAskAmount*feeSettings.takerBips/10000
                 *takerRateA[user]/totalTakerRateA;
             
             //amountA += totalTakerAmountA*takerRateA[user]/totalTakerRateA;
         }
         if (totalTakerRateB > 0){         
-            amountB = amountB - feeSettings.takerBips*amountB/10000 + 
+            amountB = amountB - totalFeeBips()*amountB/10000 + 
                 auctionState.totalBidAmount*feeSettings.takerBips/10000
                 *takerRateB[user]/totalTakerRateB; 
         }
         return (amountA, amountB); 
     }
+
+    function totalFeeBips()
+        internal
+        view
+        returns(uint total)
+    {
+        total = feeSettings.creationFeeEth +
+            feeSettings.protocolBips +
+            feeSettings.takerBips;
+    }   
     
     function calcTakeRate()
         public
@@ -968,27 +988,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         
         
-        // creationFeeEth       - 给creator
-        // protocolBips         - 给recepient
-        // walletBipts          - 給wallet或者recepient
-        // takerBips            - 所有人共享
-        // withdrawalPenaltyBips- 给recepient
+        // creationFeeEth       - 给creator，拍卖结束时整体分配
+        // protocolBips         - 给recepient，拍卖结束时整体分配
+        // walletBipts          - 給wallet或者recepient，拍卖中deposit时分配
+        // takerBips            - 所有人共享，拍卖结束时参与者分配
+        // withdrawalPenaltyBips- 给recepient, withdraw时分配
 
-        /*
-        treasury.sendFee(
-            auctionSettings.creator,
-            msg.sender,
-            token,
-            amount*feeSettings.creationFeeEth/10000 
-        );
 
-        treasury.sendFee(
-            feeSettings.recepient,
-            msg.sender,
-            token,
-            amount*feeSettings.protocolBips/10000 
-        );
-        */
         uint fee;
 
         fee = amount*feeSettings.walletBipts/10000;
@@ -1019,7 +1025,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         updateAfterAction(action, amount-fee);
 
-        return amount;
+        return amount-fee;
     
     }
 
@@ -1599,7 +1605,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         
         if (status == Status.CLOSED){
             triggerSettle();
-            //status = Status.SETTLED;
         }
 
         uint lockedA;
@@ -1637,6 +1642,10 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     // Try to settle the auction.
     // 用于返还等待序列中的Token
+    // 分配手续费creationFee - creator， protocolFee - recepient
+    // 其余手续费： walletFee - 用户deposit时收取
+    // takerFee - 用户Settle时分配
+    // withdrawalPenalty - 用户withdraw时收取
     function triggerSettle()
         public
         returns (
@@ -1648,7 +1657,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             status == Status.CLOSED,
             "the auction should be later than CLOSED status"
         );
-        // TODO: settle
+        // 第一步：清空askQueue与bidQueue
         uint len;
         bool success;
         QueuedParticipation memory q;
@@ -1679,6 +1688,32 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
         bidQueue.length = 0; // delete
 
+
+        // 第二步: 发放creationFee 与 protocolFee
+        treasury.sendFeeAll(
+            auctionSettings.creator,
+            tokenInfo.askToken,
+            auctionState.totalAskAmount*feeSettings.creationFeeEth
+        );
+
+        treasury.sendFeeAll(
+            auctionSettings.creator,
+            tokenInfo.bidToken,
+            auctionState.totalBidAmount*feeSettings.creationFeeEth
+        );
+        
+        treasury.sendFeeAll(
+            feeSettings.recepient,
+            tokenInfo.askToken,
+            auctionState.totalAskAmount*feeSettings.protocolBips
+        );    
+
+        treasury.sendFeeAll(
+            feeSettings.recepient,
+            tokenInfo.bidToken,
+            auctionState.totalBidAmount*feeSettings.protocolBips
+        );    
+        // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
 
         /*

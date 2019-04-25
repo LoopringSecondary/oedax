@@ -141,6 +141,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     /// Auction合约直接在user和recepient之间完成“转账”，保证所有变量总额不变
     /// recepient获得相应的抽成（在拍卖结束后提取）
+    /// 用于用户绑定的fee收取
     function sendFee(
         address recepient,
         address user,
@@ -173,6 +174,38 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
         return true;
     }
+
+    /// 在拍卖结束后，由auction分配
+    /// recepient获得相应的抽成，与单个用户无关，整体计算金额
+    function sendFeeAll(
+        address recepient,
+        address token,
+        uint    amount
+    )
+        external
+        isAuction
+        whenRunning
+        returns(
+            bool
+        )
+    {
+
+        uint id = auctionAddressMap[msg.sender];
+        require(
+            id > 0,
+            "address not correct"
+        );
+
+        
+        contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
+        
+        userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
+        
+        userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
+
+        return true;
+    }
+
 
     //between treasury contract and auction contract
     function auctionDeposit(
