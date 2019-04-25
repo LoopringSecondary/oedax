@@ -236,41 +236,35 @@ contract IAuction is IAuctionData {
 
 
 
-
     function askDeposit(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         );
 
 
     function bidDeposit(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         );
 
+/*
 
     function askWithdraw(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         );
 
     function bidWithdraw(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         );
 
+*/
 
-    function deposit(
-        address token,
-        uint    amount)
-        public
-        returns (
-            uint /* amount */
-        );
 
     /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
     /// auciton, the rest is put into the waiting list (queue).
@@ -335,23 +329,7 @@ contract IAuction is IAuctionData {
             bool /* settled */
         );
 
-    // Start a new aucton with the same parameters except the P and the delaySeconds parameter.
-    // The new P parameter would be the settlement price of this auction.
-    // Function should be only called from Oedax main contract, as an interface
-    
-    // cannot clone itself
-    /*
-    function clone(
-        uint delaySeconds,
-        uint initialAskAmount, // The initial amount of tokenA from the creator's account.
-        uint initialBidAmount
-    ) // The initial amount of tokenB from the creator's account.
-        external
-        returns (
-            address,
-            uint
-        );
-    */
+
 
     /// @dev Get participations from a given address.
     function getUserParticipations(

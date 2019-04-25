@@ -139,9 +139,10 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
 
     modifier isOedax(){
+        
         require(
-            msg.sender == address(oedax),
-            "the address is not creator"
+            msg.sender == address(oedax)/*,
+            "the address is not creator"*/
         );
         _;
     }
@@ -320,8 +321,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             )
     {
         require(
-            _bid > 0,
-            "bid amount should be larger than 0"
+            _bid > 0/*,
+            "bid amount should be larger than 0"*/
         );
         uint actualPrice = mul(_ask, tokenInfo.priceScale)/_bid; 
         
@@ -385,13 +386,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
         uint time = add(now, dt);
         require(
-            time >= lastSynTime,
-            "time should not be earlier than lastSynTime"
+            time >= lastSynTime/*,
+            "time should not be earlier than lastSynTime"*/
         );
 
         require(
-            auctionState.actualPrice > 0,
-            "actualPrice should not be 0"
+            auctionState.actualPrice > 0/*,
+            "actualPrice should not be 0"*/
         );
 
         if (time == lastSynTime){
@@ -553,8 +554,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
 
         require(
-            auctionState.actualPrice > 0,
-            "actualPrice should not be 0"
+            auctionState.actualPrice > 0/*,
+            "actualPrice should not be 0"*/
         );
 
         uint askPrice;
@@ -616,8 +617,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
     {
         require(
-            status >= Status.OPEN,
-            "The auction is not open yet"
+            status >= Status.OPEN/*,
+            "The auction is not open yet"*/
         );
         uint amountA = askAmount[user];
         uint amountB = bidAmount[user];
@@ -863,25 +864,25 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function askDeposit(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         )
     {
-        return deposit(tokenInfo.askToken, amount);
+        return deposit(address(0x0), tokenInfo.askToken, amount);
     }
 
     function bidDeposit(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         )
     {
-        return deposit(tokenInfo.bidToken, amount);
+        return deposit(address(0x0), tokenInfo.bidToken, amount);
     }
-
+/*
     function askWithdraw(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         )
     {
         return withdraw(tokenInfo.askToken, amount);
@@ -890,23 +891,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function bidWithdraw(uint amount)
         public
         returns (
-            uint /* amount */
+            uint
         )
     {
         return withdraw(tokenInfo.bidToken, amount);
     }
+*/
 
-
-    function deposit(
-        address token,
-        uint    amount)
-        public
-        returns (
-            uint /* amount */
-        )
-    {
-        return deposit(address(0x0), token, amount);
-    }
 
     /// @dev Make a deposit and returns the amount that has been successfully deposited into the
     /// auciton, the rest is put into the waiting list (queue).
@@ -922,14 +913,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
         require(
             token == tokenInfo.askToken ||
-            token == tokenInfo.bidToken,
-            "token not correct"
+            token == tokenInfo.bidToken/*,
+            "token not correct"*/
         );
 
-        require(
-            msg.sender != feeSettings.recepient,
-            "recepient is not allowed"
-        );
+
 
         if (status == Status.STARTED&&
             now >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
@@ -941,8 +929,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         require(
             status == Status.OPEN ||
-            status == Status.CONSTRAINED,
-            "deposit not allowed"
+            status == Status.CONSTRAINED/*,
+            "deposit not allowed"*/
         );
 
         uint realAmount = amount;
@@ -1147,8 +1135,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
         require(
             dir == 1 && amount <= auctionState.queuedAskAmount ||
-            dir == 2 && amount <= auctionState.queuedBidAmount,
-            "amount not correct"
+            dir == 2 && amount <= auctionState.queuedBidAmount/*,
+            "amount not correct"*/
         );
         
         uint len;
@@ -1318,36 +1306,32 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         uint amountPrice = amount; // 用于更改价格的数量
         
-        if (action == 1){
-            if (amountPrice > 0){
-                if (amountPrice <= nonQueue){
-                    auctionState.totalAskAmount += amountPrice;
-                    askAmount[msg.sender] += amountPrice;
-                    updateActualPrice();
-                }
-                else{
-                    auctionState.totalAskAmount += nonQueue;
-                    askAmount[msg.sender] += nonQueue;       
-                    updateActualPrice();
-                    updateQueue(action, amountPrice - nonQueue);
-                } 
-            }  
+        if (action == 1 && amountPrice > 0){
+            if (amountPrice <= nonQueue){
+                auctionState.totalAskAmount += amountPrice;
+                askAmount[msg.sender] += amountPrice;
+                updateActualPrice();
+            }
+            else{
+                auctionState.totalAskAmount += nonQueue;
+                askAmount[msg.sender] += nonQueue;       
+                updateActualPrice();
+                updateQueue(action, amountPrice - nonQueue);
+            } 
         }
         
         // the addtional deposit will be inserted into the queue
-        if (action == 2){
-            if (amountPrice > 0){
-                if (amountPrice <= nonQueue){
-                    auctionState.totalBidAmount += amountPrice;
-                    bidAmount[msg.sender] += amountPrice;
-                    updateActualPrice();
-                }
-                else{
-                    auctionState.totalBidAmount += nonQueue;
-                    bidAmount[msg.sender] += nonQueue;
-                    updateActualPrice();
-                    updateQueue(action, amountPrice - nonQueue);
-                }
+        if (action == 2 && amountPrice > 0){
+            if (amountPrice <= nonQueue){
+                auctionState.totalBidAmount += amountPrice;
+                bidAmount[msg.sender] += amountPrice;
+                updateActualPrice();
+            }
+            else{
+                auctionState.totalBidAmount += nonQueue;
+                bidAmount[msg.sender] += nonQueue;
+                updateActualPrice();
+                updateQueue(action, amountPrice - nonQueue);
             }
         }
 
@@ -1355,8 +1339,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         if (action == 3){
             require(
-                auctionState.queuedAskAmount + nonQueue >= amount,
-                "withdrawal amount beyond limit"
+                auctionState.queuedAskAmount + nonQueue >= amount/*,
+                "withdrawal amount beyond limit"*/
             );
 
             askAmount[msg.sender] -= amountPrice;
@@ -1385,8 +1369,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         // the addtional withdraw will hedge the queue
         if (action == 4){
             require(
-                auctionState.queuedBidAmount + nonQueue >= amount,
-                "withdrawal amount beyond limit"
+                auctionState.queuedBidAmount + nonQueue >= amount/*,
+                "withdrawal amount beyond limit"*/
             );
 
             bidAmount[msg.sender] -= amountPrice;
@@ -1470,30 +1454,30 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
 
         require(
-            auctionInfo.isWithdrawalAllowed,
-            "withdraw is not allowed"
+            auctionInfo.isWithdrawalAllowed/*,
+            "withdraw is not allowed"*/
         );
         
         require(
-            msg.sender != feeSettings.recepient,
-            "recepient is not allowed"
+            msg.sender != feeSettings.recepient/*,
+            "recepient is not allowed"*/
         );
 
         require(
             status == Status.OPEN ||
-            status == Status.CONSTRAINED,
-            "withdraw not allowed"
+            status == Status.CONSTRAINED/*,
+            "withdraw not allowed"*/
         );
 
         require(
-            amount > 0,
-            "amount should not be 0"
+            amount > 0/*,
+            "amount should not be 0"*/
         );
 
         require(
             token == tokenInfo.askToken ||
-            token == tokenInfo.bidToken,
-            "token not correct"
+            token == tokenInfo.bidToken/*,
+            "token not correct"*/
         );
 
         
@@ -1598,8 +1582,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
         require(
             status >= Status.CLOSED &&
-            !isSettled[user],
-            "the auction should be later than CLOSED status"
+            !isSettled[user]/*,
+            "the auction should be later than CLOSED status"*/
         );
         
         
@@ -1654,8 +1638,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
 
         require(
-            status == Status.CLOSED,
-            "the auction should be later than CLOSED status"
+            status == Status.CLOSED/*,
+            "the auction should be later than CLOSED status"*/
         );
         // 第一步：清空askQueue与bidQueue
         uint len;
@@ -1768,8 +1752,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint len1 = participations.length;
         uint len2 = count;
         require(
-            len1 > skip,
-            "params not correct"
+            len1 > skip/*,
+            "params not correct"*/
         );
         if (len1 < add(skip,count)) {
             len2 = len1 - skip;

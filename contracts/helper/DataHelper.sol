@@ -150,8 +150,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 226,
-            "length of bytes not correct"
+            len == 226/*,
+            "length of bytes not correct"*/
         );
 
         auctionInfo.P = bytesToUint256(32, b);
@@ -176,8 +176,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 180,
-            "length of bytes not correct"
+            len == 180/*,
+            "length of bytes not correct"*/
         );
 
         feeSettings.recepient = bytesToAddress(20, b);
@@ -199,8 +199,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {        
         uint len = b.length;
         require(
-            len == 136,
-            "length of bytes not correct"
+            len == 136/*,
+            "length of bytes not correct"*/
         );
     
         tokenInfo.askToken = bytesToAddress(20, b);
@@ -220,8 +220,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 384,
-            "length of bytes not correct"
+            len == 384/*,
+            "length of bytes not correct"*/
         );
 
         auctionState.askPrice = bytesToUint256(32, b);
@@ -247,8 +247,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 116,
-            "length of bytes not correct"
+            len == 116/*,
+            "length of bytes not correct"*/
         );
 
         auctionSettings.creator = bytesToAddress(20, b);
@@ -266,8 +266,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
     {
         uint len = b.length;
         require(
-            len == 360,
-            "length of bytes not correct"
+            len == 360/*,
+            "length of bytes not correct"*/
         );
             
         curveParams.askToken = bytesToAddress(20, b);
