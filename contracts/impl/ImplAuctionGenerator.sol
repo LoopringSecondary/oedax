@@ -14,8 +14,8 @@ contract ImplAuctionGenerator is DataHelper{
 
     modifier isOedax(){
         require(
-            msg.sender == oedax,
-            "The address should be oedax contract"
+            msg.sender == oedax/*,
+            "The address should be oedax contract"*/
         );
         _;
     }
@@ -39,10 +39,10 @@ contract ImplAuctionGenerator is DataHelper{
         public
     {
         require(
-            oedax == address(0x0), 
-            "Oedax could only be set once!"
+            oedax == address(0x0)/*, 
+            "Oedax could only be set once!"*/
         );
-        require(msg.sender == owner, "NOT_OWNER");
+        require(msg.sender == owner);
         oedax = _oedax;
     } 
 

@@ -12,6 +12,41 @@ interface IOedax{
         external;
 }
 
+contract IAuctionEvents {
+
+
+    event AuctionCreated(
+        address     creator,
+        uint256     aucitionId,
+        uint256     createTime
+    );
+
+
+    event AuctionOpened (
+        uint256         openTime
+    );
+
+    event AuctionConstrained(
+        uint256         totalAskAmount,
+        uint256         totalBidAmount,
+        uint256         priceScale,
+        uint256         actualPrice,
+        uint256         constrainedTime
+    );
+
+    event AuctionClosed(
+        uint256         totalAskAmount,
+        uint256         totalBidAmount,
+        uint256         priceScale,
+        uint256         closePrice,
+        uint256         closeTime,
+        bool            canSettle
+    );
+
+    event AuctionSettled (
+        uint256         settleTime
+    );
+}
 
 contract ICurve{
     function calcEstimatedTTL(
@@ -218,6 +253,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         */
 
         //oedax.receiveEvents(1);
+        auctionEvents(1);
 
         if (auctionInfo.delaySeconds == 0){
             status = Status.OPEN;
@@ -230,15 +266,65 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 now
             );
             */
+            auctionEvents(2);
             // 此处event在oedax合约中完成
             //oedax.receiveEvents(2);
+            
         }
 
 
 
     }
 
+    function auctionEvents(
+        uint status
+    )
+        internal
+    {
+        
+        if (status == 1){
+            emit AuctionCreated(
+                auctionSettings.creator,
+                auctionSettings.auctionID,
+                now
+            );   
+        }
+        
 
+        if (status == 2){
+            emit AuctionOpened (
+                now
+            );
+        }
+
+        if (status == 3){
+            emit AuctionConstrained(
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                now
+            );
+        }
+
+        if (status == 4){
+            emit AuctionClosed(
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                now,
+                true
+            );
+        }
+
+        if (status == 5){
+            emit AuctionSettled (
+                now
+            );
+        }
+
+    }
 
     function newParticipation(
         address token,
@@ -468,6 +554,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 now
             );
             */
+            auctionEvents(2);
             oedax.receiveEvents(2);
         }
 
@@ -491,6 +578,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 now
             );
             */
+            auctionEvents(3);
             oedax.receiveEvents(3);
         }
 
@@ -518,6 +606,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 true
             );
             */
+            auctionEvents(4);
             oedax.receiveEvents(4);
         }
         updateLimits();
@@ -924,6 +1013,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         {
             status = Status.OPEN;
+            auctionEvents(2);
             oedax.receiveEvents(2);
         }
 
@@ -1434,6 +1524,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             status = Status.CONSTRAINED;
             constrainedTime = now;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
+            auctionEvents(3);
             oedax.receiveEvents(3);
         }
         
@@ -1708,6 +1799,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             now
         );
         */
+        auctionEvents(5);
         oedax.receiveEvents(5);    
         return success;
     }

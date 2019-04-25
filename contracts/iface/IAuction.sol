@@ -2,7 +2,7 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
-import "./IAuctionEvents.sol";
+//import "./IAuctionEvents.sol";
 import "./IParticipationEvents.sol";
 
 

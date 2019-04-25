@@ -10,7 +10,7 @@ contract MathLib {
         pure 
         returns (uint z) 
     {
-        require((z = x + y) >= x, "add-overflow");
+        require((z = x + y) >= x);
     }
     
     function sub(
@@ -21,7 +21,7 @@ contract MathLib {
         pure 
         returns (uint z) 
     {
-        require((z = x - y) <= x, "sub-underflow");
+        require((z = x - y) <= x);
     }
     
     function mul(
@@ -32,7 +32,7 @@ contract MathLib {
         pure 
         returns (uint z) 
     {
-        require(y == 0 || (z = x * y) / y == x, "mul-overflow");
+        require(y == 0 || (z = x * y) / y == x);
     }
 
     function min(
