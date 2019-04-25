@@ -991,7 +991,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         */
         uint fee;
 
-        fee = amount*feeSettings.protocolBips/10000;
+        fee = amount*feeSettings.walletBipts/10000;
 
         if (wallet == address(0x0)){
             treasury.sendFee(
