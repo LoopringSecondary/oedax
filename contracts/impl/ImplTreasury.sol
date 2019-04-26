@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -23,12 +39,11 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         );
         _;
     }
-    
-    
+
     modifier isAuction(){
         require(
             auctionAddressMap[msg.sender] != 0 ||
-            msg.sender == oedax, 
+            msg.sender == oedax,
             "The address is not oedax auction contract!"
         );
         _;
@@ -54,11 +69,11 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         onlyOwner
     {
         require(
-            oedax == address(0x0), 
+            oedax == address(0x0),
             "Oedax could only be set once!"
         );
         oedax = _oedax;
-    } 
+    }
 
     function getAuctionIndex(
         address creator
@@ -67,13 +82,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         view
         returns (
             uint[] memory
-        ) 
+        )
     {
         uint[] memory index;
         index = auctionCreatorMap[creator];
         return index;
     }
-
 
     function getNextAuctionID()
         public
@@ -86,7 +100,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         auctionID = auctionAmount + 1;
         return auctionID;
     }
-
 
     // 把两个Token的锁仓全部换成新的amount
     function exchangeTokens(
@@ -110,12 +123,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "address not correct"
         );
 
-    
-
-        
         uint lockedA = userLockedBalances[user][id][tokenA];
         uint lockedB = userLockedBalances[user][id][tokenB];
-        
+
         // clear locked in userLockedBalances
         userLockedBalances[user][id][tokenA] = 0;
         userLockedBalances[user][id][tokenB] = 0;
@@ -123,11 +133,11 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         // clear locked in userTotalBalances
         userTotalBalances[user][tokenA] = sub(userTotalBalances[user][tokenA], lockedA);
         userTotalBalances[user][tokenB] = sub(userTotalBalances[user][tokenB], lockedB);
-        
+
         // update contractLockedBalances
         contractLockedBalances[msg.sender][tokenA] = sub(contractLockedBalances[msg.sender][tokenA], amountA);
         contractLockedBalances[msg.sender][tokenB] = sub(contractLockedBalances[msg.sender][tokenB], amountB);
-        
+
         // finish exchange
         userTotalBalances[user][tokenA] = add(userTotalBalances[user][tokenA], amountA);
         userTotalBalances[user][tokenB] = add(userTotalBalances[user][tokenB], amountB);
@@ -135,9 +145,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][tokenB] = add(userAvailableBalances[user][tokenB], amountB);
 
         return true;
-
     }
-    
 
     /// Auction合约直接在user和recepient之间完成“转账”，保证所有变量总额不变
     /// recepient获得相应的抽成（在拍卖结束后提取）
@@ -164,12 +172,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
         userLockedBalances[user][id][token] = sub(userLockedBalances[user][id][token], amount);
         userTotalBalances[user][token] = sub(userTotalBalances[user][token], amount);
-        
+
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
-        
+
         //userLockedBalances[recepient][id][token] = add(userLockedBalances[recepient][id][token], amount);
         userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
-        
+
         userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
 
         return true;
@@ -196,16 +204,14 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "address not correct"
         );
 
-        
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
-        
+
         userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
-        
+
         userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
 
         return true;
     }
-
 
     //between treasury contract and auction contract
     function auctionDeposit(
@@ -232,7 +238,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         contractLockedBalances[msg.sender][token] = add(contractLockedBalances[msg.sender][token], amount);
 
         return true;
-
     }
 
     function initDeposit(
@@ -260,7 +265,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         contractLockedBalances[auctionAddr][token] = add(contractLockedBalances[auctionAddr][token], amount);
 
         return true;
-    }    
+    }
 
     //between treasury contract and auction contract
     function auctionWithdraw(
@@ -285,12 +290,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
 
         return true;
-
     }
-
-
-
-
 
     //between treasury contract and token contract
     function deposit(
@@ -368,7 +368,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         return (total, available, locked);
     }
 
-
     function getAvailableBalance(
         address user,
         address token
@@ -394,7 +393,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             uint /* balance */,
             uint /* approval */
         )
-    {   
+    {
         uint balance;
         uint approval;
         balance = ERC20(token).balanceOf(user);
@@ -413,7 +412,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             bool /* successful */,
             uint /*   id      */
         )
-    {   
+    {
         uint auctionID = getNextAuctionID();
         auctionAddressMap[auction] = auctionID;
         auctionIdMap[auctionID] = auction;
@@ -422,31 +421,24 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         return (true, auctionID);
     }
 
-
     // In case of an high-risk bug, the admin can return all tokens, including those locked in
     // active auctions, to their original owners.
     // If this function is called, all invocation from any on-going auctions will fail, but all
     // users' asset will be safe.
     // This method can only be called once.
-    function terminate() 
+    function terminate()
         external
         onlyOwner
         whenRunning
     {
         terminated = true;
         //TODO: give back all the balances
-        
-
-        
-
     }
-
 
     /// Auction 在未完成状态时，userTotalBalances - userAvailableBalances 即为锁仓数量
     /// 锁仓数量为扣除 walletFee与protocolFee的 实际参与拍卖的Token数量
     /// 锁仓数量为实际参与拍卖总量（包括Taker与合约内锁仓的Token）
     /// taker数量换算成Token，拍卖结束时按比例返还并兑换成另一个币种
-
 
     function withdrawWhenTerminated(address[] calldata tokens)
         external
@@ -469,8 +461,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
                 userAvailableBalances[msg.sender][token] = 0;
             }
         }
-
-
     }
 
     function isTerminated()
@@ -482,5 +472,4 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     {
         return terminated;
     }
-        
 }

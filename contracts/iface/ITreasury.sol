@@ -1,12 +1,23 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-
 contract ITreasury {
-
-
-    
-    
     // user => (token => amount)
     mapping (address => mapping (address => uint)) public userTotalBalances;
 
@@ -15,7 +26,6 @@ contract ITreasury {
 
     // user => (auction_id => （token => amount))
     mapping (address => mapping (uint => mapping (address => uint))) public userLockedBalances;
-
 
     mapping (uint => address) public auctionIdMap;
     mapping (address => uint) public auctionAddressMap;
@@ -30,7 +40,7 @@ contract ITreasury {
 
     // 用于记录用户存有资产的Token, 以便查询功能
     mapping (address => address[]) public userTokenList;
-    
+
     // 用于记录用户是否存有资产 user=>token=>bool
     mapping (address => mapping(address=>bool)) public userTokens;
 
@@ -51,7 +61,6 @@ contract ITreasury {
         returns (
             uint /* auctionID */
         );
-
 
     // 拍卖结束时统一结算用户应得的Token数量，由于操作较为复杂
     // 结算在子拍卖合约中进行，函数要求合约地址才可以调用
@@ -100,7 +109,7 @@ contract ITreasury {
     )
         external
         returns (
-            bool /* successful */ 
+            bool /* successful */
         );
 
     // between treasury contract and auction contract
@@ -158,7 +167,7 @@ contract ITreasury {
         returns (
             uint /* available */
         );
-        
+
     // 新增接口，用于查询用户授权的转账量
     // treasury合约的转账只能由用户调用时生效
     function getApproval(
@@ -182,7 +191,6 @@ contract ITreasury {
             bool /* successful */,
             uint /*   id      */
         );
-
 
     // In case of a high-risk bug, the admin can return all tokens, including those locked in
     // active auctions, to their original owners.

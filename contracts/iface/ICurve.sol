@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -26,18 +42,15 @@ contract ICurve is ICurveData{
             uint /* ttlSeconds */
         );
 
-
     CurveParams[] public curveParams;
     mapping(bytes32 => uint) public cidByName;
 
-    
     function getOriginCurveID(uint cid)
         public
         view
         returns(
             uint
         );
-
 
     function getNextCurveID()
         public
@@ -58,9 +71,9 @@ contract ICurve is ICurveData{
         external
         returns(
             bool /* success */,
-            uint /* cid */     
+            uint /* cid */
         );
-    
+
     /// @dev Init parameters of price curves
     /// @param T Time to reach P (second)
     /// @param M Price scale
@@ -81,7 +94,6 @@ contract ICurve is ICurveData{
             bool /* success */,
             uint /* cid */
         );
-
 
     /// @dev Get Curve info From id
     /// @param cid Curve id
@@ -110,7 +122,6 @@ contract ICurve is ICurveData{
         view
         returns (CurveParams memory);
 
-
     /// @dev Calculate ask/sell price on price curve
     /// @param cid curve ID
     /// @param t Point in price curve
@@ -136,7 +147,6 @@ contract ICurve is ICurveData{
             uint
         );
 
-
     /// @dev Calculate bid/buy price on price curve
     /// @param cid curve ID
     /// @param t Point in price curve
@@ -161,5 +171,4 @@ contract ICurve is ICurveData{
             bool,
             uint
         );
-
 }

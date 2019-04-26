@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -41,39 +57,38 @@ interface IERC20 {
 library SafeMath {
 
     function add(
-        uint x, 
+        uint x,
         uint y
-    ) 
-        internal 
-        pure 
-        returns (uint z) 
+    )
+        internal
+        pure
+        returns (uint z)
     {
         require((z = x + y) >= x, "add-overflow");
     }
-    
+
     function sub(
-        uint x, 
+        uint x,
         uint y
-    ) 
-        internal 
-        pure 
-        returns (uint z) 
+    )
+        internal
+        pure
+        returns (uint z)
     {
         require((z = x - y) <= x, "sub-underflow");
     }
-    
+
     function mul(
-        uint x, 
+        uint x,
         uint y
-    ) 
-        internal 
-        pure 
-        returns (uint z) 
+    )
+        internal
+        pure
+        returns (uint z)
     {
         require(y == 0 || (z = x * y) / y == x, "mul-overflow");
     }
 }
-
 
 contract ERC20 is IERC20 {
     using SafeMath for uint256;
@@ -84,11 +99,9 @@ contract ERC20 is IERC20 {
 
     uint256 private _totalSupply;
 
-
     string public name;
     string public symbol;
     uint8 public decimals;
-    
 
   /**
   * @dev Total number of tokens in existence
@@ -164,7 +177,7 @@ contract ERC20 is IERC20 {
         public
         returns (bool)
     {
-        require(value <= _allowed[from][msg.sender]);
+        require(value <= _allowed[from][msg.sender], "insuffcient allowance");
 
         _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
         _transfer(from, to, value);
@@ -226,7 +239,7 @@ contract ERC20 is IERC20 {
   * @param value The amount to be transferred.
   */
     function _transfer(address from, address to, uint256 value) internal {
-        require(value <= _balances[from]);
+        require(value <= _balances[from], "insuffcient balance");
         require(to != address(0x0), "address should not be 0x0");
 
         _balances[from] = _balances[from].sub(value);
@@ -247,7 +260,6 @@ contract ERC20 is IERC20 {
         _balances[account] = _balances[account].add(value);
         emit Transfer(address(0x0), account, value);
     }
-
 }
 
 contract TestToken is ERC20 {
@@ -260,8 +272,8 @@ contract TestToken is ERC20 {
         string memory _symbol,
         uint8 _decimals,
         uint _totalSupply
-        ) 
-        public 
+        )
+        public
     {
         name = _name;
         symbol = _symbol;

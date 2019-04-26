@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -27,7 +43,7 @@ interface ICurve{
         external
         returns(
             bool /* success */,
-            uint /* cid */     
+            uint /* cid */
         );
 }
 
@@ -37,7 +53,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     ICurve              public  curve;
     FeeSettings         public  feeSettings;
     IAuctionGenerator   public  auctionGenerator;
-    
+
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
     // We suggest the followign values:
@@ -74,10 +90,10 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             feeSettings.walletBipts,
             feeSettings.takerBips,
             feeSettings.withdrawalPenaltyBips,
-            now
+            block.timestamp
         );
     }
-    
+
     function receiveEvents(
         uint status
     )
@@ -92,7 +108,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     )
         internal
     {
-        
+
         require(
             treasury.auctionAddressMap(auctionAddr) != 0,
             "auction does not exist"
@@ -110,7 +126,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         TokenInfo memory tokenInfo = bytesToTokenInfo(
             IAuction(auctionAddr).getTokenInfoBytes()
         );
-
 
         if (status == 1){
 
@@ -133,8 +148,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 auctionSettings.creator,
                 auctionSettings.auctionID,
                 msg.sender,
-                now
-            );    
+                block.timestamp
+            );
         }
 
         if (status == 3){
@@ -146,8 +161,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
                 auctionState.actualPrice,
-                now
-            );    
+                block.timestamp
+            );
         }
 
         if (status == 4){
@@ -159,7 +174,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
                 auctionState.actualPrice,
-                now,
+                block.timestamp,
                 true
             );
         }
@@ -169,13 +184,11 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 auctionSettings.creator,
                 auctionSettings.auctionID,
                 msg.sender,
-                now
+                block.timestamp
             );
         }
-
     }
-    
-    
+
     function setAuctionGenerator(
         address addr
     )
@@ -184,8 +197,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     {
         auctionGenerator = IAuctionGenerator(addr);
     }
-    
-    
+
 
     // Initiate an auction
     function createAuction(
@@ -240,32 +252,30 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 msg.sender,
                 auctionAddr,
                 tokenInfo.askToken,
-                initialAskAmount 
+                initialAskAmount
             ),
-            "Not enough tokens!" 
+            "Not enough tokens!"
         );
 
-        
         require(
             initialBidAmount == 0 ||
             true == treasury.initDeposit(
                 msg.sender,
                 auctionAddr,
                 tokenInfo.bidToken,
-                initialBidAmount 
+                initialBidAmount
             ),
-            "Not enough tokens!" 
+            "Not enough tokens!"
         );
 
         return (auctionAddr, id);
-
     }
 
     function checkTokenInfo(
         uint    curveId,
         address askToken,
         address bidToken,
-        AuctionInfo    memory  info 
+        AuctionInfo    memory  info
     )
         internal
         view
@@ -283,7 +293,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         cp = bytesToCurveParams(
             curve.getCurveBytes(curveId)
-        );  
+        );
 
         require(
             cp.T == info.T &&
@@ -292,8 +302,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             cp.S == info.S &&
             cp.priceScale == priceScale,
             "curve does not match the auction parameters"
-        ); 
-                
+        );
+
         TokenInfo   memory _tokenInfo;
 
         _tokenInfo = TokenInfo(
@@ -302,12 +312,10 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             askDecimals,
             bidDecimals,
             priceScale
-        );  
+        );
 
         return _tokenInfo;
-        
     }
-
 
     // Initiate an auction
     function createAuction(
@@ -316,7 +324,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         address bidToken,
         uint    initialAskAmount,
         uint    initialBidAmount,
-        AuctionInfo    memory  info 
+        AuctionInfo    memory  info
     )
         public
         returns (
@@ -328,16 +336,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         FeeSettings memory feeS;
         TokenInfo   memory tokenInfo;
-        
+
         feeS = feeSettings;
-        
+
         tokenInfo = checkTokenInfo(
             curveId,
             askToken,
             bidToken,
-            info 
+            info
         );
-
 
         address addressAuction;
         (addressAuction, id) = createAuction(
@@ -351,11 +358,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
 
 
-        
         return (addressAuction, id);
-
     }
-
 
     function getAuctionInfo(uint id)
         external
@@ -375,31 +379,28 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         AuctionState memory _auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
         );
-        return (lastSynTime, _auctionSettings, _auctionState); 
+        return (lastSynTime, _auctionSettings, _auctionState);
     }
 
-    
-    
+
     function getAuctionsAll(
         address creator
     )
         public
         view
         returns (
-            uint /*  count */, 
+            uint /*  count */,
             uint[] memory /* auction index */
         )
     {
 
         uint[] memory index = treasury.getAuctionIndex(creator);
-        
+
         uint len = index.length;
 
-        return (len, index);        
-
+        return (len, index);
     }
 
-    
     function getAuctions(
         address creator,
         Status status
@@ -407,7 +408,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         external
         view
         returns (
-            uint /*  count */, 
+            uint /*  count */,
             uint[] memory /* auction index */
         )
     {
@@ -415,7 +416,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint len;
         uint[] memory index;
         (len,index) = getAuctionsAll(creator);
-        
+
         address auctionAddr;
 
         uint count = 0;
@@ -438,11 +439,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             }
         }
 
-        return (count, res);        
-
+        return (count, res);
     }
 
-     
     function getAuctions(
         uint    skip,
         uint    count,
@@ -459,7 +458,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint len;
         uint[] memory index;
         (len,index) = getAuctionsAll(creator);
-        
+
         address auctionAddr;
 
         uint cnt = 0;
@@ -491,9 +490,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                     cnt++;
                 }
             }
-        }   
+        }
 
-        return res;     
+        return res;
     }
 
     // /@dev clone an auction from existing auction using its id
@@ -514,7 +513,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionAddr = treasury.auctionIdMap(auctionID);
         require(
             auctionAddr != address(0x0),
-            "auction not correct!"    
+            "auction not correct!"
         );
         return cloneAuction(
             auctionAddr,
@@ -539,12 +538,12 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
     {
         require(
-            now - IAuction(auctionAddr).lastSynTime() <= 7 days,
+            block.timestamp - IAuction(auctionAddr).lastSynTime() <= 7 days,
             "auction should be closed less than 7 days ago"
-        );    
+        );
         require(
             IAuction(auctionAddr).status() >= Status.CLOSED,
-            "only closed auction can be cloned!" 
+            "only closed auction can be cloned!"
         );
 
         AuctionSettings memory auctionSettings = bytesToAuctionSettings(
@@ -560,11 +559,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             IAuction(auctionAddr).getFeeSettingsBytes()
         );
 
-
-        auctionSettings.startedTimestamp = now;
+        auctionSettings.startedTimestamp = block.timestamp;
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
-
 
         uint cid;
         (, cid) = ICurve(curve).cloneCurve(
@@ -572,7 +569,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             auctionInfo.T,
             auctionInfo.P
         );
-        
 
         uint id;
         address addressAuction;
@@ -586,10 +582,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
 
         return (addressAuction, id, true);
-
     }
-
-
 
 
 
@@ -625,7 +618,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             feeSettings.takerBips < 10000,
             "feeSetting not correct"
         );
-        
+
         feeSettings.recepient = recepient;
         feeSettings.creationFeeEth = creationFeeEth;
         feeSettings.protocolBips = protocolBips;
@@ -640,7 +633,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             walletBipts,
             takerBips,
             withdrawalPenaltyBips,
-            now
+            block.timestamp
         );
     }
 
@@ -656,7 +649,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             uint    takerBips,
             uint    withdrawalPenaltyBips
         )
-    {    
+    {
         recepient = feeSettings.recepient;
         creationFeeEth = feeSettings.creationFeeEth;
         protocolBips = feeSettings.protocolBips;
@@ -664,8 +657,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         takerBips = feeSettings.takerBips;
         withdrawalPenaltyBips = feeSettings.withdrawalPenaltyBips;
     }
-        
-    
+
 
     // no need to used the following functions
     // if all curves are stored in a contract
@@ -704,6 +696,4 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     {
         revert();
     }
-    
-        
 }

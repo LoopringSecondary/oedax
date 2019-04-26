@@ -8,30 +8,25 @@ pragma experimental ABIEncoderV2;
  */
 
 contract BytesToTypes {
-    
-
-    function bytesToAddress(uint _offst, bytes memory _input) internal pure returns (address _output) {
-        
+    function bytesToAddress(
+        uint _offst,
+        bytes memory _input) internal pure returns (address _output) {
         assembly {
             _output := mload(add(_input, _offst))
         }
-    } 
-    
+    }
+
     function bytesToBool(uint _offst, bytes memory _input) internal pure returns (bool _output) {
-        
         uint8 x;
         assembly {
             x := mload(add(_input, _offst))
         }
         x==0 ? _output = false : _output = true;
-    }   
-        
+    }
 
     function bytesToUint256(uint _offst, bytes memory _input) internal pure returns (uint256 _output) {
-        
         assembly {
             _output := mload(add(_input, _offst))
         }
-    } 
-    
+    }
 }

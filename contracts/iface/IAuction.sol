@@ -1,10 +1,25 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
 //import "./IAuctionEvents.sol";
 import "./IParticipationEvents.sol";
-
 
 contract IAuction is IAuctionData {
     struct Participation {
@@ -26,7 +41,6 @@ contract IAuction is IAuctionData {
     // 2. 拍卖过程中withdraw，一部分作为penalty，剩下的返回钱包
     // 3. 拍卖全部结束，有效的总TokenA与TokenB作为兑换价格依据
 
-
     // userTotalBalances = userAvailableBalances + ∑userLockedBalances 需要始终满足
     // 简化逻辑，拍卖过程中的fee结算，仅在auction合约中记录，拍卖结束后整体进行结算
     // 只有10%的固定Fee在Deposit时直接入账recepient
@@ -35,16 +49,13 @@ contract IAuction is IAuctionData {
     // 中途退出时，takeFee不退还，但是takerRateA按比例扣除
     // totalAskAmount = ∑askAmount + totalTakerAmountA
 
-
     mapping(address => uint256) public askAmount; // the amount of tokenA
     mapping(address => uint256) public bidAmount; // the amount of tokenB
 
-  
     mapping(address => uint256) public takerRateA;
     mapping(address => uint256) public takerRateB;
 
     // clear to sync with oedax/treasury
-   
 
     uint public totalTakerRateA;
     uint public totalTakerRateB;
@@ -61,8 +72,7 @@ contract IAuction is IAuctionData {
     uint public totalRecipientAmountB;
 
 
-    
-    
+
     struct QueuedParticipation {
         //uint    index;      // start from 0, queue会实时清空，index没有必要
         address user;       // user address
@@ -73,7 +83,6 @@ contract IAuction is IAuctionData {
     // At most only one waiting list (queue) can be non-empty.
     QueuedParticipation[] public askQueue;
     QueuedParticipation[] public bidQueue;
-
 
 
     Status  public  status;
@@ -87,7 +96,6 @@ contract IAuction is IAuctionData {
     FeeSettings     public feeSettings;
 
 
-
     function simulatePrice(uint time)
         public
         view
@@ -99,9 +107,8 @@ contract IAuction is IAuctionData {
             uint bidPausedTime
         );
 
-
     function updatePrice() public;
-    
+
     /*
     // 0 - no queue
     // 1 - ask queue
@@ -121,7 +128,6 @@ contract IAuction is IAuctionData {
         returns(
             uint price
         );
-    
 
     // 结算包括Taker奖励后的Token数量
     function calcActualTokens(address user)
@@ -132,7 +138,6 @@ contract IAuction is IAuctionData {
             uint
         );
 
-
     // taker指数，随时间减少
     function calcTakeRate()
         public
@@ -141,14 +146,13 @@ contract IAuction is IAuctionData {
             uint /* rate */
         );
 
-
     function getAuctionSettings()
         public
         view
         returns(
             AuctionSettings memory
         );
-    
+
     function getAuctionState()
         public
         view
@@ -183,7 +187,7 @@ contract IAuction is IAuctionData {
         returns(
             bytes memory
         );
-    
+
     function getAuctionStateBytes()
         public
         view
@@ -213,7 +217,6 @@ contract IAuction is IAuctionData {
         );
 
 
-
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
     /// be considered in the calculations.
     function getLimits()
@@ -235,13 +238,11 @@ contract IAuction is IAuctionData {
         );
 
 
-
     function askDeposit(uint amount)
         public
         returns (
             uint
         );
-
 
     function bidDeposit(uint amount)
         public
@@ -264,7 +265,6 @@ contract IAuction is IAuctionData {
         );
 
 */
-
 
     /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
     /// auciton, the rest is put into the waiting list (queue).
@@ -314,21 +314,19 @@ contract IAuction is IAuctionData {
             AuctionState memory
         );
 
-
     // 拍卖结束后提款
     function settle()
         external
         returns (
             bool /* settled */
         );
-        
+
     // Try to settle the auction.
     function triggerSettle()
         external
         returns (
             bool /* settled */
         );
-
 
 
     /// @dev Get participations from a given address.
