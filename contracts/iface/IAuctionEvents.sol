@@ -21,7 +21,7 @@ contract IAuctionEvents {
         bool            isWithdrawalAllowed
     );
 
-    event AuctionStarted (
+    event AuctionOpened (
         address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,

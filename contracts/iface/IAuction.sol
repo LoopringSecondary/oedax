@@ -2,12 +2,11 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
-import "./IAuctionEvents.sol";
-import "./ICurve.sol";
+//import "./IAuctionEvents.sol";
 import "./IParticipationEvents.sol";
 
 
-contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents {
+contract IAuction is IAuctionData {
     struct Participation {
         uint    index;             // start from 0
         address user;
@@ -20,14 +19,52 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
 
     address[] public users; // users participating in the auction
 
-    // TODO(): move participationIndex into implementation
-    mapping(address => int[])   private participationIndex;  // user address => index of Participation[]
+    mapping(address => bool) public userParticipated;
 
-    mapping(address => uint256) public totalAskAmount; // the amount of tokenA
-    mapping(address => uint256) public totalBidAmount; // the amount of tokenB
+    // 拍卖过程中交互的逻辑：
+    // 1. 用户Deposit时，一部分作为takerFee，剩下的参与拍卖
+    // 2. 拍卖过程中withdraw，一部分作为penalty，剩下的返回钱包
+    // 3. 拍卖全部结束，有效的总TokenA与TokenB作为兑换价格依据
 
+
+    // userTotalBalances = userAvailableBalances + ∑userLockedBalances 需要始终满足
+    // 简化逻辑，拍卖过程中的fee结算，仅在auction合约中记录，拍卖结束后整体进行结算
+    // 只有10%的固定Fee在Deposit时直接入账recepient
+    // 25%的takerFee暂存至auction合约中，结束后进行再分配
+    // 合约结束后，用户lock的部分根据auction合约计算，在tokenA与tokenB中结算
+    // 中途退出时，takeFee不退还，但是takerRateA按比例扣除
+    // totalAskAmount = ∑askAmount + totalTakerAmountA
+
+
+    mapping(address => uint256) public askAmount; // the amount of tokenA
+    mapping(address => uint256) public bidAmount; // the amount of tokenB
+
+  
+    mapping(address => uint256) public takerRateA;
+    mapping(address => uint256) public takerRateB;
+
+    // clear to sync with oedax/treasury
+   
+
+    uint public totalTakerRateA;
+    uint public totalTakerRateB;
+
+    //uint public totalTakerAmountA;
+    //uint public totalTakerAmountB;
+
+    mapping(address => bool) public isSettled;
+
+    //mapping(address => uint256) public oedaxLockedA;
+    //mapping(address => uint256) public oedaxLockedB;
+
+    uint public totalRecipientAmountA;
+    uint public totalRecipientAmountB;
+
+
+    
+    
     struct QueuedParticipation {
-        uint    index;      // start from 0
+        //uint    index;      // start from 0, queue会实时清空，index没有必要
         address user;       // user address
         uint    amount;     // amount of tokenA or tokenB
         uint    timestamp;  // time when joining the list
@@ -37,21 +74,145 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     QueuedParticipation[] public askQueue;
     QueuedParticipation[] public bidQueue;
 
-    // TODO(): 下面的5个变量我没太懂，可以聊聊，但感觉不应放到接口里面。
-    // uint public indexAskWait;   // the index where the queued ask waiting list starts
-    // uint public indexBidWait;   // the index where the queued bid waiting list starts
 
-    // // 当价格曲线停在某个值P时，可以根据这个值计算出价格曲线中对应的时间点
-    // // 这个时间点的计算可能存在误差，误差在precision以内
-    // // 求出的时间点满足 P(t)<=P<P(t+1)，价格曲线暂停在P点.
 
-    // uint public nPointBid;  // Actual point in price curve
-    // uint public nPointAsk;  // Actual point in price curve
-
-    // uint public lastSynTime;// same as that in auctionState
+    Status  public  status;
+    uint    public  constrainedTime;// time when entering constrained period
+    uint    public  lastSynTime;// same as that in auctionState
 
     AuctionState    public auctionState; // mutable state
-    AuctionSettings public auctionInfo;  // immutable settings
+    AuctionSettings public auctionSettings;  // immutable settings
+    AuctionInfo     public auctionInfo;
+    TokenInfo       public tokenInfo;
+    FeeSettings     public feeSettings;
+
+
+
+    function simulatePrice(uint time)
+        public
+        view
+        returns(
+            uint askPrice,
+            uint bidPrice,
+            uint actualPrice,
+            uint askPausedTime,
+            uint bidPausedTime
+        );
+
+
+    function updatePrice() public;
+    
+    /*
+    // 0 - no queue
+    // 1 - ask queue
+    // 2 - bid queue
+    // 3 - impossible
+    function getQueueStatus()
+        public
+        view
+        returns(
+            uint queueStatus,
+            uint amount
+        );
+*/
+    function getActualPrice()
+        public
+        view
+        returns(
+            uint price
+        );
+    
+
+    // 结算包括Taker奖励后的Token数量
+    function calcActualTokens(address user)
+        public
+        view
+        returns(
+            uint,
+            uint
+        );
+
+
+    // taker指数，随时间减少
+    function calcTakeRate()
+        public
+        view
+        returns(
+            uint /* rate */
+        );
+
+
+    function getAuctionSettings()
+        public
+        view
+        returns(
+            AuctionSettings memory
+        );
+    
+    function getAuctionState()
+        public
+        view
+        returns(
+            AuctionState memory
+        );
+
+    function getAuctionInfo()
+        public
+        view
+        returns(
+            AuctionInfo memory
+        );
+
+    function getTokenInfo()
+        public
+        view
+        returns(
+            TokenInfo memory
+        );
+
+    function getFeeSettings()
+        public
+        view
+        returns(
+            FeeSettings memory
+        );
+
+    function getAuctionSettingsBytes()
+        public
+        view
+        returns(
+            bytes memory
+        );
+    
+    function getAuctionStateBytes()
+        public
+        view
+        returns(
+            bytes memory
+        );
+
+    function getAuctionInfoBytes()
+        public
+        view
+        returns(
+            bytes memory
+        );
+
+    function getTokenInfoBytes()
+        public
+        view
+        returns(
+            bytes memory
+        );
+
+    function getFeeSettingsBytes()
+        public
+        view
+        returns(
+            bytes memory
+        );
+
+
 
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
     /// be considered in the calculations.
@@ -73,24 +234,43 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
             uint /* ttlSeconds */
         );
 
-    // TODO(): 这个方法不需要，只需要调用simulate方法就好了。
-    // /// @dev Function to check whether amount of bid/ask is available
-    // /// price should be "updated"(getAuctionState()) before the calculation
-    // function canParticipate(
-    //     int amountAsk,
-    //     int amountBid
-    //     )
-    //     public
-    //     view
-    //     returns(
-    //         bool /* successful */
-    //     );
+
+
+    function askDeposit(uint amount)
+        public
+        returns (
+            uint
+        );
+
+
+    function bidDeposit(uint amount)
+        public
+        returns (
+            uint
+        );
+
+/*
+
+    function askWithdraw(uint amount)
+        public
+        returns (
+            uint
+        );
+
+    function bidWithdraw(uint amount)
+        public
+        returns (
+            uint
+        );
+
+*/
+
 
     /// @dev Make a deposit and returns the amount that has been /* successful */ly deposited into the
     /// auciton, the rest is put into the waiting list (queue).
     /// Set `wallet` to 0x0 will avoid paying wallet a fee. Note only deposit has fee.
     function deposit(
-        address user,
+        //address user,
         address wallet,
         address token,
         uint    amount)
@@ -102,7 +282,7 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
     /// @dev Request a withdrawal and returns the amount that has been /* successful */ly withdrawn from
     /// the auciton.
     function withdraw(
-        address user,
+        //address user,
         address token,
         uint    amount)
         public
@@ -134,6 +314,14 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
             AuctionState memory
         );
 
+
+    // 拍卖结束后提款
+    function settle()
+        external
+        returns (
+            bool /* settled */
+        );
+        
     // Try to settle the auction.
     function triggerSettle()
         external
@@ -141,19 +329,7 @@ contract IAuction is IAuctionData, ICurve, IAuctionEvents, IParticipationEvents 
             bool /* settled */
         );
 
-    // Start a new aucton with the same parameters except the P and the delaySeconds parameter.
-    // The new P parameter would be the settlement price of this auction.
-    // Function should be only called from Oedax main contract, as an interface
-    function clone(
-        uint delaySeconds,
-        uint initialAskAmount, // The initial amount of tokenA from the creator's account.
-        uint initialBidAmount
-    ) // The initial amount of tokenB from the creator's account.
-        external
-        returns (
-            address /* auction */,
-            uint /* id */
-        );
+
 
     /// @dev Get participations from a given address.
     function getUserParticipations(

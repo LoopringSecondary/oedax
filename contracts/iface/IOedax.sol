@@ -5,55 +5,61 @@ import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
 import "./IOedaxEvents.sol";
 
-contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
-    // Two possible paths:
-    // 1):STARTED -> CONSTRAINED -> CLOSED
-    // 2):STARTED -> CONSTRAINED -> CLOSED -> SETTLED
-    // 3):SCHEDULED -> STARTED -> CONSTRAINED -> CLOSED
-    // 4):SCHEDULED -> STARTED -> CONSTRAINED -> CLOSED -> SETTLED
-    // It is also possible for the auction to jump right into the CONSTRAINED status from
-    // STARTED.
-    // When we say an auction is active or ongoing, it means the auction's status
-    // is either STARTED or CONSTRAINED.
-    enum Status {
-        STARTED,        // Started but not ready for participation.
-        OPEN,           // Started with actual price out of bid/ask curves
-        CONSTRAINED,    // Actual price in between bid/ask curves
-        CLOSED,         // Ended without settlement
-        SETTLED         // Ended with settlement
-    }
+contract IOedax is IAuctionData{
 
+
+
+    function receiveEvents(
+        uint status
+    )
+        external;
+        
     // Initiate an auction
     function createAuction(
-        uint    delaySeconds,
         uint    curveId,
         address askToken,
         address bidToken,
-        uint    askDecimals,
-        uint    bidDecimals,
-        uint    priceScale,
-        uint    P,  // target price
-        uint    M,  // prixce factor
-        uint    T,  // duration
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        uint    maxAskAmountPerAddr,      // The max amount of tokenA per address, 0 for unlimited.
-        uint    maxBidAmountPerAddr,      // The max amount of tokenB per address, 0 for unlimited.
-        bool    isWithdrawalAllowed,
-        bool    isTakerFeeDisabled      // Disable using takerBips
+        AuctionInfo    memory  info 
     )
-        external
+        public
         returns (
             address /* auction */,
             uint    /* id */
         );
 
+
+    // 获取用户创建的所有合约
+    function getAuctionsAll(
+        address creator
+    )
+        public
+        view
+        returns (
+            uint /*  count */, 
+            uint[] memory /* auction index */
+        );
+
+    // 获取合约信息
     function getAuctionInfo(uint id)
         external
         view
         returns (
+            uint,
             AuctionSettings memory,
             AuctionState    memory
+        );
+
+    function getAuctions(
+        address creator,
+        Status status
+    )
+        external
+        view
+        returns (
+            uint /*  count */, 
+            uint[] memory /* auction index */
         );
 
     function getAuctions(
@@ -71,6 +77,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
         uint auctionID,
+        uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
         )
@@ -84,6 +91,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
     // /@dev clone an auction using its address
     function cloneAuction(
         address auctionAddr,
+        uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
         )
@@ -94,15 +102,7 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             bool    /* successful */
         );
 
-    // /@dev function called after creation of auctions
-    function registerAuction(
-        address auction,
-        uint    id
-    )
-        internal
-        returns (
-            bool /* successful */
-        );
+
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -141,8 +141,9 @@ contract IOedax is IAuctionData, IAuctionEvents, IOedaxEvents{
             uint    withdrawalPenaltyBips
         );
 
-    // the sub-contract should only be used as "cloning" a curve
-    // cloning an auction is the same as cloning a curve
+
+    // 目前采用曲线合约中存储参数的形式，曲线可以命名
+    // 无需单独生成合约
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
     function registerCurve(
