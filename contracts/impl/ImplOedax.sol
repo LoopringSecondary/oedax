@@ -27,6 +27,7 @@ import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurveData.sol";
 
+// TODO(weikang): why define another contract called ICurve?
 interface ICurve {
     function getCurveBytes(
         uint cid

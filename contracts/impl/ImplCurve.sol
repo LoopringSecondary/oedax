@@ -93,7 +93,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         uint newId = getNextCurveID();
-        CurveParams memory newCurve = curveParams[cid-1];
+        CurveParams memory newCurve = curveParams[cid - 1];
         newCurve.T = T;
         newCurve.P = P;
         curveParams.push(newCurve);
@@ -124,9 +124,9 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         bytes32 name = nameCheck(curveName);
         require(cidByName[name] == 0, "curve name already used");
 
-        require(T>=100 && T<=100000, "Duraton of auction should be between 100s and 100000s");
-        require(M>=2 && M<=100, "M should be between 2 and 100");
-        require(S>=10 && S<=100*M, "S should be between 10 and 100*M");
+        require(T >= 100 && T <= 100000, "Duraton of auction should be between 100s and 100000s");
+        require(M >= 2 && M <= 100, "M should be between 2 and 100");
+        require(S >= 10 && S <= 100 * M, "S should be between 10 and 100*M");
 
         uint    askDecimals = ERC20(askToken).decimals();
         uint    bidDecimals = ERC20(bidToken).decimals();
@@ -140,10 +140,10 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         cP.M = M;
 
         cP.S = S;
-        cP.a = 1e18*100;
-        cP.b = 1e18*S*M/(M-1);
-        cP.c = 1e18*(100+S);
-        cP.d = 1e18*S/(M-1);
+        cP.a = 1e18 * 100;
+        cP.b = 1e18 * S * M / (M - 1);
+        cP.c = 1e18 * (100 + S);
+        cP.d = 1e18 * S / (M - 1);
 
         cP.askToken = askToken;
         cP.bidToken = bidToken;
@@ -171,7 +171,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         returns (ICurveData.CurveParams memory)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        return curveParams[cid-1];
+        return curveParams[cid - 1];
     }
 
     /// @dev Get Curve info From id
@@ -185,7 +185,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
-        cP = curveParams[cid-1];
+        cP = curveParams[cid - 1];
         bytes memory bC;
         bC = curveParamsToBytes(cP);
         return bC;
@@ -202,7 +202,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         bytes32 name = nameCheck(curveName);
         require(cidByName[name] > 0, "curve does not exist");
-        return curveParams[cidByName[name]-1];
+        return curveParams[cidByName[name] - 1];
     }
 
     /// @dev Calculate ask/sell price on price curve
@@ -219,9 +219,9 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         uint p;
         CurveParams memory cP;
-        cP = curveParams[cid-1];
+        cP = curveParams[cid - 1];
         //p=P*(at+bT)/(ct+dT)
-        p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b)))/add(mul(t, cP.c), mul(cP.T, cP.d));
+        p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b))) / add(mul(t, cP.c), mul(cP.T, cP.d));
         return p;
     }
 
@@ -240,13 +240,13 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
-        cP = curveParams[cid-1];
-        if (p > cP.P*cP.M || p <= cP.P*cP.a/cP.c) {
+        cP = curveParams[cid - 1];
+        if (p > cP.P * cP.M || p <= cP.P * cP.a / cP.c) {
             return (false, 0);
         }
 
         uint t;
-        t = mul(cP.T, sub(mul(cP.b,cP.P),mul(cP.d,p)))/sub(mul(cP.c,p),mul(cP.a,cP.P));
+        t = mul(cP.T, sub(mul(cP.b, cP.P),mul(cP.d, p))) / sub(mul(cP.c, p), mul(cP.a, cP.P));
 
         return (true, t);
     }
@@ -264,9 +264,9 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
-        cP = curveParams[cid-1];
+        cP = curveParams[cid - 1];
 
-        p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d)))/add(mul(t, cP.a), mul(cP.T, cP.b));
+        p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d))) / add(mul(t, cP.a), mul(cP.T, cP.b));
     }
 
     /// @dev Calculate inverse bid/buy price on price curve
@@ -284,13 +284,13 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
-        cP = curveParams[cid-1];
+        cP = curveParams[cid - 1];
 
-        if (p < cP.P/cP.M || p >= cP.P*cP.c/cP.a) {
+        if (p < cP.P / cP.M || p >= cP.P * cP.c / cP.a) {
             return (false, 0);
         }
         uint t;
-        t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d,cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
+        t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d, cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
         return (true, t);
     }
 
