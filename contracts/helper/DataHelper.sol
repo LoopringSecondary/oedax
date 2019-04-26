@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -5,9 +21,8 @@ import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 import "./BytesToTypes.sol";
 
-contract DataHelper is BytesToTypes, IAuctionData{
-    
-    
+contract DataHelper is BytesToTypes, IAuctionData {
+
     function curveParamsToBytes(ICurveData.CurveParams memory curveParams)
         internal
         pure
@@ -31,7 +46,6 @@ contract DataHelper is BytesToTypes, IAuctionData{
             curveParams.curveName
         );
         return res;
-
     }
 
     function auctionInfoToBytes(AuctionInfo memory auctionInfo)
@@ -54,9 +68,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
             auctionInfo.isTakerFeeDisabled
         );
         return res;
-
     }
-    
+
     function feeSettingsToBytes(IAuctionData.FeeSettings memory feeSettings)
         internal
         pure
@@ -74,10 +87,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
             feeSettings.withdrawalPenaltyBips
         );
         return res;
-
     }
 
-            
     function tokenInfoToBytes(IAuctionData.TokenInfo memory tokenInfo)
         internal
         pure
@@ -94,7 +105,6 @@ contract DataHelper is BytesToTypes, IAuctionData{
             tokenInfo.priceScale
         );
         return res;
-
     }
 
     function auctionStateToBytes(IAuctionData.AuctionState memory auctionState)
@@ -139,8 +149,6 @@ contract DataHelper is BytesToTypes, IAuctionData{
         return res;
     }
 
-
-
     function bytesToAuctionInfo(bytes memory b)
         internal
         pure
@@ -163,10 +171,8 @@ contract DataHelper is BytesToTypes, IAuctionData{
         auctionInfo.maxBidAmountPerAddr = bytesToUint256(224, b);
         auctionInfo.isWithdrawalAllowed = bytesToBool(225, b);
         auctionInfo.isTakerFeeDisabled = bytesToBool(226, b);
-
     }
 
-    
     function bytesToFeeSettings(bytes memory b)
         internal
         pure
@@ -186,29 +192,26 @@ contract DataHelper is BytesToTypes, IAuctionData{
         feeSettings.walletBipts = bytesToUint256(116, b);
         feeSettings.takerBips = bytesToUint256(148, b);
         feeSettings.withdrawalPenaltyBips = bytesToUint256(180, b);
-
     }
 
-            
     function bytesToTokenInfo(bytes memory b)
         internal
         pure
         returns (
             TokenInfo memory tokenInfo
         )
-    {        
+    {
         uint len = b.length;
         require(
             len == 136/*,
             "length of bytes not correct"*/
         );
-    
+
         tokenInfo.askToken = bytesToAddress(20, b);
         tokenInfo.bidToken = bytesToAddress(40, b);
         tokenInfo.askDecimals = bytesToUint256(72, b);
         tokenInfo.bidDecimals = bytesToUint256(104, b);
         tokenInfo.priceScale = bytesToUint256(136, b);
-
     }
 
     function bytesToAuctionState(bytes memory b)
@@ -269,7 +272,7 @@ contract DataHelper is BytesToTypes, IAuctionData{
             len == 360/*,
             "length of bytes not correct"*/
         );
-            
+
         curveParams.askToken = bytesToAddress(20, b);
         curveParams.bidToken = bytesToAddress(40, b);
         curveParams.T = bytesToUint256(72, b);
@@ -282,7 +285,5 @@ contract DataHelper is BytesToTypes, IAuctionData{
         curveParams.c = bytesToUint256(296, b);
         curveParams.d = bytesToUint256(328, b);
         curveParams.curveName = bytes32(bytesToUint256(360, b));
-
     }
-
 }

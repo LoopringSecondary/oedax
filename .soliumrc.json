@@ -4,6 +4,9 @@
     "security"
   ],
   "rules": {
+    "security/no-inline-assembly": "off",
+    "security/no-block-members": "off",
+    "error-reason": "off",
     "quotes": [
       "error",
       "double"

@@ -1,3 +1,19 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
@@ -7,13 +23,11 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-
-
     function receiveEvents(
         uint status
     )
         external;
-        
+
     // Initiate an auction
     function createAuction(
         uint    curveId,
@@ -21,14 +35,13 @@ contract IOedax is IAuctionData{
         address bidToken,
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
-        AuctionInfo    memory  info 
+        AuctionInfo    memory  info
     )
         public
         returns (
             address /* auction */,
             uint    /* id */
         );
-
 
     // 获取用户创建的所有合约
     function getAuctionsAll(
@@ -37,7 +50,7 @@ contract IOedax is IAuctionData{
         public
         view
         returns (
-            uint /*  count */, 
+            uint /*  count */,
             uint[] memory /* auction index */
         );
 
@@ -58,7 +71,7 @@ contract IOedax is IAuctionData{
         external
         view
         returns (
-            uint /*  count */, 
+            uint /*  count */,
             uint[] memory /* auction index */
         );
 
@@ -82,7 +95,7 @@ contract IOedax is IAuctionData{
         uint initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
@@ -96,13 +109,11 @@ contract IOedax is IAuctionData{
         uint    initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
         );
-
-
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -140,7 +151,6 @@ contract IOedax is IAuctionData{
             uint    takerBips,
             uint    withdrawalPenaltyBips
         );
-
 
     // 目前采用曲线合约中存储参数的形式，曲线可以命名
     // 无需单独生成合约

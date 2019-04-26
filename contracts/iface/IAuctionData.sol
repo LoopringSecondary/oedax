@@ -1,9 +1,24 @@
+/*
+
+  Copyright 2017 Loopring Project Ltd (Loopring Foundation).
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-
 contract IAuctionData {
-    
+
     // Two possible paths:
     // 1):STARTED -> CONSTRAINED -> CLOSED
     // 2):STARTED -> CONSTRAINED -> CLOSED -> SETTLED
@@ -20,11 +35,6 @@ contract IAuctionData {
         CLOSED,         // Ended without settlement
         SETTLED         // Ended with settlement
     }
-    
-
-
-
-
     struct AuctionState {
         // The following are state information that changes while the auction is still active.
         uint    askPrice;           // The current ask/sell price curve value
@@ -51,7 +61,7 @@ contract IAuctionData {
     }
 
     //sub-structs to prevent deep stack
-    struct TokenInfo{
+    struct TokenInfo {
         address askToken;           // The ask (sell) token
         address bidToken;           // The bid (buy) token
         uint    askDecimals;        // Decimals of tokenA, should be read from their smart contract,
@@ -62,7 +72,7 @@ contract IAuctionData {
                                     // including targetPrice, askPrice, bidPrice.
     }
 
-    struct FeeSettings{
+    struct FeeSettings {
         address recepient;
         uint    creationFeeEth;
         uint    protocolBips;
@@ -70,12 +80,7 @@ contract IAuctionData {
         uint    takerBips;
         uint    withdrawalPenaltyBips;
     }
-
-
-
-       
-
-    struct AuctionInfo{
+    struct AuctionInfo {
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
         uint    S;                  // ShapeFacor
@@ -90,11 +95,10 @@ contract IAuctionData {
     // The following are constant setups that never change.
 
     struct AuctionSettings {
-        
+
         address creator;
         uint    auctionID;
         uint    curveID;
         uint    startedTimestamp;   // Timestamp when this auction is started.
-
     }
 }
