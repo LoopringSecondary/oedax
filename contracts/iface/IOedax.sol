@@ -23,7 +23,6 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-
     function receiveEvents(
         uint status
     )
@@ -96,7 +95,7 @@ contract IOedax is IAuctionData{
         uint initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
@@ -110,12 +109,11 @@ contract IOedax is IAuctionData{
         uint    initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
         );
-
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.

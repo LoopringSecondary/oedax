@@ -29,7 +29,7 @@ pragma experimental ABIEncoderV2;
 
 import "./ICurveData.sol";
 
-contract ICurve is ICurveData{
+contract ICurve is ICurveData {
 
     function calcEstimatedTTL(
         uint cid,
@@ -38,7 +38,7 @@ contract ICurve is ICurveData{
         )
         public
         view
-        returns(
+        returns (
             uint /* ttlSeconds */
         );
 
@@ -48,14 +48,14 @@ contract ICurve is ICurveData{
     function getOriginCurveID(uint cid)
         public
         view
-        returns(
+        returns (
             uint
         );
 
     function getNextCurveID()
         public
         view
-        returns(
+        returns (
             uint
         );
 
@@ -69,7 +69,7 @@ contract ICurve is ICurveData{
         uint P
     )
         external
-        returns(
+        returns (
             bool /* success */,
             uint /* cid */
         );

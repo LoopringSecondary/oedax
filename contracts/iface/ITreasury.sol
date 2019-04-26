@@ -73,7 +73,7 @@ contract ITreasury {
         uint    amountB
     )
         external
-        returns(
+        returns (
             bool
         );
 
@@ -85,7 +85,7 @@ contract ITreasury {
         uint    amount
     )
         external
-        returns(
+        returns (
             bool
         );
 

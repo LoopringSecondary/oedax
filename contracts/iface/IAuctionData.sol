@@ -61,7 +61,7 @@ contract IAuctionData {
     }
 
     //sub-structs to prevent deep stack
-    struct TokenInfo{
+    struct TokenInfo {
         address askToken;           // The ask (sell) token
         address bidToken;           // The bid (buy) token
         uint    askDecimals;        // Decimals of tokenA, should be read from their smart contract,
@@ -72,7 +72,7 @@ contract IAuctionData {
                                     // including targetPrice, askPrice, bidPrice.
     }
 
-    struct FeeSettings{
+    struct FeeSettings {
         address recepient;
         uint    creationFeeEth;
         uint    protocolBips;
@@ -80,7 +80,7 @@ contract IAuctionData {
         uint    takerBips;
         uint    withdrawalPenaltyBips;
     }
-    struct AuctionInfo{
+    struct AuctionInfo {
         uint    P;                  // `P/priceScale` the target price
         uint    M;                  // The price scale factor
         uint    S;                  // ShapeFacor

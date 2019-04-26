@@ -22,12 +22,12 @@ import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurve.sol";
 
-contract ImplCurve is ICurve, MathLib, DataHelper{
+contract ImplCurve is ICurve, MathLib, DataHelper {
 
     function nameCheck(string memory s)
         internal
         pure
-        returns(
+        returns (
             bytes32
         )
     {
@@ -62,18 +62,18 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
     function getOriginCurveID(uint cid)
         public
         view
-        returns(
+        returns (
             uint
         )
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         return cidByName[curveParams[cid-1].curveName];
     }
 
     function getNextCurveID()
         public
         view
-        returns(
+        returns (
             uint
         )
     {
@@ -86,12 +86,12 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         uint P
     )
         external
-        returns(
+        returns (
             bool /* success */,
             uint /* cid */
         )
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         uint newId = getNextCurveID();
         CurveParams memory newCurve = curveParams[cid-1];
         newCurve.T = T;
@@ -170,7 +170,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         view
         returns (ICurveData.CurveParams memory)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         return curveParams[cid-1];
     }
 
@@ -183,7 +183,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         view
         returns (bytes memory)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
         cP = curveParams[cid-1];
         bytes memory bC;
@@ -216,7 +216,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         view
         returns (uint)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         uint p;
         CurveParams memory cP;
         cP = curveParams[cid-1];
@@ -238,10 +238,10 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
             bool,
             uint)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
         cP = curveParams[cid-1];
-        if (p > cP.P*cP.M || p <= cP.P*cP.a/cP.c){
+        if (p > cP.P*cP.M || p <= cP.P*cP.a/cP.c) {
             return (false, 0);
         }
 
@@ -260,15 +260,13 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         )
         public
         view
-        returns (uint)
+        returns (uint p)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
-        uint p;
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
         cP = curveParams[cid-1];
 
         p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d)))/add(mul(t, cP.a), mul(cP.T, cP.b));
-        return p;
     }
 
     /// @dev Calculate inverse bid/buy price on price curve
@@ -284,15 +282,15 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
             bool,
             uint)
     {
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
         CurveParams memory cP;
         cP = curveParams[cid-1];
 
-        if (p < cP.P/cP.M || p >= cP.P*cP.c/cP.a){
+        if (p < cP.P/cP.M || p >= cP.P*cP.c/cP.a) {
             return (false, 0);
         }
         uint t;
-        t = mul(cP.T, sub(mul(cP.b,p),mul(cP.d,cP.P)))/sub(mul(cP.c,cP.P),mul(cP.a,p));
+        t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d,cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
         return (true, t);
     }
 
@@ -303,7 +301,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
     )
         internal
         view
-        returns(
+        returns (
             bool
         )
     {
@@ -319,36 +317,35 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
         )
         public
         view
-        returns(
+        returns (
             uint /* ttlSeconds */
         )
     {
 
-        require(cid>0 && cid <= curveParams.length, "curve does not exist");
+        require(cid > 0 && cid <= curveParams.length, "curve does not exist");
 
-        uint period = curveParams[cid-1].T;
+        uint period = curveParams[cid - 1].T;
 
         uint dt1;
         uint dt2;
 
-        if (isClosed(cid,t1,t2)){
+        if (isClosed(cid, t1, t2)) {
             return 0;
         }
 
         uint dt = period/100;
 
-        if (t1+t2 < period*2 - dt*2){
+        if (t1+t2 < period*2 - dt*2) {
             dt1 = sub(period*2, t1+t2)/2;
-        }
-        else{
+        } else {
             dt1 = dt;
         }
 
-        while (dt1 >= dt && isClosed(cid, t1+dt1, t2+dt1)){
+        while (dt1 >= dt && isClosed(cid, t1 + dt1, t2 + dt1)) {
             dt1 = sub(dt1, dt);
         }
 
-        while (!isClosed(cid, t1+dt1+dt, t2+dt1+dt)){
+        while (!isClosed(cid, t1 + dt1 + dt, t2 + dt1 + dt)) {
             dt1 = add(dt1, dt);
         }
 
@@ -356,21 +353,18 @@ contract ImplCurve is ICurve, MathLib, DataHelper{
 
         // now the point is between dt1 and dt2
         while (
-            dt2-dt1>1 &&
-            isClosed(cid, t1+dt2, t2+dt2)
-        )
-        {
-            uint dt3 = (dt1+dt2)/2;
-            if (isClosed(cid, t1+dt3, t2+dt3)){
+            dt2 - dt1 > 1 &&
+            isClosed(cid, t1 + dt2, t2 + dt2)
+        ) {
+            uint dt3 = (dt1 + dt2)/2;
+            if (isClosed(cid, t1 + dt3, t2 + dt3)) {
                 dt2 = dt3;
-            }
-            else{
+            } else {
                 dt1 = dt3;
             }
         }
 
         return dt2;
     }
-
 
 }

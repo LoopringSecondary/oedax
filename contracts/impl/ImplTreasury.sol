@@ -32,7 +32,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     bool    public terminated;
 
-    modifier whenRunning(){
+    modifier whenRunning() {
         require(
             terminated == false,
             "the contract is already terminated!"
@@ -40,7 +40,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         _;
     }
 
-    modifier isAuction(){
+    modifier isAuction() {
         require(
             auctionAddressMap[msg.sender] != 0 ||
             msg.sender == oedax,
@@ -49,7 +49,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         _;
     }
 
-    modifier isOedax(){
+    modifier isOedax() {
         require(
             msg.sender == oedax,
             "The address should be oedax contract"
@@ -57,7 +57,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         _;
     }
 
-    constructor() public{
+    constructor() public {
         oedax = address(0x0);
         auctionAmount = 0;
     }
@@ -113,7 +113,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns(
+        returns (
             bool
         )
     {
@@ -159,7 +159,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns(
+        returns (
             bool
         )
     {
@@ -193,7 +193,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns(
+        returns (
             bool
         )
     {
@@ -313,7 +313,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             userAvailableBalances[msg.sender][token] = add(userAvailableBalances[msg.sender][token], amount);
             userTotalBalances[msg.sender][token] = add(userTotalBalances[msg.sender][token], amount);
         }
-        if (!userTokens[msg.sender][token]){
+        if (!userTokens[msg.sender][token]) {
             userTokens[msg.sender][token] = true;
             userTokenList[msg.sender].push(token);
         }
@@ -448,7 +448,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "contract should be terminated!"
         );
         address token;
-        for (uint i = 0; i < tokens.length; i++){
+        for (uint i = 0; i < tokens.length; i++) {
             token = tokens[i];
             if (userTotalBalances[msg.sender][token] > 0 &&
                 token.safeTransfer(

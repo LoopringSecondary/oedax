@@ -71,8 +71,6 @@ contract IAuction is IAuctionData {
     uint public totalRecipientAmountA;
     uint public totalRecipientAmountB;
 
-
-
     struct QueuedParticipation {
         //uint    index;      // start from 0, queue会实时清空，index没有必要
         address user;       // user address
@@ -84,7 +82,6 @@ contract IAuction is IAuctionData {
     QueuedParticipation[] public askQueue;
     QueuedParticipation[] public bidQueue;
 
-
     Status  public  status;
     uint    public  constrainedTime;// time when entering constrained period
     uint    public  lastSynTime;// same as that in auctionState
@@ -95,11 +92,10 @@ contract IAuction is IAuctionData {
     TokenInfo       public tokenInfo;
     FeeSettings     public feeSettings;
 
-
     function simulatePrice(uint time)
         public
         view
-        returns(
+        returns (
             uint askPrice,
             uint bidPrice,
             uint actualPrice,
@@ -117,7 +113,7 @@ contract IAuction is IAuctionData {
     function getQueueStatus()
         public
         view
-        returns(
+        returns (
             uint queueStatus,
             uint amount
         );
@@ -125,7 +121,7 @@ contract IAuction is IAuctionData {
     function getActualPrice()
         public
         view
-        returns(
+        returns (
             uint price
         );
 
@@ -133,7 +129,7 @@ contract IAuction is IAuctionData {
     function calcActualTokens(address user)
         public
         view
-        returns(
+        returns (
             uint,
             uint
         );
@@ -142,87 +138,86 @@ contract IAuction is IAuctionData {
     function calcTakeRate()
         public
         view
-        returns(
+        returns (
             uint /* rate */
         );
 
     function getAuctionSettings()
         public
         view
-        returns(
+        returns (
             AuctionSettings memory
         );
 
     function getAuctionState()
         public
         view
-        returns(
+        returns (
             AuctionState memory
         );
 
     function getAuctionInfo()
         public
         view
-        returns(
+        returns (
             AuctionInfo memory
         );
 
     function getTokenInfo()
         public
         view
-        returns(
+        returns (
             TokenInfo memory
         );
 
     function getFeeSettings()
         public
         view
-        returns(
+        returns (
             FeeSettings memory
         );
 
     function getAuctionSettingsBytes()
         public
         view
-        returns(
+        returns (
             bytes memory
         );
 
     function getAuctionStateBytes()
         public
         view
-        returns(
+        returns (
             bytes memory
         );
 
     function getAuctionInfoBytes()
         public
         view
-        returns(
+        returns (
             bytes memory
         );
 
     function getTokenInfoBytes()
         public
         view
-        returns(
+        returns (
             bytes memory
         );
 
     function getFeeSettingsBytes()
         public
         view
-        returns(
+        returns (
             bytes memory
         );
-
 
     /// @dev Return the ask/bid deposit/withdrawal limits. Note that existing queued items should
     /// be considered in the calculations.
     function getLimits()
         public
         view
-        returns(
+        returns (
             uint /* askDepositLimit */,
             uint /* bidDepositLimit */,
             uint /* askWithdrawalLimit */,
@@ -233,10 +228,9 @@ contract IAuction is IAuctionData {
     function getEstimatedTTL()
         public
         view
-        returns(
+        returns (
             uint /* ttlSeconds */
         );
-
 
     function askDeposit(uint amount)
         public
@@ -327,7 +321,6 @@ contract IAuction is IAuctionData {
         returns (
             bool /* settled */
         );
-
 
     /// @dev Get participations from a given address.
     function getUserParticipations(

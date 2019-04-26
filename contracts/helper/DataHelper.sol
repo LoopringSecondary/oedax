@@ -21,7 +21,7 @@ import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 import "./BytesToTypes.sol";
 
-contract DataHelper is BytesToTypes, IAuctionData{
+contract DataHelper is BytesToTypes, IAuctionData {
 
     function curveParamsToBytes(ICurveData.CurveParams memory curveParams)
         internal
@@ -148,7 +148,6 @@ contract DataHelper is BytesToTypes, IAuctionData{
         );
         return res;
     }
-
 
     function bytesToAuctionInfo(bytes memory b)
         internal

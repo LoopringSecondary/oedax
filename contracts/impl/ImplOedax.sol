@@ -27,7 +27,7 @@ import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurveData.sol";
 
-interface ICurve{
+interface ICurve {
     function getCurveBytes(
         uint cid
         )
@@ -41,7 +41,7 @@ interface ICurve{
         uint P
     )
         external
-        returns(
+        returns (
             bool /* success */,
             uint /* cid */
         );
@@ -127,7 +127,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             IAuction(auctionAddr).getTokenInfoBytes()
         );
 
-        if (status == 1){
+        if (status == 1) {
 
             emit AuctionCreated(
                 auctionSettings.creator,
@@ -143,7 +143,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 2){
+        if (status == 2) {
             emit AuctionOpened (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -152,7 +152,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 3){
+        if (status == 3) {
             emit AuctionConstrained(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -165,7 +165,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 4){
+        if (status == 4) {
             emit AuctionClosed(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -179,7 +179,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 5){
+        if (status == 5) {
             emit AuctionSettled (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -197,7 +197,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     {
         auctionGenerator = IAuctionGenerator(addr);
     }
-
 
     // Initiate an auction
     function createAuction(
@@ -242,7 +241,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         receiveEvents(1, auctionAddr);
 
-        if (IAuction(auctionAddr).status() == Status.OPEN){
+        if (IAuction(auctionAddr).status() == Status.OPEN) {
             receiveEvents(2, auctionAddr);
         }
 
@@ -279,7 +278,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     )
         internal
         view
-        returns(
+        returns (
             TokenInfo memory
         )
     {
@@ -356,8 +355,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             info
         );
 
-
-
         return (addressAuction, id);
     }
 
@@ -381,7 +378,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
         return (lastSynTime, _auctionSettings, _auctionState);
     }
-
 
     function getAuctionsAll(
         address creator
@@ -421,9 +417,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         uint count = 0;
 
-        for (uint i = 0; i < len; i++){
+        for (uint i = 0; i < len; i++) {
             auctionAddr = treasury.auctionIdMap(index[i]);
-            if (IAuction(auctionAddr).status() == status){
+            if (IAuction(auctionAddr).status() == status) {
                 count++;
             }
         }
@@ -431,9 +427,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint[] memory res = new uint[](count);
 
         count = 0;
-        for (uint i = 0; i < len; i++){
+        for (uint i = 0; i < len; i++) {
             auctionAddr = treasury.auctionIdMap(index[i]);
-            if (IAuction(auctionAddr).status() == status){
+            if (IAuction(auctionAddr).status() == status) {
                 res[count] = index[i];
                 count++;
             }
@@ -463,7 +459,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         uint cnt = 0;
 
-        for (uint i = 0; i < len; i++){
+        for (uint i = 0; i < len; i++) {
             auctionAddr = treasury.auctionIdMap(index[i]);
             if (
                 index[i] > skip &&
@@ -477,15 +473,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         uint[] memory res = new uint[](count);
 
-        if (cnt>0){
+        if (cnt>0) {
             cnt = 0;
-            for (uint i = 0; i < len; i++){
+            for (uint i = 0; i < len; i++) {
                 auctionAddr = treasury.auctionIdMap(index[i]);
                 if (
                     index[i] > skip &&
                     index[i] <= add(skip, count) &&
                     IAuction(auctionAddr).status() == status
-                ){
+                ) {
                     res[cnt] = index[i];
                     cnt++;
                 }
@@ -503,7 +499,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
@@ -531,7 +527,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    initialBidAmount
         )
         public
-        returns(
+        returns (
             address /* auction */,
             uint    /* id */,
             bool    /* successful */
@@ -583,8 +579,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         return (addressAuction, id, true);
     }
-
-
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
     // One basis point is equivalent to 0.01%.
@@ -657,7 +651,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         takerBips = feeSettings.takerBips;
         withdrawalPenaltyBips = feeSettings.withdrawalPenaltyBips;
     }
-
 
     // no need to used the following functions
     // if all curves are stored in a contract

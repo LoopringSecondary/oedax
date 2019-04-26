@@ -21,21 +21,19 @@ import "../impl/ImplAuction.sol";
 import "../iface/IAuctionGenerator.sol";
 import "../helper/DataHelper.sol";
 
-contract ImplAuctionGenerator is DataHelper{
+contract ImplAuctionGenerator is DataHelper {
 
     address public owner;
+    address public oedax;
+    address public treasury;
 
-    address public  oedax;
-    address public  treasury;
-
-    modifier isOedax(){
+    modifier isOedax() {
         require(
             msg.sender == oedax/*,
             "The address should be oedax contract"*/
         );
         _;
     }
-
 
     constructor(
         address _treasury
@@ -60,7 +58,6 @@ contract ImplAuctionGenerator is DataHelper{
         oedax = _oedax;
     }
 
-
     function createAuction(
         address     curve,
         uint        curveId,
@@ -71,7 +68,6 @@ contract ImplAuctionGenerator is DataHelper{
         bytes  memory   bAuctionInfo,
         uint        id,
         address     creator
-
     )
         public
         isOedax
@@ -93,8 +89,6 @@ contract ImplAuctionGenerator is DataHelper{
             id,
             creator
         );
-
-
 
         return address(auction);
     }
