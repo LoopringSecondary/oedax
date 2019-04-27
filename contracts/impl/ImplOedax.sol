@@ -327,56 +327,44 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */
+            address auctionAddr,
+            uint    auctionId
         )
     {
-        uint    id = treasury.auctionAmount() + 1;
-
-        FeeSettings memory feeS;
-        TokenInfo   memory tokenInfo;
-
-        feeS = feeSettings;
-
-        tokenInfo = checkTokenInfo(
+        TokenInfo memory tokenInfo = checkTokenInfo(
             curveId,
             askToken,
             bidToken,
             info
         );
 
-        address addressAuction;
-        (addressAuction, id) = createAuction(
+        (auctionAddr, auctionId) = createAuction(
             curveId,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
-            feeS,
+            feeSettings,
             tokenInfo,
             info
         );
-
-        return (addressAuction, id);
     }
 
     function getAuctionInfo(uint id)
         external
         view
         returns (
-            uint,
-            AuctionSettings memory,
-            AuctionState    memory
+            uint lastSynTime,
+            AuctionSettings memory auctionSettings,
+            AuctionState    memory auctionState
         )
     {
-        address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(id);
-        uint    lastSynTime = IAuction(auctionAddr).lastSynTime();
-        AuctionSettings memory _auctionSettings = bytesToAuctionSettings(
+        address auctionAddr = treasury.auctionIdMap(id);
+        lastSynTime = IAuction(auctionAddr).lastSynTime();
+        auctionSettings = bytesToAuctionSettings(
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
-        AuctionState memory _auctionState = bytesToAuctionState(
+        auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
         );
-        return (lastSynTime, _auctionSettings, _auctionState);
     }
 
     function getAuctionsAll(
@@ -385,16 +373,12 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         public
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint  count,
+            uint[] memory auctionIdx
         )
     {
-
-        uint[] memory index = treasury.getAuctionIndex(creator);
-
-        uint len = index.length;
-
-        return (len, index);
+        auctionIdx = treasury.getAuctionIndex(creator);
+        count = auctionIdx.length;
     }
 
     function getAuctions(

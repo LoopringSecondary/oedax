@@ -31,7 +31,7 @@ contract ITreasury {
     mapping (address => uint)   public auctionAddressMap;
     mapping (address => uint[]) public auctionFactoryMap; // for the need of getAuctions() in Oedax contract
 
-    uint  public  auctionAmount;
+    uint  public  auctionCount;
 
     // auction => token => amount
     // treasury中的token交易需要总量不变，数量变化都有来源
