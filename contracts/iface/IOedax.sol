@@ -23,7 +23,7 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-    function logEvents(uint status)
+    function emitEvent(uint status)
         external;
 
     // Initiate an auction
@@ -42,16 +42,15 @@ contract IOedax is IAuctionData{
         );
 
     // 获取用户创建的所有合约
-    function getAuctionsAll(address creator)
+    function getAuctions(address creator)
         public
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         );
 
     // 获取合约信息
-    function getAuctionInfo(uint id)
+    function getAuction(uint id)
         external
         view
         returns (
@@ -67,8 +66,7 @@ contract IOedax is IAuctionData{
         external
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         );
 
     function getAuctions(

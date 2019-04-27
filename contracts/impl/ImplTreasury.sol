@@ -32,25 +32,22 @@ contract ImplTreasury is ITreasury, Ownable {
     address public oedax;
     bool    public terminated;
 
-    modifier whenRunning() {
-        require(terminated == false, "already terminated!");
+    modifier onlyWhenRunning() {
+        require(terminated == false, "already terminated");
         _;
     }
 
-    modifier isAuction() {
+    modifier onlyAuctionOrOedax() {
         require(
             auctionAddressMap[msg.sender] != 0 ||
             msg.sender == oedax,
-            "The address is not oedax auction contract!"
+            "not calling from an auction or Oedax"
         );
         _;
     }
 
     modifier onlyOedax() {
-        require(
-            msg.sender == oedax,
-            "The address should be oedax contract"
-        );
+        require(msg.sender == oedax, "not calling from Oedax");
         _;
     }
 
@@ -58,7 +55,7 @@ contract ImplTreasury is ITreasury, Ownable {
         public
     {
         oedax = address(0x0);
-        auctionAmount = 0;
+        auctionCount = 0;
     }
 
     function setOedax(address _oedax)
@@ -67,19 +64,17 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             oedax == address(0x0),
-            "Oedax could only be set once!"
+            "Oedax can only be set once"
         );
         oedax = _oedax;
     }
 
-    function getAuctionIndex(address creator)
+    function getAuctions(address creator)
         public
         view
-        returns (
-            uint[] memory
-        )
+        returns (uint[] memory)
     {
-        return auctionFactoryMap[creator];
+        return auctionCreatorMap[creator];
     }
 
     function getNextAuctionId()
@@ -87,7 +82,7 @@ contract ImplTreasury is ITreasury, Ownable {
         view
         returns (uint)
     {
-        return auctionAmount + 1;  // REVIEW? auctionAmount + 1 ???
+        return auctionCount + 1;
     }
 
     // 把两个Token的锁仓全部换成新的amount
@@ -100,8 +95,8 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amountB
         )
         external
-        isAuction
-        whenRunning
+        onlyAuctionOrOedax
+        onlyWhenRunning
     {
         uint id = auctionAddressMap[msg.sender];
         require(
@@ -141,15 +136,12 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount
         )
         external
-        isAuction
-        whenRunning
+        onlyAuctionOrOedax
+        onlyWhenRunning
     {
 
         uint id = auctionAddressMap[msg.sender];
-        require(
-            id > 0,
-            "address not correct"
-        );
+        require(id > 0, "address not correct");
 
         userLockedBalances[user][id][token] = userLockedBalances[user][id][token].sub(amount);
         userTotalBalances[user][token] = userTotalBalances[user][token].sub(amount);
@@ -172,15 +164,12 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount
         )
         external
-        isAuction
-        whenRunning
+        onlyAuctionOrOedax
+        onlyWhenRunning
     {
 
         uint id = auctionAddressMap[msg.sender];
-        require(
-            id > 0,
-            "address not correct"
-        );
+        require(id > 0, "address not correct");
 
         contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].sub(amount);
 
@@ -196,12 +185,12 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount  // must be greater than 0.
         )
         external
-        isAuction
-        whenRunning
+        onlyAuctionOrOedax
+        onlyWhenRunning
     {
         require(
             amount <= userAvailableBalances[user][token],
-            "not enough token"
+            "insuffcient balance"
         );
 
         uint id = auctionAddressMap[msg.sender];
@@ -219,11 +208,11 @@ contract ImplTreasury is ITreasury, Ownable {
         )
         external
         onlyOedax
-        whenRunning
+        onlyWhenRunning
     {
         require(
             amount <= userAvailableBalances[user][token],
-            "not enough token"
+            "insuffcient balance"
         );
 
         uint id = auctionAddressMap[auctionAddr];
@@ -241,12 +230,12 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount  // specify 0 to withdrawl as much as possible.
         )
         external
-        isAuction
-        whenRunning
+        onlyAuctionOrOedax
+        onlyWhenRunning
     {
         require(
             amount <= userLockedBalances[user][auctionAddressMap[msg.sender]][token],
-            "not enough token"
+            "insuffcient balance"
         );
         uint id = auctionAddressMap[msg.sender];
         userAvailableBalances[user][token] = userAvailableBalances[user][token].add(amount);
@@ -260,7 +249,7 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount  // must be greater than 0.
         )
         external
-        whenRunning
+        onlyWhenRunning
         returns (bool successful)
     {
         successful = token.safeTransferFrom(
@@ -284,12 +273,12 @@ contract ImplTreasury is ITreasury, Ownable {
         uint    amount  // specify 0 to withdrawl as much as possible.
         )
         external
-        whenRunning
+        onlyWhenRunning
         returns (bool successful)
     {
         require(
             amount <= userAvailableBalances[msg.sender][token],
-            "Not enough token!"
+            "insuffcient balance"
         );
         successful = token.safeTransfer(
             msg.sender,
@@ -349,15 +338,15 @@ contract ImplTreasury is ITreasury, Ownable {
         address creator
         )
         external
-        whenRunning
+        onlyWhenRunning
         onlyOedax
         returns (uint auctionId)
     {
         auctionId = getNextAuctionId();
         auctionAddressMap[auction] = auctionId;
         auctionIdMap[auctionId] = auction;
-        auctionFactoryMap[creator].push(auctionId);
-        auctionAmount += 1;
+        auctionCreatorMap[creator].push(auctionId);
+        auctionCount += 1;
     }
 
     // In case of an high-risk bug, the admin can return all tokens, including those locked in
@@ -368,7 +357,7 @@ contract ImplTreasury is ITreasury, Ownable {
     function terminate()
         external
         onlyOwner
-        whenRunning
+        onlyWhenRunning
     {
         terminated = true;
         //TODO: give back all the balances
@@ -386,7 +375,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             terminated == true,
-            "contract should be terminated!"
+            "contract should be terminated"
         );
         address token;
         for (uint i = 0; i < tokens.length; i++) {

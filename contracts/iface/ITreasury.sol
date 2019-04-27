@@ -29,9 +29,10 @@ contract ITreasury {
 
     mapping (uint => address)   public auctionIdMap;
     mapping (address => uint)   public auctionAddressMap;
-    mapping (address => uint[]) public auctionFactoryMap; // for the need of getAuctions() in Oedax contract
 
-    uint  public  auctionAmount;
+    mapping (address => uint[]) public auctionCreatorMap;
+
+    uint  public  auctionCount;
 
     // auction => token => amount
     // treasury中的token交易需要总量不变，数量变化都有来源
@@ -45,7 +46,7 @@ contract ITreasury {
     mapping (address => mapping(address=>bool)) public userTokens;
 
     // 获得用户创建的Auction的Index数组
-    function getAuctionIndex(address creator)
+    function getAuctions(address creator)
         public
         view
         returns (

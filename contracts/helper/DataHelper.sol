@@ -222,7 +222,6 @@ contract DataHelper is BytesToTypes, IAuctionData {
         )
     {
         require(b.length == 116, "invalid argument size");
-
         auctionSettings.creator = bytesToAddress(20, b);
         auctionSettings.auctionId = bytesToUint256(52, b);
         auctionSettings.curveId = bytesToUint256(84, b);

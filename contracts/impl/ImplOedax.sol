@@ -96,18 +96,18 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
     }
 
     // REVIEW? use event1 & event2 here as the avalue for `events` to support multiple event logging.
-    function logEvents(
+    function emitEvent(
         uint events
         )
         external
     {
-        logEvents(events, msg.sender);
+        emitEvent(events, msg.sender);
     }
 
     // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
     // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
 
-    function logEvents(
+    function emitEvent(
         uint events,
         address auctionAddr
         )
@@ -122,7 +122,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
         AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionInfoBytes()
+            IAuction(auctionAddr).getAuctionBytes()
         );
         AuctionState memory auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
@@ -148,7 +148,6 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         if (events == 2) {
             emit AuctionOpened (
-                auctionSettings.creator,
                 auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
@@ -157,7 +156,6 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         if (events == 3) {
             emit AuctionConstrained(
-                auctionSettings.creator,
                 auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
@@ -170,7 +168,6 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         if (events == 4) {
             emit AuctionClosed(
-                auctionSettings.creator,
                 auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
@@ -184,7 +181,6 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         if (events == 5) {
             emit AuctionSettled (
-                auctionSettings.creator,
                 auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
@@ -234,20 +230,9 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         treasury.registerAuction(auctionAddr, msg.sender);
 
-        logEvents(1, auctionAddr);
-
-        if (IAuction(auctionAddr).status() == Status.OPEN) {
-            logEvents(2, auctionAddr);
-        }
-
-        // REVIEW?
-        // logEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
-        // logEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
-        // event.type1 = 1; event.type2 = 1 << 1; event.typeN = 1 << N
-        // 然后 logEvents( event.type1 | event.type2)
-        // inside logEvents, do the following:
-        // if (events & event.type1) {... log event 1}
-        // if (events & event.type2) {... log event 2}
+        // REVIEW? 这个合约里面，只需要emit AuctionCreated事件，其它Auction事件放到IAuction里面。
+        // 因此可以极大简化这个方法。
+        emitEvent(1, auctionAddr);
 
         if (initialAskAmount > 0) {
             treasury.initDeposit(
@@ -327,115 +312,77 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */
+            address auctionAddr,
+            uint    auctionId
         )
     {
-        uint    id = treasury.auctionAmount() + 1;
-
-        FeeSettings memory feeS;
-        TokenInfo   memory tokenInfo;
-
-        feeS = feeSettings;
-
-        tokenInfo = checkTokenInfo(
+        TokenInfo memory tokenInfo = checkTokenInfo(
             curveId,
             askToken,
             bidToken,
             info
         );
 
-        address addressAuction;
-        (addressAuction, id) = createAuction(
+        (auctionAddr, auctionId) = createAuction(
             curveId,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
-            feeS,
+            feeSettings,
             tokenInfo,
             info
         );
-
-        return (addressAuction, id);
     }
 
-    function getAuctionInfo(uint id)
+    function getAuction(uint id)
         external
         view
         returns (
-            uint,
-            AuctionSettings memory,
-            AuctionState    memory
+            uint lastSynTime,
+            AuctionSettings memory auctionSettings,
+            AuctionState    memory auctionState
         )
     {
-        address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(id);
-        uint    lastSynTime = IAuction(auctionAddr).lastSynTime();
-        AuctionSettings memory _auctionSettings = bytesToAuctionSettings(
+        address auctionAddr = treasury.auctionIdMap(id);
+        lastSynTime = IAuction(auctionAddr).lastSynTime();
+        auctionSettings = bytesToAuctionSettings(
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
-        AuctionState memory _auctionState = bytesToAuctionState(
+        auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
         );
-        return (lastSynTime, _auctionSettings, _auctionState);
     }
 
-    function getAuctionsAll(
+    function getAuctions(
         address creator
         )
         public
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory
         )
     {
-
-        uint[] memory index = treasury.getAuctionIndex(creator);
-
-        uint len = index.length;
-
-        return (len, index);
+        return treasury.getAuctions(creator);
     }
 
     function getAuctions(
         address creator,
-        Status status
+        Status  status
         )
         external
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         )
     {
-
-        uint len;
-        uint[] memory index;
-        (len,index) = getAuctionsAll(creator);
-
+        uint[] memory auctions = getAuctions(creator);
         address auctionAddr;
-
-        uint count = 0;
-
-        for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
+        uint count;
+        for (uint i = 0; i < auctions.length; i++) {
+            auctionAddr = treasury.auctionIdMap(auctions[i]);
             if (IAuction(auctionAddr).status() == status) {
-                count++;
+                auctionIds[count++] = auctionIds[i];
             }
         }
-
-        uint[] memory res = new uint[](count);
-
-        count = 0;
-        for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
-            if (IAuction(auctionAddr).status() == status) {
-                res[count] = index[i];
-                count++;
-            }
-        }
-
-        return (count, res);
     }
 
     function getAuctions(
@@ -450,19 +397,17 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
             uint[] memory auctionIds
         )
     {
-
-        uint len;
-        uint[] memory index;
-        (len,index) = getAuctionsAll(creator);
+        uint[] memory auctionIds = getAuctions(creator);
+        uint len = auctionIds.length;
 
         address auctionAddr;
         uint cnt = 0;
 
         for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
+            auctionAddr = treasury.auctionIdMap(auctionIds[i]);
             if (
-                index[i] > skip &&
-                index[i] <= skip.add(count) &&
+                auctionIds[i] > skip &&
+                auctionIds[i] <= skip.add(count) &&
                 IAuction(auctionAddr).status() == status
             )
             {
@@ -473,20 +418,20 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         if (cnt>0) {
             cnt = 0;
             for (uint i = 0; i < len; i++) {
-                auctionAddr = treasury.auctionIdMap(index[i]);
+                auctionAddr = treasury.auctionIdMap(auctionIds[i]);
                 if (
-                    index[i] > skip &&
-                    index[i] <= skip.add(count) &&
+                    auctionIds[i] > skip &&
+                    auctionIds[i] <= skip.add(count) &&
                     IAuction(auctionAddr).status() == status
                 ) {
-                    auctionIds[cnt] = index[i];
+                    auctionIds[cnt] = auctionIds[i];
                     cnt++;
                 }
             }
         }
     }
 
-    // /@dev clone an auction from existing auction using its id
+    /// @dev clone an auction from existing auction using its id
     function cloneAuction(
         uint auctionId,
         uint delaySeconds,
@@ -503,7 +448,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         require(
             auctionAddr != address(0x0),
-            "auction not correct!"
+            "auction not correct"
         );
 
         return cloneAuction(
@@ -533,14 +478,14 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         );
         require(
             IAuction(auctionAddr).status() >= Status.CLOSED,
-            "only closed auction can be cloned!"
+            "only closed auction can be cloned"
         );
 
         AuctionSettings memory auctionSettings = bytesToAuctionSettings(
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
         AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionInfoBytes()
+            IAuction(auctionAddr).getAuctionBytes()
         );
         TokenInfo memory tokenInfo = bytesToTokenInfo(
             IAuction(auctionAddr).getTokenInfoBytes()
