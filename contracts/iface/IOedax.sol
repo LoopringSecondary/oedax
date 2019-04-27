@@ -23,7 +23,7 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-    function logEvents(
+    function receiveEvents(
         uint status
     )
         external;

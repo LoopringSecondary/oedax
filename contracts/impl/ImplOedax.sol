@@ -95,15 +95,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
 
-    function logEvents(
+    function receiveEvents(
         uint events
     )
         external
     {
-        logEvents(events, msg.sender);
+        receiveEvents(events, msg.sender);
     }
 
-    function logEvents(
+    function receiveEvents(
         uint events,
         address auctionAddr
     )
@@ -228,18 +228,18 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         treasury.registerAuction(auctionAddr, msg.sender);
 
-        logEvents(1, auctionAddr);
+        receiveEvents(1, auctionAddr);
 
         if (IAuction(auctionAddr).status() == Status.OPEN) {
-            logEvents(2, auctionAddr);
+            receiveEvents(2, auctionAddr);
         }
 
         // REVIEW?
-        // logEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
-        // logEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
+        // receiveEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
+        // receiveEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
         // event.type1 = 1; event.type2 = 1 >> 1; event.typeN = 1 >> N
-        // 然后 logEvents( event.type1 | event.type2)
-        // inside logEvents, do the following:
+        // 然后 receiveEvents( event.type1 | event.type2)
+        // inside receiveEvents, do the following:
         // if (events & event.type1) {... log event 1}
         // if (events & event.type2) {... log event 2}
 
