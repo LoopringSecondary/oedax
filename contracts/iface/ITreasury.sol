@@ -29,7 +29,7 @@ contract ITreasury {
 
     mapping (uint => address) public auctionIdMap;
     mapping (address => uint) public auctionAddressMap;
-    mapping (address => uint[]) public auctionCreatorMap; // for the need of getAuctions() in Oedax contract
+    mapping (address => uint[]) public auctionFactoryMap; // for the need of getAuctions() in Oedax contract
 
     uint  public  auctionAmount;
 

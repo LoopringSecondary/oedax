@@ -85,7 +85,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         )
     {
         uint[] memory index;
-        index = auctionCreatorMap[creator];
+        index = auctionFactoryMap[creator];
         return index;
     }
 
@@ -416,7 +416,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         uint auctionId = getNextAuctionId();
         auctionAddressMap[auction] = auctionId;
         auctionIdMap[auctionId] = auction;
-        auctionCreatorMap[creator].push(auctionId);
+        auctionFactoryMap[creator].push(auctionId);
         auctionAmount += 1;
         return (true, auctionId);
     }

@@ -19,7 +19,7 @@ pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
 
-contract IAuctionGenerator is IAuctionData {
+contract IAuctionFactory is IAuctionData {
 
     function createAuction(
         address     curve,

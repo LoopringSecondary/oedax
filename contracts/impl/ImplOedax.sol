@@ -22,7 +22,7 @@ import "../iface/ITreasury.sol";
 import "../lib/Ownable.sol";
 import "../lib/ERC20.sol";
 import "../lib/MathLib.sol";
-import "../iface/IAuctionGenerator.sol";
+import "../iface/IAuctionFactory.sol";
 import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurveData.sol";
@@ -50,31 +50,33 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     ITreasury           public  treasury;
     ICurve              public  curve;
     FeeSettings         public  feeSettings;
-    IAuctionGenerator   public  auctionGenerator;
+    IAuctionFactory   public  auctionFactory;
 
-    // All fee settings will only apply to future auctions, but not exxisting auctions.
-    // One basis point is equivalent to 0.01%.
+    // All fee settings will only apply to future auctions, not existing auctions.
+    //
     // We suggest the followign values:
     // creationFeeEth           = 0 ETH
-    // protocolBips             = 5   (0.05%)
+    // protocolBips             = 5   (0.05%) - 1 basis point is equivalent to 0.01%.
     // walletBips               = 5   (0.05%)
     // takerBips                = 25  (0.25%)
     // withdrawalPenaltyBips    = 250 (2.50%)
+    //
     // The earliest maker will earn 25-5-5=15 bips (0.15%) rebate, the latest taker will pay
     // 25+5+5=35 bips (0.35) fee. All user combinedly pay 5+5=10 bips (0.1%) fee out of their
-    // purchased tokens.
+    // purchased tokens (tokenB).
     constructor(
         address _treasury,
         address _curve,
-        address _auctionGenerator,
+        address _auctionFactory,
         address _recepient
     )
         public
     {
         treasury = ITreasury(_treasury);
         curve = ICurve(_curve);
-        auctionGenerator = IAuctionGenerator(_auctionGenerator);
+        auctionFactory = IAuctionFactory(_auctionFactory);
         feeSettings.recepient = _recepient;
+
         feeSettings.creationFeeEth = 0;
         feeSettings.protocolBips = 5;
         feeSettings.walletBipts = 5;
@@ -186,13 +188,13 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         }
     }
 
-    function setAuctionGenerator(
+    function setAuctionFactory(
         address addr
     )
         public
         onlyOwner
     {
-        auctionGenerator = IAuctionGenerator(addr);
+        auctionFactory = IAuctionFactory(addr);
     }
 
     // Initiate an auction
@@ -211,7 +213,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
     {
         auctionId = treasury.getNextAuctionId();
-        auctionAddr = auctionGenerator.createAuction(
+        auctionAddr = auctionFactory.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
@@ -572,37 +574,42 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         return (addressAuction, id, true);
     }
 
-    // All fee settings will only apply to future auctions, but not exxisting auctions.
-    // One basis point is equivalent to 0.01%.
+    // All fee settings will only apply to future auctions, not existing auctions.
+    //
     // We suggest the followign values:
     // creationFeeEth           = 0 ETH
-    // protocolBips             = 5   (0.05%)
+    // protocolBips             = 5   (0.05%) - 1 basis point is equivalent to 0.01%.
     // walletBips               = 5   (0.05%)
     // takerBips                = 25  (0.25%)
     // withdrawalPenaltyBips    = 250 (2.50%)
+    //
     // The earliest maker will earn 25-5-5=15 bips (0.15%) rebate, the latest taker will pay
     // 25+5+5=35 bips (0.35) fee. All user combinedly pay 5+5=10 bips (0.1%) fee out of their
-    // purchased tokens.
+    // purchased tokens (tokenB).
     function setFeeSettings(
         address recepient,
-        uint    creationFeeEth,     // the required Ether fee from auction creators. We may need to
-                                    // increase this if there are too many small auctions.
-        uint    protocolBips,       // the fee paid to Oedax protocol
-        uint    walletBipts,        // the fee paid to wallet or tools that help create the deposit
-                                    // transactions, note that withdrawal doen't imply a fee.
-        uint    takerBips,          // the max bips takers pays makers.
-        uint    withdrawalPenaltyBips  // the percentage of withdrawal amount to pay the protocol.
-                                       // Note that wallet and makers won't get part of the penalty.
+        uint    creationFeeEth,         // the required Ether fee from auction creators. We may need to
+                                        // increase this if there are too many small auctions.
+        uint    protocolBips,           // the fee paid to Oedax protocol
+        uint    walletBipts,            // the fee paid to wallet or tools that help create the deposit
+                                        // transactions, note that withdrawal doen't imply a fee.
+        uint    takerBips,              // the max bips takers pays makers.
+        uint    withdrawalPenaltyBips   // the percentage of withdrawal amount to pay the protocol.
+                                        // Note that wallet and makers won't get part of the penalty.
     )
         external
         onlyOwner
     {
         require(
-            feeSettings.creationFeeEth +
             feeSettings.protocolBips +
             feeSettings.walletBipts +
             feeSettings.takerBips < 10000,
-            "feeSetting not correct"
+            "invalid bips value"
+        );
+
+        require(
+            withdrawalPenaltyBips < 10000,
+            "invalid bips value"
         );
 
         feeSettings.recepient = recepient;

@@ -18,10 +18,10 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../impl/ImplAuction.sol";
-import "../iface/IAuctionGenerator.sol";
+import "../iface/IAuctionFactory.sol";
 import "../helper/DataHelper.sol";
 
-contract ImplAuctionGenerator is DataHelper {
+contract ImplAuctionFactory is DataHelper {
 
     address public owner;
     address public oedax;
