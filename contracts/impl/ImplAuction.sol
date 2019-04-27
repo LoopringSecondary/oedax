@@ -1582,7 +1582,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     {
         uint[] memory index = participationIndex[user];
         total = index.length;
-        Participation[] memory p;
+
         p = new Participation[](total);
 
         for (uint i = 0; i < total; i++) {
@@ -1603,14 +1603,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             Participation[] memory p
         )
     {
-        uint len1 = participations.length;
-        uint total = count;
-        require(
-            len1 > skip/*,
-            "params not correct"*/
-        );
-        if (len1 < add(skip, count)) {
-            total = len1 - skip;
+        uint len = participations.length;
+        require(len > skip, "invalid argument");
+
+        total = count;
+
+        if (len < add(skip, count)) {
+            total = len - skip;
         }
         p = new Participation[](total);
         for (uint i = 0; i < total; i++) {

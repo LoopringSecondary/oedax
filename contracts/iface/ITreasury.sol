@@ -85,10 +85,7 @@ contract ITreasury {
         address token,
         uint    amount  // must be greater than 0.
         )
-        external
-        returns (
-            bool /* successful */
-        );
+        external;
 
     // 拍卖合约调用，属于Oedax内部“转账”
     // between treasury contract and auction contract

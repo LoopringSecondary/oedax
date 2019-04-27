@@ -242,27 +242,23 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         // if (events & event.type1) {... log event 1}
         // if (events & event.type2) {... log event 2}
 
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.initDeposit(
+        if (initialAskAmount > 0) {
+            treasury.initDeposit(
                 msg.sender,
                 auctionAddr,
                 tokenInfo.askToken,
                 initialAskAmount
-            ),
-            "not enough tokens!"
-        );
+            );
+        }
 
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.initDeposit(
+        if (initialBidAmount > 0) {
+            treasury.initDeposit(
                 msg.sender,
                 auctionAddr,
                 tokenInfo.bidToken,
                 initialBidAmount
-            ),
-            "not enough tokens!"
-        );
+            );
+        }
     }
 
     function checkTokenInfo(
@@ -274,13 +270,18 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         internal
         view
         returns (
-            TokenInfo memory
+            TokenInfo memory _tokenInfo
         )
     {
-        uint    askDecimals = ERC20(askToken).decimals();
-        uint    bidDecimals = ERC20(bidToken).decimals();
-        uint    priceScale;
-        require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
+        uint askDecimals = ERC20(askToken).decimals();
+        uint bidDecimals = ERC20(bidToken).decimals();
+        uint priceScale;
+
+        require(
+            askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals,
+            "decimals not correct"
+        );
+
         priceScale = pow(10, 18 + askDecimals - bidDecimals);
 
         ICurveData.CurveParams memory cp;
@@ -298,8 +299,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             "curve does not match the auction parameters"
         );
 
-        TokenInfo   memory _tokenInfo;
-
         _tokenInfo = TokenInfo(
             askToken,
             bidToken,
@@ -307,8 +306,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             bidDecimals,
             priceScale
         );
-
-        return _tokenInfo;
     }
 
     // Initiate an auction
