@@ -325,7 +325,7 @@ contract IAuction is IAuctionData {
     /// @dev Get participations from a given address.
     function getUserParticipations(
         address user
-    )
+        )
         external
         view
         returns (
@@ -337,7 +337,7 @@ contract IAuction is IAuctionData {
     function getParticipations(
         uint skip,
         uint count
-    )
+        )
         external
         view
         returns (

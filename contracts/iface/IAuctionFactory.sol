@@ -31,7 +31,7 @@ contract IAuctionFactory is IAuctionData {
         bytes   memory info,
         uint        id,
         address     creator
-    )
+        )
         public
         returns (
             address /* auction */

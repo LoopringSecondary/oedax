@@ -59,7 +59,7 @@ library SafeMath {
     function add(
         uint x,
         uint y
-    )
+            )
         internal
         pure
         returns (uint z)
@@ -70,7 +70,7 @@ library SafeMath {
     function sub(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -81,7 +81,7 @@ library SafeMath {
     function mul(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -128,7 +128,7 @@ contract ERC20 is IERC20 {
     function allowance(
         address owner,
         address spender
-    )
+        )
         public
         view
         returns (uint256)
@@ -173,7 +173,7 @@ contract ERC20 is IERC20 {
         address from,
         address to,
         uint256 value
-    )
+        )
         public
         returns (bool)
     {
@@ -196,7 +196,7 @@ contract ERC20 is IERC20 {
     function increaseAllowance(
         address spender,
         uint256 addedValue
-    )
+        )
         public
         returns (bool)
     {
@@ -220,7 +220,7 @@ contract ERC20 is IERC20 {
     function decreaseAllowance(
         address spender,
         uint256 subtractedValue
-    )
+        )
         public
         returns (bool)
     {
@@ -272,7 +272,7 @@ contract TestToken is ERC20 {
         string memory _symbol,
         uint8 _decimals,
         uint _totalSupply
-        )
+            )
         public
     {
         name = _name;

@@ -47,7 +47,7 @@ contract ITreasury {
     // 获得用户创建的Auction的Index数组
     function getAuctionIndex(
         address creator
-    )
+        )
         public
         view
         returns (
@@ -69,7 +69,7 @@ contract ITreasury {
         address tokenB,
         uint    amountA,
         uint    amountB
-    )
+        )
         external
         returns (
             bool
@@ -81,7 +81,7 @@ contract ITreasury {
         address user,
         address token,
         uint    amount
-    )
+        )
         external
         returns (
             bool
@@ -92,7 +92,7 @@ contract ITreasury {
         address auctionAddr,
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -104,7 +104,7 @@ contract ITreasury {
         address user,
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -115,7 +115,7 @@ contract ITreasury {
         address user,
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -126,7 +126,7 @@ contract ITreasury {
     function deposit(
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -136,7 +136,7 @@ contract ITreasury {
     function withdraw(
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -146,7 +146,7 @@ contract ITreasury {
     function getBalance(
         address user,
         address token
-    )
+        )
         external
         view
         returns (
@@ -159,7 +159,7 @@ contract ITreasury {
     function getAvailableBalance(
         address user,
         address token
-    )
+        )
         external
         view
         returns (
@@ -171,7 +171,7 @@ contract ITreasury {
     function getApproval(
         address user,
         address token
-    )
+        )
         public
         view
         returns (
@@ -183,7 +183,7 @@ contract ITreasury {
     function registerAuction(
         address auction,
         address creator
-    )
+        )
         external
         returns (uint auctionId);
 
@@ -199,7 +199,7 @@ contract ITreasury {
     // token列表可查询，也可自己给出
     function withdrawWhenTerminated(
         address[] calldata tokens
-    )
+        )
         external;
 
     function isTerminated()

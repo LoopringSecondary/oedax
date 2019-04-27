@@ -25,7 +25,7 @@ contract IOedax is IAuctionData{
 
     function logEvents(
         uint status
-    )
+        )
         external;
 
     // Initiate an auction
@@ -36,7 +36,7 @@ contract IOedax is IAuctionData{
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
         AuctionInfo    memory  info
-    )
+        )
         public
         returns (
             address /* auction */,
@@ -46,7 +46,7 @@ contract IOedax is IAuctionData{
     // 获取用户创建的所有合约
     function getAuctionsAll(
         address creator
-    )
+        )
         public
         view
         returns (
@@ -67,7 +67,7 @@ contract IOedax is IAuctionData{
     function getAuctions(
         address creator,
         Status status
-    )
+        )
         external
         view
         returns (
@@ -80,7 +80,7 @@ contract IOedax is IAuctionData{
         uint    count,
         address creator,
         Status  status
-    )
+        )
         external
         view
         returns (
@@ -93,7 +93,7 @@ contract IOedax is IAuctionData{
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
-        )
+            )
         public
         returns (
             address /* auction */,
@@ -107,7 +107,7 @@ contract IOedax is IAuctionData{
         uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
-        )
+            )
         public
         returns (
             address /* auction */,
@@ -136,11 +136,11 @@ contract IOedax is IAuctionData{
         uint    takerBips,          // the max bips takers pays makers.
         uint    withdrawalPenaltyBips  // the percentage of withdrawal amount to pay the protocol.
                                        // Note that wallet and makers won't get part of the penalty.
-    )
+        )
         external;
 
     function getFeeSettings(
-    )
+        )
         external
         view
         returns (
@@ -158,7 +158,7 @@ contract IOedax is IAuctionData{
     // The first curve should have id 1, not 0.
     function registerCurve(
         address ICurve
-    )
+        )
         external
         returns (
             uint /* curveId */
@@ -167,14 +167,14 @@ contract IOedax is IAuctionData{
     // unregister a curve sub-contract
     function unregisterCurve(
         uint curveId
-    )
+        )
         external
         returns (
             address /* curve */
         );
 
     function getCurves(
-        )
+            )
         external
         view
         returns (

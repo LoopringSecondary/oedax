@@ -64,7 +64,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function setOedax(
         address _oedax
-        )
+            )
         public
         onlyOwner
     {
@@ -77,7 +77,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function getAuctionIndex(
         address creator
-    )
+            )
         public
         view
         returns (
@@ -103,7 +103,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address tokenB,
         uint    amountA,
         uint    amountB
-    )
+        )
         external
         isAuction
         whenRunning
@@ -149,7 +149,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address user,
         address token,
         uint    amount
-    )
+        )
         external
         isAuction
         whenRunning
@@ -183,7 +183,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address recepient,
         address token,
         uint    amount
-    )
+        )
         external
         isAuction
         whenRunning
@@ -212,7 +212,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address user,
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         isAuction
         whenRunning
@@ -239,7 +239,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address auctionAddr,
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         isOedax
         whenRunning
@@ -266,7 +266,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         address user,
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
-    )
+        )
         external
         isAuction
         whenRunning
@@ -290,7 +290,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function deposit(
         address token,
         uint    amount  // must be greater than 0.
-    )
+        )
         external
         whenRunning
         returns (
@@ -318,7 +318,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function withdraw(
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
-    )
+        )
         external
         whenRunning
         returns (
@@ -344,7 +344,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function getBalance(
         address user,
         address token
-    )
+        )
         external
         view
         returns (
@@ -365,7 +365,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function getAvailableBalance(
         address user,
         address token
-    )
+        )
         external
         view
         returns (
@@ -380,7 +380,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function getApproval(
         address user,
         address token
-    )
+        )
         public
         view
         returns (
@@ -398,7 +398,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function registerAuction(
         address auction,
         address creator
-    )
+        )
         external
         whenRunning
         isOedax

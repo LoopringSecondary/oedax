@@ -40,17 +40,17 @@ interface ICurve {
         uint cid,
         uint T,
         uint P
-    )
+        )
         external
         returns (uint curveId);
 }
 
 contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
 
-    ITreasury           public  treasury;
-    ICurve              public  curve;
-    FeeSettings         public  feeSettings;
-    IAuctionFactory   public  auctionFactory;
+    ITreasury       public treasury;
+    ICurve          public curve;
+    FeeSettings     public feeSettings;
+    IAuctionFactory public auctionFactory;
 
     // All fee settings will only apply to future auctions, not existing auctions.
     //
@@ -69,7 +69,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         address _curve,
         address _auctionFactory,
         address _recepient
-    )
+        )
         public
     {
         treasury = ITreasury(_treasury);
@@ -96,7 +96,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
     function logEvents(
         uint events
-    )
+        )
         external
     {
         logEvents(events, msg.sender);
@@ -105,7 +105,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     function logEvents(
         uint events,
         address auctionAddr
-    )
+        )
         internal
     {
 
@@ -190,7 +190,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
     function setAuctionFactory(
         address addr
-    )
+        )
         public
         onlyOwner
     {
@@ -205,7 +205,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         FeeSettings memory feeS,
         TokenInfo   memory tokenInfo,
         AuctionInfo memory auctionInfo
-    )
+        )
         internal
         returns (
             address auctionAddr,
@@ -270,7 +270,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         address askToken,
         address bidToken,
         AuctionInfo    memory  info
-    )
+        )
         internal
         view
         returns (
@@ -319,7 +319,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    initialAskAmount,
         uint    initialBidAmount,
         AuctionInfo    memory  info
-    )
+        )
         public
         returns (
             address /* auction */,
@@ -376,7 +376,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
     function getAuctionsAll(
         address creator
-    )
+        )
         public
         view
         returns (
@@ -395,7 +395,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     function getAuctions(
         address creator,
         Status status
-    )
+        )
         external
         view
         returns (
@@ -438,7 +438,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    count,
         address creator,
         Status  status
-    )
+        )
         external
         view
         returns (
@@ -492,7 +492,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
-        )
+            )
         public
         returns (
             address /* auction */,
@@ -520,7 +520,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
-        )
+            )
         public
         returns (
             address /* auction */,
@@ -596,7 +596,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    takerBips,              // the max bips takers pays makers.
         uint    withdrawalPenaltyBips   // the percentage of withdrawal amount to pay the protocol.
                                         // Note that wallet and makers won't get part of the penalty.
-    )
+        )
         external
         onlyOwner
     {
@@ -631,7 +631,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     }
 
     function getFeeSettings(
-    )
+        )
         external
         view
         returns (
@@ -657,7 +657,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     // The first curve should have id 1, not 0.
     function registerCurve(
         address ICurve
-    )
+        )
         external
         returns (
             uint /* curveId */
@@ -669,7 +669,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     // unregister a curve sub-contract
     function unregisterCurve(
         uint curveId
-    )
+        )
         external
         returns (
             address /* curve */

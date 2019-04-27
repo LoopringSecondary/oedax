@@ -21,7 +21,7 @@ contract MathLib {
     function add(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -32,7 +32,7 @@ contract MathLib {
     function sub(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -43,7 +43,7 @@ contract MathLib {
     function mul(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -54,7 +54,7 @@ contract MathLib {
     function min(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -65,7 +65,7 @@ contract MathLib {
     function max(
         uint x,
         uint y
-    )
+        )
         internal
         pure
         returns (uint z)
@@ -76,7 +76,7 @@ contract MathLib {
     function pow(
         uint x,
         uint n
-    )
+        )
         internal
         pure
         returns (uint z)

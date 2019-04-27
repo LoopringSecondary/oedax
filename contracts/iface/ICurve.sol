@@ -35,7 +35,7 @@ contract ICurve is ICurveData {
         uint cid,
         uint t1,
         uint t2
-        )
+            )
         public
         view
         returns (
@@ -60,7 +60,7 @@ contract ICurve is ICurveData {
         uint cid,
         uint T,
         uint P
-    )
+        )
         external
         returns (
             uint curveId
@@ -80,7 +80,7 @@ contract ICurve is ICurveData {
         uint P,
         uint S,
         string memory curveName
-        )
+            )
         public
         returns (
             bool /* success */,
@@ -91,7 +91,7 @@ contract ICurve is ICurveData {
     /// @param cid Curve id
     function getCurveBytes(
         uint cid
-        )
+            )
         external
         view
         returns (bytes memory);
@@ -100,7 +100,7 @@ contract ICurve is ICurveData {
     /// @param cid Curve id
     function getCurveById(
         uint cid
-        )
+            )
         public
         view
         returns (CurveParams memory);
@@ -109,7 +109,7 @@ contract ICurve is ICurveData {
     /// @param curveName Curve name
     function getCurveByName(
         string memory curveName
-        )
+            )
         public
         view
         returns (CurveParams memory);
@@ -120,7 +120,7 @@ contract ICurve is ICurveData {
     function calcAskPrice(
         uint cid,
         uint t
-        )
+            )
         public
         view
         returns (uint);
@@ -131,7 +131,7 @@ contract ICurve is ICurveData {
     function calcInvAskPrice(
         uint cid,
         uint p
-        )
+            )
         public
         view
         returns (
@@ -145,7 +145,7 @@ contract ICurve is ICurveData {
     function calcBidPrice(
         uint cid,
         uint t
-        )
+            )
         public
         view
         returns (uint);
@@ -156,7 +156,7 @@ contract ICurve is ICurveData {
     function calcInvBidPrice(
         uint cid,
         uint p
-        )
+            )
         public
         view
         returns (

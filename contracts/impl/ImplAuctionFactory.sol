@@ -37,7 +37,7 @@ contract ImplAuctionFactory is DataHelper {
 
     constructor(
         address _treasury
-    )
+        )
         public
     {
         owner = msg.sender;
@@ -47,7 +47,7 @@ contract ImplAuctionFactory is DataHelper {
 
     function setOedax(
         address _oedax
-        )
+            )
         public
     {
         require(
@@ -68,7 +68,7 @@ contract ImplAuctionFactory is DataHelper {
         bytes  memory   bAuctionInfo,
         uint        id,
         address     creator
-    )
+        )
         public
         isOedax
         returns (

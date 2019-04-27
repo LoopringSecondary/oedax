@@ -68,7 +68,7 @@ library ERC20SafeTransfer {
 
     function checkReturnValue(
         bool success
-        )
+            )
         internal
         pure
         returns (bool)

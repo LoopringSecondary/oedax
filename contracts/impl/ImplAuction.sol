@@ -66,7 +66,7 @@ contract ICurve {
         uint cid,
         uint t1,
         uint t2
-        )
+            )
         public
         view
         returns (
@@ -76,7 +76,7 @@ contract ICurve {
     function calcAskPrice(
         uint cid,
         uint t
-        )
+            )
         public
         view
         returns (uint);
@@ -84,7 +84,7 @@ contract ICurve {
     function calcInvAskPrice(
         uint cid,
         uint p
-        )
+            )
         public
         view
         returns (
@@ -95,7 +95,7 @@ contract ICurve {
     function calcBidPrice(
         uint cid,
         uint t
-        )
+            )
         public
         view
         returns (uint);
@@ -103,7 +103,7 @@ contract ICurve {
     function calcInvBidPrice(
         uint cid,
         uint p
-        )
+            )
         public
         view
         returns (
@@ -118,7 +118,7 @@ interface ITreasury {
         address user,
         address token,
         uint    amount
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -128,7 +128,7 @@ interface ITreasury {
         address user,
         address token,
         uint    amount
-    )
+        )
         external
         returns (
             bool /* successful */
@@ -139,7 +139,7 @@ interface ITreasury {
         address user,
         address token,
         uint    amount
-    )
+        )
         external
         returns (
             bool
@@ -152,7 +152,7 @@ interface ITreasury {
         address tokenB,
         uint    amountA,
         uint    amountB
-    )
+        )
         external
         returns (
             bool
@@ -162,7 +162,7 @@ interface ITreasury {
         address recepient,
         address token,
         uint    amount
-    )
+        )
         external
         returns (
             bool
@@ -203,7 +203,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         uint    id,
         address creator
-    )
+        )
         public
     {
 
@@ -280,7 +280,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function auctionEvents(
         uint status
-    )
+        )
         internal
     {
 
@@ -329,7 +329,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function newParticipation(
         address token,
         int     amount
-    )
+        )
         internal
     {
         Participation memory P;
@@ -349,7 +349,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function triggerEvent(
         uint action,
         uint amount
-    )
+        )
         internal
     {
         bool isAsk;
@@ -391,7 +391,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint _bid,
         uint askPrice,
         uint bidPrice
-        )
+            )
         internal
         view
         returns (
@@ -867,7 +867,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function calcAskPrice(
         uint t
-    )
+        )
         internal
         view
         returns (
@@ -880,7 +880,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function calcBidPrice(
         uint t
-    )
+        )
         internal
         view
         returns (
@@ -1060,7 +1060,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         address user,
         address token,
         uint amount
-    )
+        )
         internal
     {
         uint userTake = amount*calcTakeRate();
@@ -1079,7 +1079,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     // action   1 - askDeposit 2 - bidDeposit 3 - askWithdraw 4 - bidWithdraw
     function getLimits(
         uint action
-    )
+        )
         internal
         view
         returns (
@@ -1137,7 +1137,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function tokenExchange(
         uint dir,
         uint amount
-    )
+        )
         internal
         view
         returns (
@@ -1162,7 +1162,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function releaseQueue(
         uint dir,
         uint amount
-    )
+        )
         internal
     {
         require(
@@ -1228,7 +1228,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function updateQueue(
         uint action,
         uint amount
-    )
+        )
         internal
     {
         // TODO: Update the queue, put the amount into the pool
@@ -1303,7 +1303,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function updateAfterAction(
         uint action,
         uint amount
-    )
+        )
         internal
     {
 
@@ -1575,7 +1575,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function settle(
         address user
-        )
+            )
         public
         returns (
             bool /* settled */
@@ -1715,7 +1715,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     /// @dev Get participations from a given address.
     function getUserParticipations(
         address user
-    )
+        )
         external
         view
         returns (
@@ -1739,7 +1739,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function getParticipations(
         uint skip,
         uint count
-    )
+        )
         external
         view
         returns (
