@@ -17,12 +17,12 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../impl/ImplAuction.sol";
+import "../impl/Auction.sol";
 import "../iface/IAuctionFactory.sol";
 import "../helper/DataHelper.sol";
 import "../lib/Ownable.sol";
 
-contract ImplAuctionFactory is Ownable, DataHelper {
+contract AuctionFactory is Ownable, DataHelper {
 
     address public oedax;
     address public treasury;
@@ -64,7 +64,7 @@ contract ImplAuctionFactory is Ownable, DataHelper {
         returns (address)
     {
 
-        ImplAuction auction = new ImplAuction(
+        Auction auction = new Auction(
             oedax,
             treasury,
             curve,

@@ -153,7 +153,7 @@ interface ITreasury {
         returns (bool);
 }
 
-contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
+contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
 
     using MathUint for uint;
 
