@@ -22,9 +22,9 @@ import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurve.sol";
 
-contract ImplCurve is ICurve, DataHelper {
+contract Curve is ICurve, DataHelper {
 
-    // REVIEW? 请使用MathUint(参考ImplAuction)
+    // REVIEW? 请使用MathUint(参考Auction)
 
     using MathUint for uint;
 

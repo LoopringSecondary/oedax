@@ -44,7 +44,7 @@ interface ICurve {
         returns (uint curveId);
 }
 
-contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
+contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
 
     using MathUint for uint;
 
@@ -95,7 +95,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         );
     }
 
-    // REVIEW? use event1 & event2 here as the avalue for `events` to support multiple event logging.
+    // REVIEW？ 这个方法也应该是Internal的
     function emitEvent(
         uint events
         )
@@ -193,7 +193,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
     function setAuctionFactory(
         address addr
         )
-        public
+        external
         onlyOwner
     {
         require(addr != address(0x0), "zero address");
@@ -397,6 +397,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
             uint[] memory auctionIds
         )
     {
+        // REVIEW? 这个代码可以极大简化，参考上面的getAuctions方法的实现。无需循环两次。
         uint[] memory auctionIds = getAuctions(creator);
         uint len = auctionIds.length;
 

@@ -24,7 +24,7 @@ import "../lib/ERC20SafeTransfer.sol";
 import "../lib/MathUint.sol";
 import "../lib/ERC20.sol";
 
-contract ImplTreasury is ITreasury, Ownable {
+contract Treasury is ITreasury, Ownable {
 
     using ERC20SafeTransfer for address;
     using MathUint          for uint;
