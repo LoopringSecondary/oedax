@@ -187,10 +187,7 @@ contract ITreasury {
         address creator
     )
         external
-        returns (
-            bool /* successful */,
-            uint /*   id      */
-        );
+        returns (uint auctionId);
 
     // In case of a high-risk bug, the admin can return all tokens, including those locked in
     // active auctions, to their original owners.

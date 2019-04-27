@@ -408,17 +408,13 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         whenRunning
         isOedax
-        returns (
-            bool /* successful */,
-            uint /*   id      */
-        )
+        returns (uint auctionId)
     {
-        uint auctionId = getNextAuctionId();
+        auctionId = getNextAuctionId();
         auctionAddressMap[auction] = auctionId;
         auctionIdMap[auctionId] = auction;
         auctionFactoryMap[creator].push(auctionId);
         auctionAmount += 1;
-        return (true, auctionId);
     }
 
     // In case of an high-risk bug, the admin can return all tokens, including those locked in

@@ -194,7 +194,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     }
 
     /// @dev Calculate ask/sell price on price curve
-    /// @param cid curve Id
+    /// @param cid curve id
     /// @param t Point in price curve
     function calcAskPrice(
         uint cid,
@@ -214,7 +214,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     }
 
     /// @dev Calculate inverse ask/sell price on price curve
-    /// @param cid curve Id
+    /// @param cid curve id
     /// @param p Price in price curve
     function calcInvAskPrice(
         uint cid,
@@ -240,7 +240,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     }
 
     /// @dev Calculate bid/buy price on price curve
-    /// @param cid curve Id
+    /// @param cid curve id
     /// @param t Point in price curve
     function calcBidPrice(
         uint cid,
@@ -258,7 +258,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     }
 
     /// @dev Calculate inverse bid/buy price on price curve
-    /// @param cid curve Id
+    /// @param cid curve id
     /// @param p Price in price curve
     function calcInvBidPrice(
         uint cid,
