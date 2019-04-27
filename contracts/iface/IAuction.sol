@@ -156,7 +156,7 @@ contract IAuction is IAuctionData {
             bytes memory
         );
 
-    function getAuctionInfoBytes()
+    function getAuctionBytes()
         public
         view
         returns (

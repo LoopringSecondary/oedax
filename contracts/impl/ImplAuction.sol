@@ -22,19 +22,13 @@ import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 
 interface IOedax {
-    function logEvents(uint status)
+    function emitEvent(uint status)
         external;
 }
 
 contract IAuctionEvents {
 
     // REVIEW? 下面这些event哪些field是需要index的？
-    event AuctionCreated(
-        address         creator,
-        uint256         aucitionId,
-        uint256         createTime
-    );
-
     event AuctionOpened (
         uint256         openTime
     );
@@ -232,54 +226,16 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
             auctionState.actualPrice = tokenInfo.priceScale.mul(initialAskAmount) / initialBidAmount;
         }
 
-        /*
-        emit AuctionCreated(
-            creator,
-            id,
-            address(this),
-            auctionInfo.delaySeconds,
-            auctionInfo.P,
-            tokenInfo.priceScale,
-            auctionInfo.M,
-            auctionInfo.S,
-            auctionInfo.T,
-            auctionInfo.isWithdrawalAllowed
-        );
-        */
-
-        //oedax.logEvents(1);
-        auctionEvents(1);
-
         if (auctionInfo.delaySeconds == 0) {
             status = Status.OPEN;
-
-            /*
-            emit AuctionOpened (
-                creator,
-                auctionSettings.auctionId,
-                address(this),
-                block.timestamp
-            );
-            */
-            auctionEvents(2);
-            // 此处event在oedax合约中完成
-            //oedax.logEvents(2);
-
+            emitEvent(2);
         }
     }
 
-    function auctionEvents(uint status)
+    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。
+    function emitEvent(uint status)
         internal
     {
-
-        if (status == 1) {
-            emit AuctionCreated(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                block.timestamp
-            );
-        }
-
         if (status == 2) {
             emit AuctionOpened (
                 block.timestamp
@@ -518,7 +474,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
         public
     {
 
-        if (status == Status.STARTED&&
+        if (status == Status.STARTED &&
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
@@ -530,8 +486,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
                 block.timestamp
             );
             */
-            auctionEvents(2);
-            oedax.logEvents(2);
+            emitEvent(2);
         }
 
         if (status == Status.OPEN &&
@@ -553,8 +508,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
                 block.timestamp
             );
             */
-            auctionEvents(3);
-            oedax.logEvents(3);
+            emitEvent(3);
         }
 
         if (now == lastSynTime || status != Status.CONSTRAINED) {
@@ -581,8 +535,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
                 true
             );
             */
-            auctionEvents(4);
-            oedax.logEvents(4);
+            emitEvent(4);
         }
         updateLimits();
     }
@@ -668,16 +621,16 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
         public
         view
         returns (
-            uint,
-            uint
+            uint amountA,
+            uint amountB
         )
     {
         require(
             status >= Status.OPEN/*,
             "The auction is not open yet"*/
         );
-        uint amountA = askAmount[user];
-        uint amountB = bidAmount[user];
+        amountA = askAmount[user];
+        amountB = bidAmount[user];
         if (totalTakerRateA > 0) {
             amountA = amountA - totalFeeBips() * amountA/10000 +
                 auctionState.totalAskAmount * feeSettings.takerBips/10000 *
@@ -690,7 +643,6 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
                 auctionState.totalBidAmount * feeSettings.takerBips/10000 *
                 takerRateB[user]/totalTakerRateB;
         }
-        return (amountA, amountB);
     }
 
     function totalFeeBips()
@@ -751,7 +703,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
         return auctionStateToBytes(auctionState);
     }
 
-    function getAuctionInfoBytes()
+    function getAuctionBytes()
         public
         view
         returns (bytes memory)
@@ -867,8 +819,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            auctionEvents(2);
-            oedax.logEvents(2);
+            emitEvent(2);
         }
 
         require(
@@ -1019,7 +970,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
     }
 
     function tokenExchange(
-        uint dir,
+        uint dir, // REVIEW? what is this?
         uint amount
         )
         internal
@@ -1040,7 +991,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
 
     // 仅处理等待队列里的记录，放入到ask/bidAmount中
     function releaseQueue(
-        uint dir,
+        uint dir, // REVIEW? what is this?
         uint amount
         )
         internal
@@ -1325,8 +1276,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            auctionEvents(3);
-            oedax.logEvents(3);
+            emitEvent(3);
         }
 
         //updateLimits();
@@ -1570,8 +1520,7 @@ contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEven
             block.timestamp
         );
         */
-        auctionEvents(5);
-        oedax.logEvents(5);
+        emitEvent(5);
     }
 
     /// @dev Get participations from a given address.

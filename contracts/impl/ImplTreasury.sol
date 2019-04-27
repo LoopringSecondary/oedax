@@ -69,12 +69,12 @@ contract ImplTreasury is ITreasury, Ownable {
         oedax = _oedax;
     }
 
-    function getAuctionIndex(address creator)
+    function getAuctions(address creator)
         public
         view
         returns (uint[] memory)
     {
-        return auctionFactoryMap[creator];
+        return auctionCreatorMap[creator];
     }
 
     function getNextAuctionId()
@@ -345,7 +345,7 @@ contract ImplTreasury is ITreasury, Ownable {
         auctionId = getNextAuctionId();
         auctionAddressMap[auction] = auctionId;
         auctionIdMap[auctionId] = auction;
-        auctionFactoryMap[creator].push(auctionId);
+        auctionCreatorMap[creator].push(auctionId);
         auctionCount += 1;
     }
 
