@@ -227,6 +227,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         );
 
         uint id = auctionAddressMap[auctionAddr];
+        //REVIEW? 如果auctionAddr不是一个合法的地址是不是就不应该转账？也就是需要判断id是不是为0。
 
         userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);

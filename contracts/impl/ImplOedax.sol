@@ -29,9 +29,7 @@ import "../iface/ICurveData.sol";
 
 // REVIEW? why define another contract called ICurve?
 interface ICurve {
-    function getCurveBytes(
-        uint cid
-        )
+    function getCurveBytes(uint cid)
         external
         view
         returns (bytes memory);
@@ -103,13 +101,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         logEvents(events, msg.sender);
     }
 
+    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
+    // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
+
     function logEvents(
         uint events,
         address auctionAddr
         )
         internal
     {
-
         require(
             treasury.auctionAddressMap(auctionAddr) != 0,
             "auction does not exist"
@@ -189,12 +189,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         }
     }
 
+    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
+    // 这个规则也适用于其他所有文件。
     function setAuctionFactory(
         address addr
         )
         public
         onlyOwner
     {
+        require(addr != address(0x0), "zero address");
         auctionFactory = IAuctionFactory(addr);
     }
 
