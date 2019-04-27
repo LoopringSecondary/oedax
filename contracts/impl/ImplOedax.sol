@@ -95,16 +95,16 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
 
-    function receiveEvents(
-        uint status
+    function logEvents(
+        uint events
     )
         external
     {
-        receiveEvents(status, msg.sender);
+        logEvents(events, msg.sender);
     }
 
-    function receiveEvents(
-        uint status,
+    function logEvents(
+        uint events,
         address auctionAddr
     )
         internal
@@ -128,8 +128,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             IAuction(auctionAddr).getTokenInfoBytes()
         );
 
-        if (status == 1) {
-
+        if (events == 1) {
             emit AuctionCreated(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -144,7 +143,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 2) {
+        if (events == 2) {
             emit AuctionOpened (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -153,7 +152,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 3) {
+        if (events == 3) {
             emit AuctionConstrained(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -166,7 +165,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 4) {
+        if (events == 4) {
             emit AuctionClosed(
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -180,7 +179,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 5) {
+        if (events == 5) {
             emit AuctionSettled (
                 auctionSettings.creator,
                 auctionSettings.auctionID,
@@ -210,21 +209,11 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     )
         internal
         returns (
-            address /* auction */,
-            uint    /* id */
+            address auctionAddr,
+            uint    auctionId
         )
     {
-        uint    id = treasury.getNextAuctionID();
-
-        address auctionAddr;
-
-        //bytes memory bF;
-        //bytes memory bT;
-        //bytes memory bA;
-        //bF = feeSettingsToBytes(feeS);
-        //bT = tokenInfoToBytes(tokenInfo);
-        //bA = auctionInfoToBytes(auctionInfo);
-
+        auctionId = treasury.getNextAuctionID();
         auctionAddr = auctionGenerator.createAuction(
             address(curve),
             curveId,
@@ -233,18 +222,26 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             feeSettingsToBytes(feeS),
             tokenInfoToBytes(tokenInfo),
             auctionInfoToBytes(auctionInfo),
-            id,
+            auctionId,
             msg.sender
         );
 
-        bool success;
-        (success, id) = treasury.registerAuction(auctionAddr, msg.sender);
+        treasury.registerAuction(auctionAddr, msg.sender);
 
-        receiveEvents(1, auctionAddr);
+        logEvents(1, auctionAddr);
 
         if (IAuction(auctionAddr).status() == Status.OPEN) {
-            receiveEvents(2, auctionAddr);
+            logEvents(2, auctionAddr);
         }
+
+        // REVIEW?
+        // logEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
+        // logEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
+        // event.type1 = 1; event.type2 = 1 >> 1; event.typeN = 1 >> N
+        // 然后 logEvents( event.type1 | event.type2)
+        // inside logEvents, do the following:
+        // if (events & event.type1) {... log event 1}
+        // if (events & event.type2) {... log event 2}
 
         require(
             initialAskAmount == 0 ||
@@ -267,8 +264,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             ),
             "Not enough tokens!"
         );
-
-        return (auctionAddr, id);
     }
 
     function checkTokenInfo(
