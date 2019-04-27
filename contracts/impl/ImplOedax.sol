@@ -439,7 +439,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         external
         view
         returns (
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         )
     {
 
@@ -448,7 +448,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         (len,index) = getAuctionsAll(creator);
 
         address auctionAddr;
-
         uint cnt = 0;
 
         for (uint i = 0; i < len; i++) {
@@ -463,8 +462,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             }
         }
 
-        uint[] memory res = new uint[](count);
-
         if (cnt>0) {
             cnt = 0;
             for (uint i = 0; i < len; i++) {
@@ -474,13 +471,11 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                     index[i] <= add(skip, count) &&
                     IAuction(auctionAddr).status() == status
                 ) {
-                    res[cnt] = index[i];
+                    auctionIds[cnt] = index[i];
                     cnt++;
                 }
             }
         }
-
-        return res;
     }
 
     // /@dev clone an auction from existing auction using its id
@@ -492,17 +487,17 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address,
+            uint
         )
     {
-        address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(auctionId);
+        address auctionAddr = treasury.auctionIdMap(auctionId);
+
         require(
             auctionAddr != address(0x0),
             "auction not correct!"
         );
+
         return cloneAuction(
             auctionAddr,
             delaySeconds,
@@ -520,9 +515,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         )
     {
         require(
@@ -557,9 +551,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             auctionInfo.P
         );
 
-        uint id;
-        address addressAuction;
-        (addressAuction, id) = createAuction(
+        (newAuctionAddr, newAuctionId) = createAuction(
             cid,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
@@ -567,8 +559,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             tokenInfo,
             auctionInfo
         );
-
-        return (addressAuction, id, true);
     }
 
     // All fee settings will only apply to future auctions, not existing auctions.
@@ -660,7 +650,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             uint /* curveId */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 
     // unregister a curve sub-contract
@@ -672,7 +662,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             address /* curve */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 
     function getCurves(
@@ -683,6 +673,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             address[] memory /* curves */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 }

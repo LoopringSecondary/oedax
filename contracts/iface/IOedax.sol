@@ -92,9 +92,8 @@ contract IOedax is IAuctionData{
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         );
 
     // /@dev clone an auction using its address
@@ -106,9 +105,8 @@ contract IOedax is IAuctionData{
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         );
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.

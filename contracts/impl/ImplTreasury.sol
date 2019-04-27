@@ -339,15 +339,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         public
         view
         returns (
-            uint /* balance */,
-            uint /* approval */
+            uint balance,
+            uint approval
         )
     {
-        uint balance;
-        uint approval;
         balance = ERC20(token).balanceOf(user);
         approval = ERC20(token).allowance(user, address(this));
-        return (balance, approval);
     }
 
     function registerAuction(
@@ -385,7 +382,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     /// 锁仓数量为实际参与拍卖总量（包括Taker与合约内锁仓的Token）
     /// taker数量换算成Token，拍卖结束时按比例返还并兑换成另一个币种
 
-    function withdrawWhenTerminated(address[] calldata tokens)
+    function withdrawWhenTerminated(
+        address[] calldata tokens
+        )
         external
     {
         require(
@@ -411,9 +410,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     function isTerminated()
         external
         view
-        returns (
-            bool /* terminated */
-        )
+        returns (bool)
     {
         return terminated;
     }
