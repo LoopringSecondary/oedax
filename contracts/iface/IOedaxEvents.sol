@@ -17,7 +17,6 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-///@author Weikang Wang
 ///@title OedaxEvent - A contract for the events in Oedax contract.
 ///@dev events to trigger in Oedax contract.
 

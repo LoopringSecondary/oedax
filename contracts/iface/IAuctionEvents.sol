@@ -17,13 +17,14 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-///@author Weikang Wang
 ///@title AuctionEvent - A contract for the events in auctions.
 ///@dev events to trigger in generated auctions
 
 contract IAuctionEvents {
 
     event AuctionCreated(
+        // REVIEW? add this `factory` address.
+        // address         factory,
         address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,
@@ -37,14 +38,12 @@ contract IAuctionEvents {
     );
 
     event AuctionOpened (
-        address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,
         uint256         openTime
     );
 
     event AuctionConstrained(
-        address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,
         uint256         totalAskAmount,
@@ -55,7 +54,6 @@ contract IAuctionEvents {
     );
 
     event AuctionClosed(
-        address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,
         uint256         totalAskAmount,
@@ -67,7 +65,6 @@ contract IAuctionEvents {
     );
 
     event AuctionSettled (
-        address indexed creator,
         uint256 indexed aucitionId,
         address indexed aucitionAddress,
         uint256         settleTime

@@ -18,23 +18,17 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../iface/IAuction.sol";
-import "../lib/MathLib.sol";
+import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 
 interface IOedax {
-    function logEvents(uint status)
+    function emitEvent(uint status)
         external;
 }
 
 contract IAuctionEvents {
 
     // REVIEW? 下面这些event哪些field是需要index的？
-    event AuctionCreated(
-        address         creator,
-        uint256         aucitionId,
-        uint256         createTime
-    );
-
     event AuctionOpened (
         uint256         openTime
     );
@@ -159,7 +153,9 @@ interface ITreasury {
         returns (bool);
 }
 
-contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticipationEvents {
+contract ImplAuction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
+
+    using MathUint for uint;
 
     mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
 
@@ -227,57 +223,19 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         auctionState.estimatedTTLSeconds = _auctionInfo.T;
 
         if (initialBidAmount != 0) {
-            auctionState.actualPrice = mul(tokenInfo.priceScale, initialAskAmount)/initialBidAmount;
+            auctionState.actualPrice = tokenInfo.priceScale.mul(initialAskAmount) / initialBidAmount;
         }
-
-        /*
-        emit AuctionCreated(
-            creator,
-            id,
-            address(this),
-            auctionInfo.delaySeconds,
-            auctionInfo.P,
-            tokenInfo.priceScale,
-            auctionInfo.M,
-            auctionInfo.S,
-            auctionInfo.T,
-            auctionInfo.isWithdrawalAllowed
-        );
-        */
-
-        //oedax.logEvents(1);
-        auctionEvents(1);
 
         if (auctionInfo.delaySeconds == 0) {
             status = Status.OPEN;
-
-            /*
-            emit AuctionOpened (
-                creator,
-                auctionSettings.auctionId,
-                address(this),
-                block.timestamp
-            );
-            */
-            auctionEvents(2);
-            // 此处event在oedax合约中完成
-            //oedax.logEvents(2);
-
+            emitEvent(2);
         }
     }
 
-    function auctionEvents(uint status)
+    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。
+    function emitEvent(uint status)
         internal
     {
-
-        if (status == 1) {
-            emit AuctionCreated(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                block.timestamp
-            );
-        }
-
         if (status == 2) {
             emit AuctionOpened (
                 block.timestamp
@@ -391,7 +349,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             _bid > 0/*,
             "bid amount should be larger than 0"*/
         );
-        uint actualPrice = mul(_ask, tokenInfo.priceScale)/_bid;
+        uint actualPrice = _ask.mul(tokenInfo.priceScale) / _bid;
 
         uint askDepositLimit;
         uint bidDepositLimit;
@@ -399,12 +357,13 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint bidWithdrawLimit;
 
         if (actualPrice >= bidPrice) {
-            bidDepositLimit = mul((actualPrice - bidPrice), _bid)/bidPrice;
+            bidDepositLimit = actualPrice.sub(bidPrice).mul(_bid) / bidPrice;
+
             if (bidDepositLimit > auctionInfo.maxBidAmountPerAddr) {
                 bidDepositLimit = auctionInfo.maxBidAmountPerAddr;
             }
 
-            askWithdrawLimit = mul((actualPrice - bidPrice), _bid)/tokenInfo.priceScale;
+            askWithdrawLimit = actualPrice.sub(bidPrice).mul(_bid) / tokenInfo.priceScale;
             if (askWithdrawLimit > auctionInfo.maxAskAmountPerAddr) {
                 askWithdrawLimit = auctionInfo.maxAskAmountPerAddr;
             }
@@ -414,12 +373,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
 
         if (actualPrice <= askPrice) {
-            askDepositLimit = mul((askPrice - actualPrice), _bid)/tokenInfo.priceScale;
+            askDepositLimit = askPrice.sub(actualPrice).mul(_bid) / tokenInfo.priceScale;
             if (askDepositLimit > auctionInfo.maxAskAmountPerAddr) {
                 askDepositLimit = auctionInfo.maxAskAmountPerAddr;
             }
 
-            bidWithdrawLimit = mul((askPrice - actualPrice), _bid)/askPrice;
+            bidWithdrawLimit = askPrice.sub(actualPrice).mul(_bid) / askPrice;
             if (bidWithdrawLimit > auctionInfo.maxBidAmountPerAddr) {
                 bidWithdrawLimit = auctionInfo.maxBidAmountPerAddr;
             }
@@ -447,7 +406,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint /*bidPausedTime*/
         )
     {
-        uint time = add(now, dt);
+        uint time = block.timestamp.add(dt);
         require(
             time >= lastSynTime/*,
             "time should not be earlier than lastSynTime"*/
@@ -481,35 +440,41 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         (success, t1) = ICurve(curve).calcInvAskPrice(auctionSettings.curveId, auctionState.actualPrice);
         // 曲线没有相交，askPrice按照时间变化
         if (!success ||
-            t1 >= sub(time, constrainedTime + askPausedTime)
+            t1 >= time.sub(constrainedTime).sub(askPausedTime)
         ) {
-            askPrice = calcAskPrice(sub(time, constrainedTime + askPausedTime));
+            askPrice = calcAskPrice(time.sub(constrainedTime).sub(askPausedTime));
         } else {
             // 曲线相交，askPrice设置为actualPrice
             askPrice = auctionState.actualPrice;
-            _askPausedTime = sub(time, constrainedTime + t1);
+            _askPausedTime = time.sub(constrainedTime).sub(t1);
         }
 
         (success, t2) = ICurve(curve).calcInvBidPrice(auctionSettings.curveId, auctionState.actualPrice);
         // 曲线没有相交，bidPrice按照时间变化
         if (!success ||
-            t2 >= sub(now, constrainedTime + bidPausedTime)
+            t2 >= block.timestamp.sub(constrainedTime).sub(bidPausedTime)
         ) {
-            bidPrice = calcBidPrice(sub(now, constrainedTime + bidPausedTime));
+            bidPrice = calcBidPrice(block.timestamp.sub(constrainedTime).sub(bidPausedTime));
         } else {
             // 曲线相交，bidPrice设置为actualPrice
             bidPrice = auctionState.actualPrice;
-            _bidPausedTime = sub(time, constrainedTime + t2);
+            _bidPausedTime = time.sub(constrainedTime).sub(t2);
         }
 
-        return (askPrice, bidPrice, auctionState.actualPrice, _askPausedTime, _bidPausedTime);
+        return (
+            askPrice,
+            bidPrice,
+            auctionState.actualPrice,
+            _askPausedTime,
+            _bidPausedTime
+        );
     }
 
     function updatePrice()
         public
     {
 
-        if (status == Status.STARTED&&
+        if (status == Status.STARTED &&
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
@@ -521,8 +486,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 block.timestamp
             );
             */
-            auctionEvents(2);
-            oedax.logEvents(2);
+            emitEvent(2);
         }
 
         if (status == Status.OPEN &&
@@ -544,8 +508,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 block.timestamp
             );
             */
-            auctionEvents(3);
-            oedax.logEvents(3);
+            emitEvent(3);
         }
 
         if (now == lastSynTime || status != Status.CONSTRAINED) {
@@ -572,8 +535,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 true
             );
             */
-            auctionEvents(4);
-            oedax.logEvents(4);
+            emitEvent(4);
         }
         updateLimits();
     }
@@ -659,16 +621,16 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         public
         view
         returns (
-            uint,
-            uint
+            uint amountA,
+            uint amountB
         )
     {
         require(
             status >= Status.OPEN/*,
             "The auction is not open yet"*/
         );
-        uint amountA = askAmount[user];
-        uint amountB = bidAmount[user];
+        amountA = askAmount[user];
+        amountB = bidAmount[user];
         if (totalTakerRateA > 0) {
             amountA = amountA - totalFeeBips() * amountA/10000 +
                 auctionState.totalAskAmount * feeSettings.takerBips/10000 *
@@ -681,7 +643,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 auctionState.totalBidAmount * feeSettings.takerBips/10000 *
                 takerRateB[user]/totalTakerRateB;
         }
-        return (amountA, amountB);
     }
 
     function totalFeeBips()
@@ -703,7 +664,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             return 100;
         }
 
-        uint time = sub(now, constrainedTime);
+        uint time = block.timestamp.sub(constrainedTime);
 
         rate = time*100/auctionInfo.T;
 
@@ -742,7 +703,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         return auctionStateToBytes(auctionState);
     }
 
-    function getAuctionInfoBytes()
+    function getAuctionBytes()
         public
         view
         returns (bytes memory)
@@ -799,8 +760,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             return 0;
         }
 
-        uint t1 = sub(now, constrainedTime + askPausedTime);
-        uint t2 = sub(now, constrainedTime + bidPausedTime);
+        uint t1 = block.timestamp.sub(constrainedTime).sub(askPausedTime);
+        uint t2 = block.timestamp.sub(constrainedTime).sub(bidPausedTime);
 
         return ICurve(curve).calcEstimatedTTL(auctionSettings.curveId, t1, t2);
     }
@@ -858,8 +819,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            auctionEvents(2);
-            oedax.logEvents(2);
+            emitEvent(2);
         }
 
         require(
@@ -985,36 +945,32 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
 
         if (action == 1) {
-            limit = mul(
-                sub(auctionState.askPrice, auctionState.actualPrice),
-                auctionState.totalBidAmount
-                )/tokenInfo.priceScale;
+            limit = auctionState.askPrice
+                .sub(auctionState.actualPrice)
+                .mul(auctionState.totalBidAmount) / tokenInfo.priceScale;
         }
 
         if (action == 2) {
-            limit = mul(
-                sub(auctionState.actualPrice, auctionState.bidPrice),
-                auctionState.totalBidAmount
-                )/auctionState.bidPrice;
+            limit = auctionState.actualPrice
+                .sub(auctionState.bidPrice)
+                .mul(auctionState.totalBidAmount) / auctionState.bidPrice;
         }
 
         if (action == 3) {
-            limit = mul(
-                sub(auctionState.actualPrice, auctionState.bidPrice),
-                auctionState.totalBidAmount
-                )/tokenInfo.priceScale;
+            limit = auctionState.actualPrice
+                .sub(auctionState.bidPrice)
+                .mul(auctionState.totalBidAmount) / tokenInfo.priceScale;
         }
 
         if (action == 4) {
-            limit = mul(
-                sub(auctionState.askPrice, auctionState.actualPrice),
-                auctionState.totalBidAmount
-                )/auctionState.askPrice;
+            limit = auctionState.askPrice
+                .sub(auctionState.actualPrice)
+                .mul(auctionState.totalBidAmount) / auctionState.askPrice;
         }
     }
 
     function tokenExchange(
-        uint dir,
+        uint dir, // REVIEW? what is this?
         uint amount
         )
         internal
@@ -1024,18 +980,18 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         res = amount;
         // input amountA, output amountB
         if (dir == 1) {
-            res = mul(amount, tokenInfo.priceScale)/auctionState.actualPrice;
+            res = amount.mul(tokenInfo.priceScale) / auctionState.actualPrice;
         }
 
         // input amountB, output amountA
         if (dir == 2) {
-            res = mul(amount, auctionState.actualPrice)/tokenInfo.priceScale;
+            res = amount.mul(auctionState.actualPrice) / tokenInfo.priceScale;
         }
     }
 
     // 仅处理等待队列里的记录，放入到ask/bidAmount中
     function releaseQueue(
-        uint dir,
+        uint dir, // REVIEW? what is this?
         uint amount
         )
         internal
@@ -1310,10 +1266,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         if (auctionState.totalBidAmount == 0) {
             return;
         }
-        auctionState.actualPrice = mul(
-            auctionState.totalAskAmount,
-            tokenInfo.priceScale
-        ) / auctionState.totalBidAmount;
+        auctionState.actualPrice = auctionState.totalAskAmount
+            .mul(tokenInfo.priceScale) / auctionState.totalBidAmount;
 
         if (status == Status.OPEN &&
             auctionState.actualPrice <= auctionInfo.P*auctionInfo.M &&
@@ -1322,8 +1276,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            auctionEvents(3);
-            oedax.logEvents(3);
+            emitEvent(3);
         }
 
         //updateLimits();
@@ -1370,15 +1323,15 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint toWithdraw = amount;
 
         if (token == tokenInfo.askToken &&
-            amount > min(askAmount[msg.sender], auctionState.askWithdrawalLimit)
+            amount > askAmount[msg.sender].min(auctionState.askWithdrawalLimit)
         ) {
-            toWithdraw = min(askAmount[msg.sender], auctionState.askWithdrawalLimit);
+            toWithdraw = askAmount[msg.sender].min(auctionState.askWithdrawalLimit);
         }
 
         if (token == tokenInfo.bidToken &&
-            amount > min(bidAmount[msg.sender], auctionState.bidWithdrawalLimit)
+            amount > bidAmount[msg.sender].min(auctionState.bidWithdrawalLimit)
         ) {
-            toWithdraw = min(bidAmount[msg.sender], auctionState.bidWithdrawalLimit);
+            toWithdraw = bidAmount[msg.sender].min(auctionState.bidWithdrawalLimit);
         }
 
         // 成功取出的Token数量，录入新的参与记录
@@ -1567,8 +1520,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             block.timestamp
         );
         */
-        auctionEvents(5);
-        oedax.logEvents(5);
+        emitEvent(5);
     }
 
     /// @dev Get participations from a given address.
@@ -1608,7 +1560,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         total = count;
 
-        if (len < add(skip, count)) {
+        if (len < skip.add(count)) {
             total = len - skip;
         }
         p = new Participation[](total);
