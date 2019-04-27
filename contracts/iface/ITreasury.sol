@@ -58,9 +58,7 @@ contract ITreasury {
     function getNextAuctionId()
         public
         view
-        returns (
-            uint /* auctionId */
-        );
+        returns (uint);
 
     // 拍卖结束时统一结算用户应得的Token数量，由于操作较为复杂
     // 结算在子拍卖合约中进行，函数要求合约地址才可以调用

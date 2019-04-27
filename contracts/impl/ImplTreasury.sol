@@ -81,24 +81,18 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         public
         view
         returns (
-            uint[] memory
+            uint[] memory index
         )
     {
-        uint[] memory index;
         index = auctionFactoryMap[creator];
-        return index;
     }
 
     function getNextAuctionId()
         public
         view
-        returns (
-            uint /* auctionId */
-        )
+        returns (uint)
     {
-        uint auctionId;
-        auctionId = auctionAmount + 1;
-        return auctionId;
+        return auctionAmount + 1;  // REVIEW? auctionAmount + 1 ???
     }
 
     // 把两个Token的锁仓全部换成新的amount
