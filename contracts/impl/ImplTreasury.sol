@@ -21,15 +21,15 @@ import "../iface/ITreasury.sol";
 import "../iface/IAuction.sol";
 import "../lib/Ownable.sol";
 import "../lib/ERC20SafeTransfer.sol";
-import "../lib/MathLib.sol";
+import "../lib/MathUint.sol";
 import "../lib/ERC20.sol";
 
-contract ImplTreasury is ITreasury, Ownable, MathLib {
+contract ImplTreasury is ITreasury, Ownable {
 
     using ERC20SafeTransfer for address;
+    using MathUint          for uint;
 
     address public oedax;
-
     bool    public terminated;
 
     modifier whenRunning() {
@@ -117,18 +117,18 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userLockedBalances[user][id][tokenB] = 0;
 
         // clear locked in userTotalBalances
-        userTotalBalances[user][tokenA] = sub(userTotalBalances[user][tokenA], lockedA);
-        userTotalBalances[user][tokenB] = sub(userTotalBalances[user][tokenB], lockedB);
+        userTotalBalances[user][tokenA] = userTotalBalances[user][tokenA].sub(lockedA);
+        userTotalBalances[user][tokenB] = userTotalBalances[user][tokenB].sub(lockedB);
 
         // update contractLockedBalances
-        contractLockedBalances[msg.sender][tokenA] = sub(contractLockedBalances[msg.sender][tokenA], amountA);
-        contractLockedBalances[msg.sender][tokenB] = sub(contractLockedBalances[msg.sender][tokenB], amountB);
+        contractLockedBalances[msg.sender][tokenA] = contractLockedBalances[msg.sender][tokenA].sub(amountA);
+        contractLockedBalances[msg.sender][tokenB] = contractLockedBalances[msg.sender][tokenB].sub(amountB);
 
         // finish exchange
-        userTotalBalances[user][tokenA] = add(userTotalBalances[user][tokenA], amountA);
-        userTotalBalances[user][tokenB] = add(userTotalBalances[user][tokenB], amountB);
-        userAvailableBalances[user][tokenA] = add(userAvailableBalances[user][tokenA], amountA);
-        userAvailableBalances[user][tokenB] = add(userAvailableBalances[user][tokenB], amountB);
+        userTotalBalances[user][tokenA] = userTotalBalances[user][tokenA].add(amountA);
+        userTotalBalances[user][tokenB] = userTotalBalances[user][tokenB].add(amountB);
+        userAvailableBalances[user][tokenA] = userAvailableBalances[user][tokenA].add(amountA);
+        userAvailableBalances[user][tokenB] = userAvailableBalances[user][tokenB].add(amountB);
     }
 
     /// Auction合约直接在user和recepient之间完成“转账”，保证所有变量总额不变
@@ -151,15 +151,15 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "address not correct"
         );
 
-        userLockedBalances[user][id][token] = sub(userLockedBalances[user][id][token], amount);
-        userTotalBalances[user][token] = sub(userTotalBalances[user][token], amount);
+        userLockedBalances[user][id][token] = userLockedBalances[user][id][token].sub(amount);
+        userTotalBalances[user][token] = userTotalBalances[user][token].sub(amount);
 
-        contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
+        contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].sub(amount);
 
-        //userLockedBalances[recepient][id][token] = add(userLockedBalances[recepient][id][token], amount);
-        userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
+        //userLockedBalances[recepient][id][token] = userLockedBalances[recepient][id][token].add(amount);
+        userAvailableBalances[recepient][token] = userAvailableBalances[recepient][token].add(amount);
 
-        userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
+        userTotalBalances[recepient][token] = userTotalBalances[recepient][token].add(amount);
     }
 
     /// 在拍卖结束后，由auction分配
@@ -182,11 +182,11 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "address not correct"
         );
 
-        contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
+        contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].sub(amount);
 
-        userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
+        userAvailableBalances[recepient][token] = userAvailableBalances[recepient][token].add(amount);
 
-        userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
+        userTotalBalances[recepient][token] = userTotalBalances[recepient][token].add(amount);
     }
 
     //between treasury contract and auction contract
@@ -206,9 +206,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
         uint id = auctionAddressMap[msg.sender];
 
-        userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
-        userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
-        contractLockedBalances[msg.sender][token] = add(contractLockedBalances[msg.sender][token], amount);
+        userAvailableBalances[user][token] = userAvailableBalances[user][token].sub(amount);
+        userLockedBalances[user][id][token] = userLockedBalances[user][id][token].add(amount);
+        contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].add(amount);
     }
 
     function initDeposit(
@@ -229,9 +229,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         uint id = auctionAddressMap[auctionAddr];
         //REVIEW? 如果auctionAddr不是一个合法的地址是不是就不应该转账？也就是需要判断id是不是为0。
 
-        userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
-        userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
-        contractLockedBalances[auctionAddr][token] = add(contractLockedBalances[auctionAddr][token], amount);
+        userAvailableBalances[user][token] = userAvailableBalances[user][token].sub(amount);
+        userLockedBalances[user][id][token] = userLockedBalances[user][id][token].add(amount);
+        contractLockedBalances[auctionAddr][token] = contractLockedBalances[auctionAddr][token].add(amount);
     }
 
     //between treasury contract and auction contract
@@ -249,9 +249,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             "not enough token"
         );
         uint id = auctionAddressMap[msg.sender];
-        userAvailableBalances[user][token] = add(userAvailableBalances[user][token], amount);
-        userLockedBalances[user][id][token] = sub(userLockedBalances[user][id][token], amount);
-        contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
+        userAvailableBalances[user][token] = userAvailableBalances[user][token].add(amount);
+        userLockedBalances[user][id][token] = userLockedBalances[user][id][token].sub(amount);
+        contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].sub(amount);
     }
 
     //between treasury contract and token contract
@@ -269,8 +269,8 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             amount
         );
         if (successful) {
-            userAvailableBalances[msg.sender][token] = add(userAvailableBalances[msg.sender][token], amount);
-            userTotalBalances[msg.sender][token] = add(userTotalBalances[msg.sender][token], amount);
+            userAvailableBalances[msg.sender][token] = userAvailableBalances[msg.sender][token].add(amount);
+            userTotalBalances[msg.sender][token] = userTotalBalances[msg.sender][token].add(amount);
         }
         if (!userTokens[msg.sender][token]) {
             userTokens[msg.sender][token] = true;
@@ -296,8 +296,8 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             amount
         );
         if (successful) {
-            userAvailableBalances[msg.sender][token] = sub(userAvailableBalances[msg.sender][token], amount);
-            userTotalBalances[msg.sender][token] = sub(userTotalBalances[msg.sender][token], amount);
+            userAvailableBalances[msg.sender][token] = userAvailableBalances[msg.sender][token].sub(amount);
+            userTotalBalances[msg.sender][token] = userTotalBalances[msg.sender][token].sub(amount);
         }
     }
 
@@ -308,18 +308,14 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         view
         returns (
-            uint /* total */,
-            uint /* available */,
-            uint /* locked */
+            uint total,
+            uint available,
+            uint locked
         )
     {
-        uint total;
-        uint available;
-        uint locked;
         total = userTotalBalances[user][token];
         available = userAvailableBalances[user][token];
-        locked = sub(total, available);
-        return (total, available, locked);
+        locked = total.sub(available);
     }
 
     function getAvailableBalance(

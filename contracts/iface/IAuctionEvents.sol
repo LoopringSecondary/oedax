@@ -17,7 +17,6 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-///@author Weikang Wang
 ///@title AuctionEvent - A contract for the events in auctions.
 ///@dev events to trigger in generated auctions
 

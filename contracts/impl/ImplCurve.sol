@@ -18,11 +18,16 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../lib/MathLib.sol";
+import "../lib/MathUint.sol";
 import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurve.sol";
 
 contract ImplCurve is ICurve, MathLib, DataHelper {
+
+    // REVIEW? 请使用MathUint(参考ImplAuction)
+
+    using MathUint for uint;
 
     function nameCheck(string memory s)
         internal

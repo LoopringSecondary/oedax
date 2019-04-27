@@ -20,8 +20,7 @@ pragma experimental ABIEncoderV2;
 /**
  * @title BytesToTypes
  * @dev The BytesToTypes contract converts the memory byte arrays to the standard solidity types
- * @author pouladzade@gmail.com
- */
+  */
 
 // REVIEW? 感觉这个应该是个Library而不是一个contract。
 contract BytesToTypes {

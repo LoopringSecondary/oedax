@@ -27,8 +27,8 @@ contract ITreasury {
     // user => (auction_id => （token => amount))
     mapping (address => mapping (uint => mapping (address => uint))) public userLockedBalances;
 
-    mapping (uint => address) public auctionIdMap;
-    mapping (address => uint) public auctionAddressMap;
+    mapping (uint => address)   public auctionIdMap;
+    mapping (address => uint)   public auctionAddressMap;
     mapping (address => uint[]) public auctionFactoryMap; // for the need of getAuctions() in Oedax contract
 
     uint  public  auctionAmount;
@@ -129,9 +129,9 @@ contract ITreasury {
         external
         view
         returns (
-            uint /* total */,
-            uint /* available */,
-            uint /* locked */
+            uint total,
+            uint available,
+            uint locked
         );
 
     // 获取用户实时余额
@@ -152,8 +152,8 @@ contract ITreasury {
         public
         view
         returns (
-            uint /* balance */,
-            uint /* approval */
+            uint balance,
+            uint approval
         );
 
     // id increases automatically

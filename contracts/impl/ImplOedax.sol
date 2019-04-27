@@ -17,15 +17,16 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IOedax.sol";
-import "../iface/ITreasury.sol";
 import "../lib/Ownable.sol";
 import "../lib/ERC20.sol";
-import "../lib/MathLib.sol";
+import "../lib/MathUint.sol";
+import "../helper/DataHelper.sol";
+import "../iface/IOedax.sol";
+import "../iface/ITreasury.sol";
 import "../iface/IAuctionFactory.sol";
 import "../iface/IAuction.sol";
-import "../helper/DataHelper.sol";
 import "../iface/ICurveData.sol";
+
 
 // REVIEW? why define another contract called ICurve?
 interface ICurve {
@@ -43,7 +44,9 @@ interface ICurve {
         returns (uint curveId);
 }
 
-contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
+contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
+
+    using MathUint for uint;
 
     ITreasury       public treasury;
     ICurve          public curve;
@@ -281,12 +284,13 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint bidDecimals = ERC20(bidToken).decimals();
         uint priceScale;
 
+        // REVIEW? 这个地方绝对需要商榷...
         require(
             askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals,
             "decimals not correct"
         );
 
-        priceScale = pow(10, 18 + askDecimals - bidDecimals);
+        priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
 
         ICurveData.CurveParams memory cp;
 
@@ -458,7 +462,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             auctionAddr = treasury.auctionIdMap(index[i]);
             if (
                 index[i] > skip &&
-                index[i] <= add(skip, count) &&
+                index[i] <= skip.add(count) &&
                 IAuction(auctionAddr).status() == status
             )
             {
@@ -472,7 +476,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 auctionAddr = treasury.auctionIdMap(index[i]);
                 if (
                     index[i] > skip &&
-                    index[i] <= add(skip, count) &&
+                    index[i] <= skip.add(count) &&
                     IAuction(auctionAddr).status() == status
                 ) {
                     auctionIds[cnt] = index[i];
