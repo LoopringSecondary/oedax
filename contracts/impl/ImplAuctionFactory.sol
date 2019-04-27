@@ -18,26 +18,21 @@ pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "../impl/ImplAuction.sol";
-import "../iface/IAuctionGenerator.sol";
+import "../iface/IAuctionFactory.sol";
 import "../helper/DataHelper.sol";
+import "../lib/Ownable.sol";
 
-contract ImplAuctionGenerator is DataHelper {
+contract ImplAuctionFactory is Ownable, DataHelper {
 
-    address public owner;
     address public oedax;
     address public treasury;
 
-    modifier isOedax() {
-        require(
-            msg.sender == oedax/*,
-            "The address should be oedax contract"*/
-        );
+    modifier onlyOedax() {
+        require(msg.sender == oedax, "unauthorized");
         _;
     }
 
-    constructor(
-        address _treasury
-    )
+    constructor(address _treasury)
         public
     {
         owner = msg.sender;
@@ -45,35 +40,28 @@ contract ImplAuctionGenerator is DataHelper {
         treasury = _treasury;
     }
 
-    function setOedax(
-        address _oedax
-        )
+    function setOedax(address _oedax)
         public
+        onlyOwner
     {
-        require(
-            oedax == address(0x0)/*,
-            "Oedax could only be set once!"*/
-        );
-        require(msg.sender == owner);
+        require(oedax != address(0x0), "zero address");
         oedax = _oedax;
     }
 
     function createAuction(
-        address     curve,
-        uint        curveId,
-        uint        initialAskAmount,         // The initial amount of tokenA from the creator's account.
-        uint        initialBidAmount,         // The initial amount of tokenB from the creator's account.
+        address         curve,
+        uint            curveId,
+        uint            initialAskAmount,   // The initial amount of tokenA from the creator's account.
+        uint            initialBidAmount,   // The initial amount of tokenB from the creator's account.
         bytes  memory   bFeeS,
         bytes  memory   bTokenInfo,
         bytes  memory   bAuctionInfo,
-        uint        id,
-        address     creator
-    )
-        public
-        isOedax
-        returns (
-            address /* auction */
+        uint            id,
+        address         creator
         )
+        public
+        onlyOedax
+        returns (address)
     {
 
         ImplAuction auction = new ImplAuction(

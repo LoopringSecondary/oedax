@@ -23,9 +23,7 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-    function receiveEvents(
-        uint status
-    )
+    function emitEvent(uint status)
         external;
 
     // Initiate an auction
@@ -36,7 +34,7 @@ contract IOedax is IAuctionData{
         uint    initialAskAmount,         // The initial amount of tokenA from the creator's account.
         uint    initialBidAmount,         // The initial amount of tokenB from the creator's account.
         AuctionInfo    memory  info
-    )
+        )
         public
         returns (
             address /* auction */,
@@ -44,18 +42,15 @@ contract IOedax is IAuctionData{
         );
 
     // 获取用户创建的所有合约
-    function getAuctionsAll(
-        address creator
-    )
+    function getAuctions(address creator)
         public
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         );
 
     // 获取合约信息
-    function getAuctionInfo(uint id)
+    function getAuction(uint id)
         external
         view
         returns (
@@ -67,12 +62,11 @@ contract IOedax is IAuctionData{
     function getAuctions(
         address creator,
         Status status
-    )
+        )
         external
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         );
 
     function getAuctions(
@@ -80,7 +74,7 @@ contract IOedax is IAuctionData{
         uint    count,
         address creator,
         Status  status
-    )
+        )
         external
         view
         returns (
@@ -89,16 +83,15 @@ contract IOedax is IAuctionData{
 
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
-        uint auctionID,
+        uint auctionId,
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         );
 
     // /@dev clone an auction using its address
@@ -110,9 +103,8 @@ contract IOedax is IAuctionData{
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         );
 
     // All fee settings will only apply to future auctions, but not exxisting auctions.
@@ -136,11 +128,10 @@ contract IOedax is IAuctionData{
         uint    takerBips,          // the max bips takers pays makers.
         uint    withdrawalPenaltyBips  // the percentage of withdrawal amount to pay the protocol.
                                        // Note that wallet and makers won't get part of the penalty.
-    )
+        )
         external;
 
-    function getFeeSettings(
-    )
+    function getFeeSettings()
         external
         view
         returns (
@@ -156,25 +147,20 @@ contract IOedax is IAuctionData{
     // 无需单独生成合约
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
-    function registerCurve(
-        address ICurve
-    )
+    function registerCurve(address ICurve)
         external
         returns (
             uint /* curveId */
         );
 
     // unregister a curve sub-contract
-    function unregisterCurve(
-        uint curveId
-    )
+    function unregisterCurve(uint curveId)
         external
         returns (
             address /* curve */
         );
 
-    function getCurves(
-        )
+    function getCurves()
         external
         view
         returns (

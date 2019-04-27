@@ -142,41 +142,6 @@ contract IAuction is IAuctionData {
             uint /* rate */
         );
 
-    function getAuctionSettings()
-        public
-        view
-        returns (
-            AuctionSettings memory
-        );
-
-    function getAuctionState()
-        public
-        view
-        returns (
-            AuctionState memory
-        );
-
-    function getAuctionInfo()
-        public
-        view
-        returns (
-            AuctionInfo memory
-        );
-
-    function getTokenInfo()
-        public
-        view
-        returns (
-            TokenInfo memory
-        );
-
-    function getFeeSettings()
-        public
-        view
-        returns (
-            FeeSettings memory
-        );
-
     function getAuctionSettingsBytes()
         public
         view
@@ -191,7 +156,7 @@ contract IAuction is IAuctionData {
             bytes memory
         );
 
-    function getAuctionInfoBytes()
+    function getAuctionBytes()
         public
         view
         returns (
@@ -246,13 +211,15 @@ contract IAuction is IAuctionData {
 
 /*
 
-    function askWithdraw(uint amount)
+    function askWithdraw(uint amount
+        )
         public
         returns (
             uint
         );
 
-    function bidWithdraw(uint amount)
+    function bidWithdraw(uint amount
+        )
         public
         returns (
             uint
@@ -267,7 +234,8 @@ contract IAuction is IAuctionData {
         //address user,
         address wallet,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         returns (
             uint /* amount */
@@ -278,7 +246,8 @@ contract IAuction is IAuctionData {
     function withdraw(
         //address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         returns (
             uint /* amount */
@@ -288,7 +257,8 @@ contract IAuction is IAuctionData {
     function simulateDeposit(
         address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         view
         returns (
@@ -300,7 +270,8 @@ contract IAuction is IAuctionData {
     function simulateWithdrawal(
         address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         view
         returns (
@@ -310,22 +281,15 @@ contract IAuction is IAuctionData {
 
     // 拍卖结束后提款
     function settle()
-        external
-        returns (
-            bool /* settled */
-        );
+        external;
 
     // Try to settle the auction.
     function triggerSettle()
         external
-        returns (
-            bool /* settled */
-        );
+        returns (bool success);
 
     /// @dev Get participations from a given address.
-    function getUserParticipations(
-        address user
-    )
+    function getUserParticipations(address user)
         external
         view
         returns (
@@ -337,7 +301,7 @@ contract IAuction is IAuctionData {
     function getParticipations(
         uint skip,
         uint count
-    )
+        )
         external
         view
         returns (

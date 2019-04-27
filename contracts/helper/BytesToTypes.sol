@@ -20,29 +20,48 @@ pragma experimental ABIEncoderV2;
 /**
  * @title BytesToTypes
  * @dev The BytesToTypes contract converts the memory byte arrays to the standard solidity types
- * @author pouladzade@gmail.com
- */
+  */
 
+// REVIEW? 感觉这个应该是个Library而不是一个contract。
 contract BytesToTypes {
     function bytesToAddress(
-        uint _offst,
-        bytes memory _input) internal pure returns (address _output) {
+        uint          offset,
+        bytes memory  input
+        )
+        internal
+        pure
+        returns (address output)
+    {
         assembly {
-            _output := mload(add(_input, _offst))
+            output := mload(add(input, offset))
         }
     }
 
-    function bytesToBool(uint _offst, bytes memory _input) internal pure returns (bool _output) {
+    function bytesToBool(
+        uint          offset,
+        bytes memory  input
+        )
+        internal
+        pure
+        returns (bool)
+    {
         uint8 x;
         assembly {
-            x := mload(add(_input, _offst))
+            x := mload(add(input, offset))
         }
-        x==0 ? _output = false : _output = true;
+        return (x == 0);
     }
 
-    function bytesToUint256(uint _offst, bytes memory _input) internal pure returns (uint256 _output) {
+    function bytesToUint256(
+        uint          offset,
+        bytes memory  input
+        )
+        internal
+        pure
+        returns (uint256 output)
+    {
         assembly {
-            _output := mload(add(_input, _offst))
+            output := mload(add(input, offset))
         }
     }
 }

@@ -45,14 +45,7 @@ contract ICurve is ICurveData {
     CurveParams[] public curveParams;
     mapping(bytes32 => uint) public cidByName;
 
-    function getOriginCurveID(uint cid)
-        public
-        view
-        returns (
-            uint
-        );
-
-    function getNextCurveID()
+    function getOriginCurveId(uint cid)
         public
         view
         returns (
@@ -67,11 +60,10 @@ contract ICurve is ICurveData {
         uint cid,
         uint T,
         uint P
-    )
+        )
         external
         returns (
-            bool /* success */,
-            uint /* cid */
+            uint curveId
         );
 
     /// @dev Init parameters of price curves
@@ -97,33 +89,27 @@ contract ICurve is ICurveData {
 
     /// @dev Get Curve info From id
     /// @param cid Curve id
-    function getCurveBytes(
-        uint cid
-        )
+    function getCurveBytes(uint cid)
         external
         view
         returns (bytes memory);
 
     /// @dev Get Curve info From id
     /// @param cid Curve id
-    function getCurveByID(
-        uint cid
-        )
+    function getCurveById(uint cid)
         public
         view
         returns (CurveParams memory);
 
     /// @dev Get Curve info From curve name
     /// @param curveName Curve name
-    function getCurveByName(
-        string memory curveName
-        )
+    function getCurveByName(string memory curveName)
         public
         view
         returns (CurveParams memory);
 
     /// @dev Calculate ask/sell price on price curve
-    /// @param cid curve ID
+    /// @param cid curve id
     /// @param t Point in price curve
     function calcAskPrice(
         uint cid,
@@ -134,7 +120,7 @@ contract ICurve is ICurveData {
         returns (uint);
 
     /// @dev Calculate inverse ask/sell price on price curve
-    /// @param cid curve ID
+    /// @param cid curve id
     /// @param p Price in price curve
     function calcInvAskPrice(
         uint cid,
@@ -148,7 +134,7 @@ contract ICurve is ICurveData {
         );
 
     /// @dev Calculate bid/buy price on price curve
-    /// @param cid curve ID
+    /// @param cid curve id
     /// @param t Point in price curve
     function calcBidPrice(
         uint cid,
@@ -159,7 +145,7 @@ contract ICurve is ICurveData {
         returns (uint);
 
     /// @dev Calculate inverse bid/buy price on price curve
-    /// @param cid curve ID
+    /// @param cid curve id
     /// @param p Price in price curve
     function calcInvBidPrice(
         uint cid,

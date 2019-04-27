@@ -17,21 +17,20 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IOedax.sol";
-import "../iface/ITreasury.sol";
 import "../lib/Ownable.sol";
 import "../lib/ERC20.sol";
-import "../lib/MathLib.sol";
-import "../iface/IAuctionGenerator.sol";
-import "../iface/IAuction.sol";
+import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
+import "../iface/IOedax.sol";
+import "../iface/ITreasury.sol";
+import "../iface/IAuctionFactory.sol";
+import "../iface/IAuction.sol";
 import "../iface/ICurveData.sol";
 
-// TODO(weikang): why define another contract called ICurve?
+
+// REVIEW? why define another contract called ICurve?
 interface ICurve {
-    function getCurveBytes(
-        uint cid
-        )
+    function getCurveBytes(uint cid)
         external
         view
         returns (bytes memory);
@@ -40,44 +39,45 @@ interface ICurve {
         uint cid,
         uint T,
         uint P
-    )
+        )
         external
-        returns (
-            bool /* success */,
-            uint /* cid */
-        );
+        returns (uint curveId);
 }
 
-contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
+contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
 
-    ITreasury           public  treasury;
-    ICurve              public  curve;
-    FeeSettings         public  feeSettings;
-    IAuctionGenerator   public  auctionGenerator;
+    using MathUint for uint;
 
-    // All fee settings will only apply to future auctions, but not exxisting auctions.
-    // One basis point is equivalent to 0.01%.
+    ITreasury       public treasury;
+    ICurve          public curve;
+    FeeSettings     public feeSettings;
+    IAuctionFactory public auctionFactory;
+
+    // All fee settings will only apply to future auctions, not existing auctions.
+    //
     // We suggest the followign values:
     // creationFeeEth           = 0 ETH
-    // protocolBips             = 5   (0.05%)
+    // protocolBips             = 5   (0.05%) - 1 basis point is equivalent to 0.01%.
     // walletBips               = 5   (0.05%)
     // takerBips                = 25  (0.25%)
     // withdrawalPenaltyBips    = 250 (2.50%)
+    //
     // The earliest maker will earn 25-5-5=15 bips (0.15%) rebate, the latest taker will pay
     // 25+5+5=35 bips (0.35) fee. All user combinedly pay 5+5=10 bips (0.1%) fee out of their
-    // purchased tokens.
+    // purchased tokens (tokenB).
     constructor(
         address _treasury,
         address _curve,
-        address _auctionGenerator,
+        address _auctionFactory,
         address _recepient
-    )
+        )
         public
     {
         treasury = ITreasury(_treasury);
         curve = ICurve(_curve);
-        auctionGenerator = IAuctionGenerator(_auctionGenerator);
+        auctionFactory = IAuctionFactory(_auctionFactory);
         feeSettings.recepient = _recepient;
+
         feeSettings.creationFeeEth = 0;
         feeSettings.protocolBips = 5;
         feeSettings.walletBipts = 5;
@@ -95,21 +95,24 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
 
-    function receiveEvents(
-        uint status
-    )
+    // REVIEW? use event1 & event2 here as the avalue for `events` to support multiple event logging.
+    function emitEvent(
+        uint events
+        )
         external
     {
-        receiveEvents(status, msg.sender);
+        emitEvent(events, msg.sender);
     }
 
-    function receiveEvents(
-        uint status,
+    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
+    // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
+
+    function emitEvent(
+        uint events,
         address auctionAddr
-    )
+        )
         internal
     {
-
         require(
             treasury.auctionAddressMap(auctionAddr) != 0,
             "auction does not exist"
@@ -119,7 +122,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
         AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionInfoBytes()
+            IAuction(auctionAddr).getAuctionBytes()
         );
         AuctionState memory auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
@@ -128,11 +131,10 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             IAuction(auctionAddr).getTokenInfoBytes()
         );
 
-        if (status == 1) {
-
+        if (events == 1) {
             emit AuctionCreated(
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionInfo.delaySeconds,
                 auctionInfo.P,
@@ -144,19 +146,17 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 2) {
+        if (events == 2) {
             emit AuctionOpened (
-                auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
             );
         }
 
-        if (status == 3) {
+        if (events == 3) {
             emit AuctionConstrained(
-                auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
@@ -166,10 +166,9 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 4) {
+        if (events == 4) {
             emit AuctionClosed(
-                auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
@@ -180,23 +179,25 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             );
         }
 
-        if (status == 5) {
+        if (events == 5) {
             emit AuctionSettled (
-                auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
             );
         }
     }
 
-    function setAuctionGenerator(
+    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
+    // 这个规则也适用于其他所有文件。
+    function setAuctionFactory(
         address addr
-    )
+        )
         public
         onlyOwner
     {
-        auctionGenerator = IAuctionGenerator(addr);
+        require(addr != address(0x0), "zero address");
+        auctionFactory = IAuctionFactory(addr);
     }
 
     // Initiate an auction
@@ -207,25 +208,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         FeeSettings memory feeS,
         TokenInfo   memory tokenInfo,
         AuctionInfo memory auctionInfo
-    )
+        )
         internal
         returns (
-            address /* auction */,
-            uint    /* id */
+            address auctionAddr,
+            uint    auctionId
         )
     {
-        uint    id = treasury.getNextAuctionID();
-
-        address auctionAddr;
-
-        //bytes memory bF;
-        //bytes memory bT;
-        //bytes memory bA;
-        //bF = feeSettingsToBytes(feeS);
-        //bT = tokenInfoToBytes(tokenInfo);
-        //bA = auctionInfoToBytes(auctionInfo);
-
-        auctionAddr = auctionGenerator.createAuction(
+        auctionId = treasury.getNextAuctionId();
+        auctionAddr = auctionFactory.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
@@ -233,42 +224,33 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             feeSettingsToBytes(feeS),
             tokenInfoToBytes(tokenInfo),
             auctionInfoToBytes(auctionInfo),
-            id,
+            auctionId,
             msg.sender
         );
 
-        bool success;
-        (success, id) = treasury.registerAuction(auctionAddr, msg.sender);
+        treasury.registerAuction(auctionAddr, msg.sender);
 
-        receiveEvents(1, auctionAddr);
+        // REVIEW? 这个合约里面，只需要emit AuctionCreated事件，其它Auction事件放到IAuction里面。
+        // 因此可以极大简化这个方法。
+        emitEvent(1, auctionAddr);
 
-        if (IAuction(auctionAddr).status() == Status.OPEN) {
-            receiveEvents(2, auctionAddr);
-        }
-
-        require(
-            initialAskAmount == 0 ||
-            true == treasury.initDeposit(
+        if (initialAskAmount > 0) {
+            treasury.initDeposit(
                 msg.sender,
                 auctionAddr,
                 tokenInfo.askToken,
                 initialAskAmount
-            ),
-            "Not enough tokens!"
-        );
+            );
+        }
 
-        require(
-            initialBidAmount == 0 ||
-            true == treasury.initDeposit(
+        if (initialBidAmount > 0) {
+            treasury.initDeposit(
                 msg.sender,
                 auctionAddr,
                 tokenInfo.bidToken,
                 initialBidAmount
-            ),
-            "Not enough tokens!"
-        );
-
-        return (auctionAddr, id);
+            );
+        }
     }
 
     function checkTokenInfo(
@@ -276,18 +258,24 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         address askToken,
         address bidToken,
         AuctionInfo    memory  info
-    )
+        )
         internal
         view
         returns (
-            TokenInfo memory
+            TokenInfo memory _tokenInfo
         )
     {
-        uint    askDecimals = ERC20(askToken).decimals();
-        uint    bidDecimals = ERC20(bidToken).decimals();
-        uint    priceScale;
-        require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
-        priceScale = pow(10, 18 + askDecimals - bidDecimals);
+        uint askDecimals = ERC20(askToken).decimals();
+        uint bidDecimals = ERC20(bidToken).decimals();
+        uint priceScale;
+
+        // REVIEW? 这个地方绝对需要商榷...
+        require(
+            askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals,
+            "decimals not correct"
+        );
+
+        priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
 
         ICurveData.CurveParams memory cp;
 
@@ -304,8 +292,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             "curve does not match the auction parameters"
         );
 
-        TokenInfo   memory _tokenInfo;
-
         _tokenInfo = TokenInfo(
             askToken,
             bidToken,
@@ -313,8 +299,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             bidDecimals,
             priceScale
         );
-
-        return _tokenInfo;
     }
 
     // Initiate an auction
@@ -325,118 +309,80 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    initialAskAmount,
         uint    initialBidAmount,
         AuctionInfo    memory  info
-    )
+        )
         public
         returns (
-            address /* auction */,
-            uint    /* id */
+            address auctionAddr,
+            uint    auctionId
         )
     {
-        uint    id = treasury.auctionAmount() + 1;
-
-        FeeSettings memory feeS;
-        TokenInfo   memory tokenInfo;
-
-        feeS = feeSettings;
-
-        tokenInfo = checkTokenInfo(
+        TokenInfo memory tokenInfo = checkTokenInfo(
             curveId,
             askToken,
             bidToken,
             info
         );
 
-        address addressAuction;
-        (addressAuction, id) = createAuction(
+        (auctionAddr, auctionId) = createAuction(
             curveId,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
-            feeS,
+            feeSettings,
             tokenInfo,
             info
         );
-
-        return (addressAuction, id);
     }
 
-    function getAuctionInfo(uint id)
+    function getAuction(uint id)
         external
         view
         returns (
-            uint,
-            AuctionSettings memory,
-            AuctionState    memory
+            uint lastSynTime,
+            AuctionSettings memory auctionSettings,
+            AuctionState    memory auctionState
         )
     {
-        address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(id);
-        uint    lastSynTime = IAuction(auctionAddr).lastSynTime();
-        AuctionSettings memory _auctionSettings = bytesToAuctionSettings(
+        address auctionAddr = treasury.auctionIdMap(id);
+        lastSynTime = IAuction(auctionAddr).lastSynTime();
+        auctionSettings = bytesToAuctionSettings(
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
-        AuctionState memory _auctionState = bytesToAuctionState(
+        auctionState = bytesToAuctionState(
             IAuction(auctionAddr).getAuctionStateBytes()
         );
-        return (lastSynTime, _auctionSettings, _auctionState);
     }
 
-    function getAuctionsAll(
+    function getAuctions(
         address creator
-    )
+        )
         public
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory
         )
     {
-
-        uint[] memory index = treasury.getAuctionIndex(creator);
-
-        uint len = index.length;
-
-        return (len, index);
+        return treasury.getAuctions(creator);
     }
 
     function getAuctions(
         address creator,
-        Status status
-    )
+        Status  status
+        )
         external
         view
         returns (
-            uint /*  count */,
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         )
     {
-
-        uint len;
-        uint[] memory index;
-        (len,index) = getAuctionsAll(creator);
-
+        uint[] memory auctions = getAuctions(creator);
         address auctionAddr;
-
-        uint count = 0;
-
-        for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
+        uint count;
+        for (uint i = 0; i < auctions.length; i++) {
+            auctionAddr = treasury.auctionIdMap(auctions[i]);
             if (IAuction(auctionAddr).status() == status) {
-                count++;
+                auctionIds[count++] = auctionIds[i];
             }
         }
-
-        uint[] memory res = new uint[](count);
-
-        count = 0;
-        for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
-            if (IAuction(auctionAddr).status() == status) {
-                res[count] = index[i];
-                count++;
-            }
-        }
-
-        return (count, res);
     }
 
     function getAuctions(
@@ -444,27 +390,24 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    count,
         address creator,
         Status  status
-    )
+        )
         external
         view
         returns (
-            uint[] memory /* auction index */
+            uint[] memory auctionIds
         )
     {
-
-        uint len;
-        uint[] memory index;
-        (len,index) = getAuctionsAll(creator);
+        uint[] memory auctionIds = getAuctions(creator);
+        uint len = auctionIds.length;
 
         address auctionAddr;
-
         uint cnt = 0;
 
         for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(index[i]);
+            auctionAddr = treasury.auctionIdMap(auctionIds[i]);
             if (
-                index[i] > skip &&
-                index[i] <= add(skip, count) &&
+                auctionIds[i] > skip &&
+                auctionIds[i] <= skip.add(count) &&
                 IAuction(auctionAddr).status() == status
             )
             {
@@ -472,46 +415,42 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             }
         }
 
-        uint[] memory res = new uint[](count);
-
         if (cnt>0) {
             cnt = 0;
             for (uint i = 0; i < len; i++) {
-                auctionAddr = treasury.auctionIdMap(index[i]);
+                auctionAddr = treasury.auctionIdMap(auctionIds[i]);
                 if (
-                    index[i] > skip &&
-                    index[i] <= add(skip, count) &&
+                    auctionIds[i] > skip &&
+                    auctionIds[i] <= skip.add(count) &&
                     IAuction(auctionAddr).status() == status
                 ) {
-                    res[cnt] = index[i];
+                    auctionIds[cnt] = auctionIds[i];
                     cnt++;
                 }
             }
         }
-
-        return res;
     }
 
-    // /@dev clone an auction from existing auction using its id
+    /// @dev clone an auction from existing auction using its id
     function cloneAuction(
-        uint auctionID,
+        uint auctionId,
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address,
+            uint
         )
     {
-        address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(auctionID);
+        address auctionAddr = treasury.auctionIdMap(auctionId);
+
         require(
             auctionAddr != address(0x0),
-            "auction not correct!"
+            "auction not correct"
         );
+
         return cloneAuction(
             auctionAddr,
             delaySeconds,
@@ -529,9 +468,8 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
         public
         returns (
-            address /* auction */,
-            uint    /* id */,
-            bool    /* successful */
+            address newAuctionAddr,
+            uint    newAuctionId
         )
     {
         require(
@@ -540,14 +478,14 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
         require(
             IAuction(auctionAddr).status() >= Status.CLOSED,
-            "only closed auction can be cloned!"
+            "only closed auction can be cloned"
         );
 
         AuctionSettings memory auctionSettings = bytesToAuctionSettings(
             IAuction(auctionAddr).getAuctionSettingsBytes()
         );
         AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionInfoBytes()
+            IAuction(auctionAddr).getAuctionBytes()
         );
         TokenInfo memory tokenInfo = bytesToTokenInfo(
             IAuction(auctionAddr).getTokenInfoBytes()
@@ -560,16 +498,13 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
 
-        uint cid;
-        (, cid) = ICurve(curve).cloneCurve(
-            auctionSettings.curveID,
+        uint cid = ICurve(curve).cloneCurve(
+            auctionSettings.curveId,
             auctionInfo.T,
             auctionInfo.P
         );
 
-        uint id;
-        address addressAuction;
-        (addressAuction, id) = createAuction(
+        (newAuctionAddr, newAuctionId) = createAuction(
             cid,
             initialAskAmount,         // The initial amount of tokenA from the creator's account.
             initialBidAmount,         // The initial amount of tokenB from the creator's account.
@@ -577,41 +512,44 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             tokenInfo,
             auctionInfo
         );
-
-        return (addressAuction, id, true);
     }
 
-    // All fee settings will only apply to future auctions, but not exxisting auctions.
-    // One basis point is equivalent to 0.01%.
+    // All fee settings will only apply to future auctions, not existing auctions.
+    //
     // We suggest the followign values:
     // creationFeeEth           = 0 ETH
-    // protocolBips             = 5   (0.05%)
+    // protocolBips             = 5   (0.05%) - 1 basis point is equivalent to 0.01%.
     // walletBips               = 5   (0.05%)
     // takerBips                = 25  (0.25%)
     // withdrawalPenaltyBips    = 250 (2.50%)
+    //
     // The earliest maker will earn 25-5-5=15 bips (0.15%) rebate, the latest taker will pay
     // 25+5+5=35 bips (0.35) fee. All user combinedly pay 5+5=10 bips (0.1%) fee out of their
-    // purchased tokens.
+    // purchased tokens (tokenB).
     function setFeeSettings(
         address recepient,
-        uint    creationFeeEth,     // the required Ether fee from auction creators. We may need to
-                                    // increase this if there are too many small auctions.
-        uint    protocolBips,       // the fee paid to Oedax protocol
-        uint    walletBipts,        // the fee paid to wallet or tools that help create the deposit
-                                    // transactions, note that withdrawal doen't imply a fee.
-        uint    takerBips,          // the max bips takers pays makers.
-        uint    withdrawalPenaltyBips  // the percentage of withdrawal amount to pay the protocol.
-                                       // Note that wallet and makers won't get part of the penalty.
-    )
+        uint    creationFeeEth,         // the required Ether fee from auction creators. We may need to
+                                        // increase this if there are too many small auctions.
+        uint    protocolBips,           // the fee paid to Oedax protocol
+        uint    walletBipts,            // the fee paid to wallet or tools that help create the deposit
+                                        // transactions, note that withdrawal doen't imply a fee.
+        uint    takerBips,              // the max bips takers pays makers.
+        uint    withdrawalPenaltyBips   // the percentage of withdrawal amount to pay the protocol.
+                                        // Note that wallet and makers won't get part of the penalty.
+        )
         external
         onlyOwner
     {
         require(
-            feeSettings.creationFeeEth +
             feeSettings.protocolBips +
             feeSettings.walletBipts +
             feeSettings.takerBips < 10000,
-            "feeSetting not correct"
+            "invalid bips value"
+        );
+
+        require(
+            withdrawalPenaltyBips < 10000,
+            "invalid bips value"
         );
 
         feeSettings.recepient = recepient;
@@ -633,7 +571,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     }
 
     function getFeeSettings(
-    )
+        )
         external
         view
         returns (
@@ -659,25 +597,25 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
     // The first curve should have id 1, not 0.
     function registerCurve(
         address ICurve
-    )
+        )
         external
         returns (
             uint /* curveId */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 
     // unregister a curve sub-contract
     function unregisterCurve(
         uint curveId
-    )
+        )
         external
         returns (
             address /* curve */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 
     function getCurves(
@@ -688,6 +626,6 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             address[] memory /* curves */
         )
     {
-        revert();
+        revert();  // REVIEW? if we do not support these methods, please delete them
     }
 }

@@ -35,6 +35,7 @@ contract IAuctionData {
         CLOSED,         // Ended without settlement
         SETTLED         // Ended with settlement
     }
+
     struct AuctionState {
         // The following are state information that changes while the auction is still active.
         uint    askPrice;           // The current ask/sell price curve value
@@ -95,10 +96,9 @@ contract IAuctionData {
     // The following are constant setups that never change.
 
     struct AuctionSettings {
-
         address creator;
-        uint    auctionID;
-        uint    curveID;
+        uint    auctionId;
+        uint    curveId;
         uint    startedTimestamp;   // Timestamp when this auction is started.
     }
 }

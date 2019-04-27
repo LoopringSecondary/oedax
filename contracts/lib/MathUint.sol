@@ -17,47 +17,53 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-contract MathLib {
-    function add(
-        uint x,
-        uint y
-    )
+/// @title Utility Functions for uint
+/// @author Daniel Wang - <daniel@loopring.org>
+library MathUint
+{
+    function mul(
+        uint a,
+        uint b
+        )
         internal
         pure
-        returns (uint z)
+        returns (uint c)
     {
-        require((z = x + y) >= x, "");
+        c = a * b;
+        require(a == 0 || c / a == b, "MUL_OVERFLOW");
     }
 
     function sub(
-        uint x,
-        uint y
-    )
+        uint a,
+        uint b
+        )
         internal
         pure
-        returns (uint z)
+        returns (uint)
     {
-        require((z = x - y) <= x, "");
+        require(b <= a, "SUB_UNDERFLOW");
+        return a - b;
     }
 
-    function mul(
-        uint x,
-        uint y
-    )
+    function add(
+        uint a,
+        uint b
+        )
         internal
         pure
-        returns (uint z)
+        returns (uint c)
     {
-        require(y == 0 || (z = x * y) / y == x, "");
+        c = a + b;
+        require(c >= a, "ADD_OVERFLOW");
     }
 
     function min(
         uint x,
         uint y
-    )
+        )
         internal
         pure
-        returns (uint z)
+        returns (uint)
     {
         return x <= y ? x : y;
     }
@@ -65,10 +71,10 @@ contract MathLib {
     function max(
         uint x,
         uint y
-    )
+        )
         internal
         pure
-        returns (uint z)
+        returns (uint)
     {
         return x >= y ? x : y;
     }
@@ -76,7 +82,7 @@ contract MathLib {
     function pow(
         uint x,
         uint n
-    )
+        )
         internal
         pure
         returns (uint z)

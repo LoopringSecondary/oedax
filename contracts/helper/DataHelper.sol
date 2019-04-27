@@ -21,17 +21,17 @@ import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 import "./BytesToTypes.sol";
 
+// REVIEW? 感觉这个应该是个Library而不是一个contract。
 contract DataHelper is BytesToTypes, IAuctionData {
 
-    function curveParamsToBytes(ICurveData.CurveParams memory curveParams)
+    function curveParamsToBytes(
+        ICurveData.CurveParams memory curveParams
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             curveParams.askToken,
             curveParams.bidToken,
             curveParams.T,
@@ -45,18 +45,16 @@ contract DataHelper is BytesToTypes, IAuctionData {
             curveParams.d,
             curveParams.curveName
         );
-        return res;
     }
 
-    function auctionInfoToBytes(AuctionInfo memory auctionInfo)
+    function auctionInfoToBytes(
+        AuctionInfo memory auctionInfo
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             auctionInfo.P,
             auctionInfo.M,
             auctionInfo.S,
@@ -67,18 +65,16 @@ contract DataHelper is BytesToTypes, IAuctionData {
             auctionInfo.isWithdrawalAllowed,
             auctionInfo.isTakerFeeDisabled
         );
-        return res;
     }
 
-    function feeSettingsToBytes(IAuctionData.FeeSettings memory feeSettings)
+    function feeSettingsToBytes(
+        IAuctionData.FeeSettings memory feeSettings
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             feeSettings.recepient,
             feeSettings.creationFeeEth,
             feeSettings.protocolBips,
@@ -86,36 +82,32 @@ contract DataHelper is BytesToTypes, IAuctionData {
             feeSettings.takerBips,
             feeSettings.withdrawalPenaltyBips
         );
-        return res;
     }
 
-    function tokenInfoToBytes(IAuctionData.TokenInfo memory tokenInfo)
+    function tokenInfoToBytes(
+        IAuctionData.TokenInfo memory tokenInfo
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             tokenInfo.askToken,
             tokenInfo.bidToken,
             tokenInfo.askDecimals,
             tokenInfo.bidDecimals,
             tokenInfo.priceScale
         );
-        return res;
     }
 
-    function auctionStateToBytes(IAuctionData.AuctionState memory auctionState)
+    function auctionStateToBytes(
+        IAuctionData.AuctionState memory auctionState
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             auctionState.askPrice,
             auctionState.bidPrice,
             auctionState.actualPrice,
@@ -129,24 +121,21 @@ contract DataHelper is BytesToTypes, IAuctionData {
             auctionState.askWithdrawalLimit,
             auctionState.bidWithdrawalLimit
         );
-        return res;
     }
 
-    function auctionSettingsToBytes(IAuctionData.AuctionSettings memory auctionSettings)
+    function auctionSettingsToBytes(
+        IAuctionData.AuctionSettings memory auctionSettings
+        )
         internal
         pure
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        bytes memory res;
-        res = abi.encodePacked(
+        return abi.encodePacked(
             auctionSettings.creator,
-            auctionSettings.auctionID,
-            auctionSettings.curveID,
+            auctionSettings.auctionId,
+            auctionSettings.curveId,
             auctionSettings.startedTimestamp
         );
-        return res;
     }
 
     function bytesToAuctionInfo(bytes memory b)
@@ -156,11 +145,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
             AuctionInfo memory auctionInfo
         )
     {
-        uint len = b.length;
-        require(
-            len == 226/*,
-            "length of bytes not correct"*/
-        );
+        require(b.length == 226, "invalid argument size");
 
         auctionInfo.P = bytesToUint256(32, b);
         auctionInfo.M = bytesToUint256(64, b);
@@ -180,11 +165,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
             FeeSettings memory feeSettings
         )
     {
-        uint len = b.length;
-        require(
-            len == 180/*,
-            "length of bytes not correct"*/
-        );
+        require(b.length == 180, "invalid argument size");
 
         feeSettings.recepient = bytesToAddress(20, b);
         feeSettings.creationFeeEth = bytesToUint256(52, b);
@@ -201,11 +182,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
             TokenInfo memory tokenInfo
         )
     {
-        uint len = b.length;
-        require(
-            len == 136/*,
-            "length of bytes not correct"*/
-        );
+        require(b.length == 136, "invalid argument size");
 
         tokenInfo.askToken = bytesToAddress(20, b);
         tokenInfo.bidToken = bytesToAddress(40, b);
@@ -221,11 +198,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
             AuctionState memory auctionState
         )
     {
-        uint len = b.length;
-        require(
-            len == 384/*,
-            "length of bytes not correct"*/
-        );
+        require(b.length == 384, "invalid argument size");
 
         auctionState.askPrice = bytesToUint256(32, b);
         auctionState.bidPrice = bytesToUint256(64, b);
@@ -248,15 +221,10 @@ contract DataHelper is BytesToTypes, IAuctionData {
             AuctionSettings memory auctionSettings
         )
     {
-        uint len = b.length;
-        require(
-            len == 116/*,
-            "length of bytes not correct"*/
-        );
-
+        require(b.length == 116, "invalid argument size");
         auctionSettings.creator = bytesToAddress(20, b);
-        auctionSettings.auctionID = bytesToUint256(52, b);
-        auctionSettings.curveID = bytesToUint256(84, b);
+        auctionSettings.auctionId = bytesToUint256(52, b);
+        auctionSettings.curveId = bytesToUint256(84, b);
         auctionSettings.startedTimestamp = bytesToUint256(116, b);
     }
 
@@ -267,11 +235,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
             ICurveData.CurveParams memory curveParams
         )
     {
-        uint len = b.length;
-        require(
-            len == 360/*,
-            "length of bytes not correct"*/
-        );
+        require(b.length == 360, "invalid argument size");
 
         curveParams.askToken = bytesToAddress(20, b);
         curveParams.bidToken = bytesToAddress(40, b);
