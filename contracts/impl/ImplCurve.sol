@@ -17,13 +17,12 @@
 pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "../lib/MathLib.sol";
 import "../lib/MathUint.sol";
 import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurve.sol";
 
-contract ImplCurve is ICurve, MathLib, DataHelper {
+contract ImplCurve is ICurve, DataHelper {
 
     // REVIEW? 请使用MathUint(参考ImplAuction)
 
@@ -125,7 +124,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         uint    bidDecimals = ERC20(bidToken).decimals();
         uint    priceScale;
         require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
-        priceScale = pow(10, 18 + askDecimals - bidDecimals);
+        priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
 
         uint cid;
         CurveParams memory cP;
@@ -214,7 +213,8 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         CurveParams memory cP;
         cP = curveParams[cid - 1];
         //p=P*(at+bT)/(ct+dT)
-        p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b))) / add(mul(t, cP.c), mul(cP.T, cP.d));
+        // p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b))) / add(mul(t, cP.c), mul(cP.T, cP.d));
+        p = t.mul(cP.a).add(cP.T.mul(cP.b)).mul(cP.P) / t.mul(cP.c).add(cP.T.mul(cP.d));
         return p;
     }
 
@@ -239,7 +239,8 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         }
 
         uint t;
-        t = mul(cP.T, sub(mul(cP.b, cP.P),mul(cP.d, p))) / sub(mul(cP.c, p), mul(cP.a, cP.P));
+        // t = mul(cP.T, sub(mul(cP.b, cP.P),mul(cP.d, p))) / sub(mul(cP.c, p), mul(cP.a, cP.P));
+        t = cP.b.mul(cP.P).sub(cP.d.mul(p)).mul(cP.T) / cP.c.mul(p).sub(cP.a.mul(cP.P));
 
         return (true, t);
     }
@@ -259,7 +260,8 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         CurveParams memory cP;
         cP = curveParams[cid - 1];
 
-        p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d))) / add(mul(t, cP.a), mul(cP.T, cP.b));
+        // p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d))) / add(mul(t, cP.a), mul(cP.T, cP.b));
+        p = t.mul(cP.c).add(cP.T.mul(cP.d)).mul(cP.P) / t.mul(cP.a).add(cP.T.mul(cP.b));
     }
 
     /// @dev Calculate inverse bid/buy price on price curve
@@ -279,11 +281,12 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         CurveParams memory cP;
         cP = curveParams[cid - 1];
 
-        if (p < cP.P / cP.M || p >= cP.P * cP.c / cP.a) {
+        if (p < cP.P / cP.M || p >= cP.P.mul(cP.c) / cP.a) {
             return (false, 0);
         }
         uint t;
-        t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d, cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
+        // t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d, cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
+        t = cP.b.mul(p).sub(cP.d.mul(cP.P)).mul(cP.T) / cP.c.mul(cP.P).sub(cP.a.mul(p));
         return (true, t);
     }
 
@@ -326,31 +329,31 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
             return 0;
         }
 
-        uint dt = period/100;
+        uint dt = period / 100;
 
-        if (t1+t2 < period*2 - dt*2) {
-            dt1 = sub(period*2, t1+t2)/2;
+        if (t1.add(t2) < period.mul(2).sub(dt.mul(2))) {
+            dt1 = period.mul(2).sub(t1).sub(t2) / 2;
         } else {
             dt1 = dt;
         }
 
-        while (dt1 >= dt && isClosed(cid, t1 + dt1, t2 + dt1)) {
-            dt1 = sub(dt1, dt);
+        while (dt1 >= dt && isClosed(cid, t1.add(dt1), t2.add(dt1))) {
+            dt1 = dt1.sub(dt);
         }
 
-        while (!isClosed(cid, t1 + dt1 + dt, t2 + dt1 + dt)) {
-            dt1 = add(dt1, dt);
+        while (!isClosed(cid, t1.add(dt1).add(dt), t2.add(dt1).add(dt))) {
+            dt1 = dt1.add(dt);
         }
 
-        dt2 = add(dt1, dt);
+        dt2 = dt1.add(dt);
 
         // now the point is between dt1 and dt2
         while (
-            dt2 - dt1 > 1 &&
-            isClosed(cid, t1 + dt2, t2 + dt2)
+            dt2.sub(dt1) > 1 &&
+            isClosed(cid, t1.add(dt2), t2.add(dt2))
         ) {
-            uint dt3 = (dt1 + dt2)/2;
-            if (isClosed(cid, t1 + dt3, t2 + dt3)) {
+            uint dt3 = dt1.add(dt2) / 2;
+            if (isClosed(cid, t1.add(dt3), t2.add(dt3))) {
                 dt2 = dt3;
             } else {
                 dt1 = dt3;
