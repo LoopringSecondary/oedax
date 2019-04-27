@@ -237,7 +237,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         // REVIEW?
         // receiveEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
         // receiveEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
-        // event.type1 = 1; event.type2 = 1 >> 1; event.typeN = 1 >> N
+        // event.type1 = 1; event.type2 = 1 << 1; event.typeN = 1 << N
         // 然后 receiveEvents( event.type1 | event.type2)
         // inside receiveEvents, do the following:
         // if (events & event.type1) {... log event 1}
