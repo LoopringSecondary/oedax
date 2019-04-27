@@ -22,17 +22,17 @@ import "../lib/MathLib.sol";
 import "../helper/DataHelper.sol";
 
 interface IOedax {
-    function logEvents(
-        uint status
-    )
-    external;
+    function logEvents(uint status)
+        external;
 }
 
 contract IAuctionEvents {
+
+    // REVIEW? 下面这些event哪些field是需要index的？
     event AuctionCreated(
-        address     creator,
-        uint256     aucitionId,
-        uint256     createTime
+        address         creator,
+        uint256         aucitionId,
+        uint256         createTime
     );
 
     event AuctionOpened (
@@ -66,7 +66,7 @@ contract ICurve {
         uint cid,
         uint t1,
         uint t2
-            )
+        )
         public
         view
         returns (
@@ -76,7 +76,7 @@ contract ICurve {
     function calcAskPrice(
         uint cid,
         uint t
-            )
+        )
         public
         view
         returns (uint);
@@ -84,7 +84,7 @@ contract ICurve {
     function calcInvAskPrice(
         uint cid,
         uint p
-            )
+        )
         public
         view
         returns (
@@ -95,7 +95,7 @@ contract ICurve {
     function calcBidPrice(
         uint cid,
         uint t
-            )
+        )
         public
         view
         returns (uint);
@@ -103,7 +103,7 @@ contract ICurve {
     function calcInvBidPrice(
         uint cid,
         uint p
-            )
+        )
         public
         view
         returns (
@@ -120,9 +120,7 @@ interface ITreasury {
         uint    amount
         )
         external
-        returns (
-            bool /* successful */
-        );
+        returns (bool);
 
     function auctionWithdraw(
         address user,
@@ -130,9 +128,7 @@ interface ITreasury {
         uint    amount
         )
         external
-        returns (
-            bool /* successful */
-        );
+        returns (bool);
 
     function sendFee(
         address recepient,
@@ -141,9 +137,7 @@ interface ITreasury {
         uint    amount
         )
         external
-        returns (
-            bool
-        );
+        returns (bool);
 
     function exchangeTokens(
         address recepient,
@@ -154,9 +148,7 @@ interface ITreasury {
         uint    amountB
         )
         external
-        returns (
-            bool
-        );
+        returns (bool);
 
     function sendFeeAll(
         address recepient,
@@ -164,9 +156,7 @@ interface ITreasury {
         uint    amount
         )
         external
-        returns (
-            bool
-        );
+        returns (bool);
 }
 
 contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticipationEvents {
@@ -176,16 +166,12 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     uint private askPausedTime;//time on askCurve = block.timestamp-contrainedTime-askPausedTime
     uint private bidPausedTime;//time on bidCurve = block.timestamp-contrainedTime-bidPausedTime
 
-    IOedax public oedax;
-    ITreasury public treasury;
-    address public curve;
+    IOedax      public oedax;
+    ITreasury   public treasury;
+    address     public curve;
 
     modifier isOedax() {
-
-        require(
-            msg.sender == address(oedax)/*,
-            "the address is not creator"*/
-        );
+        require(msg.sender == address(oedax), "unauthorized");
         _;
     }
 
@@ -226,6 +212,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
         status = Status.STARTED;
         //transfer complete in Oedax contract
+
+        // REVIEW? += is dangourse, should use `add`
         if (initialAskAmount > 0) {
             askAmount[creator] += initialAskAmount;
             auctionState.totalAskAmount += initialAskAmount;
@@ -278,9 +266,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         }
     }
 
-    function auctionEvents(
-        uint status
-        )
+    function auctionEvents(uint status)
         internal
     {
 
@@ -391,7 +377,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         uint _bid,
         uint askPrice,
         uint bidPrice
-            )
+        )
         internal
         view
         returns (
@@ -399,7 +385,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             uint /* bidDepositLimit */,
             uint /* askWithdrawalLimit */,
             uint /* bidWithdrawalLimit */
-            )
+        )
     {
         require(
             _bid > 0/*,
@@ -663,9 +649,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function getActualPrice()
         public
         view
-        returns (
-            uint
-        )
+        returns (uint)
     {
         uint price = auctionState.actualPrice;
         return price;
@@ -703,9 +687,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function totalFeeBips()
         internal
         view
-        returns (uint total)
+        returns (uint)
     {
-        total = feeSettings.creationFeeEth +
+        return feeSettings.creationFeeEth +
             feeSettings.protocolBips +
             feeSettings.takerBips;
     }
@@ -713,11 +697,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function calcTakeRate()
         public
         view
-        returns (
-            uint /* rate */
-        )
+        returns (uint rate)
     {
-        uint rate;
         if (status <= Status.OPEN) {
             return 100;
         }
@@ -731,8 +712,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         } else {
             rate = 0;
         }
-
-        return rate;
     }
 
     function getAuctionSettings()
@@ -750,105 +729,65 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     function getAuctionInfo()
         public
         view
-        returns (
-            AuctionInfo memory
-        )
+        returns (AuctionInfo memory)
     {
-        AuctionInfo memory _auctionInfo;
-        _auctionInfo = auctionInfo;
-        return _auctionInfo;
+        return auctionInfo;
     }
 
     function getTokenInfo()
         public
         view
-        returns (
-            TokenInfo memory
-        )
+        returns (TokenInfo memory)
     {
-        TokenInfo memory _tokenInfo;
-        _tokenInfo = tokenInfo;
-        return _tokenInfo;
+        return tokenInfo;
     }
 
     function getFeeSettings()
         public
         view
-        returns (
-            FeeSettings memory
-        )
+        returns (FeeSettings memory)
     {
-        FeeSettings memory _feeSettings;
-        _feeSettings = feeSettings;
-        return _feeSettings;
+        return feeSettings;
     }
 
     function getAuctionState()
         public
         view
-        returns (
-            AuctionState memory
-        )
+        returns (AuctionState memory)
     {
-        AuctionState memory aucState;
-        aucState = auctionState;
-        return aucState;
+        return auctionState;
     }
 
     function getAuctionSettingsBytes()
         public
         view
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        AuctionSettings memory S;
-        bytes memory b;
-        S = getAuctionSettings();
-        b = auctionSettingsToBytes(S);
-        return b;
+        return auctionSettingsToBytes(getAuctionSettings());
     }
 
     function getAuctionStateBytes()
         public
         view
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        AuctionState memory S;
-        bytes memory b;
-        S = getAuctionState();
-        b = auctionStateToBytes(S);
-        return b;
+        return auctionStateToBytes(getAuctionState());
     }
 
     function getAuctionInfoBytes()
         public
         view
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        AuctionInfo memory S;
-        bytes memory b;
-        S = getAuctionInfo();
-        b = auctionInfoToBytes(S);
-        return b;
+        return auctionInfoToBytes(getAuctionInfo());
     }
 
     function getTokenInfoBytes()
         public
         view
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        TokenInfo memory S;
-        bytes memory b;
-        S = getTokenInfo();
-        b = tokenInfoToBytes(S);
-        return b;
+        return tokenInfoToBytes(getTokenInfo());
     }
 
     function getFeeSettingsBytes()
@@ -1575,7 +1514,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function settle(
         address user
-            )
+        )
         public
         returns (
             bool /* settled */

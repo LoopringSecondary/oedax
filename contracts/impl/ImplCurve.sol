@@ -102,7 +102,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         uint P,
         uint S,
         string memory curveName
-            )
+        )
         public
         returns (
             bool /* success */,
@@ -153,7 +153,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     /// @param cid Curve id
     function getCurveById(
         uint cid
-            )
+        )
         public
         view
         returns (ICurveData.CurveParams memory)
@@ -183,7 +183,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     /// @param curveName Curve name
     function getCurveByName(
         string memory curveName
-            )
+        )
         public
         view
         returns (ICurveData.CurveParams memory)
@@ -199,7 +199,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     function calcAskPrice(
         uint cid,
         uint t
-            )
+        )
         public
         view
         returns (uint)
@@ -219,7 +219,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     function calcInvAskPrice(
         uint cid,
         uint p
-            )
+        )
         public
         view
         returns (
@@ -245,7 +245,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     function calcBidPrice(
         uint cid,
         uint t
-            )
+        )
         public
         view
         returns (uint p)
@@ -263,7 +263,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     function calcInvBidPrice(
         uint cid,
         uint p
-            )
+        )
         public
         view
         returns (
@@ -302,7 +302,7 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         uint cid,
         uint t1,
         uint t2
-            )
+        )
         public
         view
         returns (

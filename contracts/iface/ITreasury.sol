@@ -45,9 +45,7 @@ contract ITreasury {
     mapping (address => mapping(address=>bool)) public userTokens;
 
     // 获得用户创建的Auction的Index数组
-    function getAuctionIndex(
-        address creator
-        )
+    function getAuctionIndex(address creator)
         public
         view
         returns (
@@ -192,14 +190,13 @@ contract ITreasury {
     // If this function is called, all invocation from any on-going auctions will fail, but all
     // users' asset will be safe.
     // This method can only be called once.
-    function terminate() external;
+    function terminate()
+        external;
 
     // 合约中用户参与的拍卖Id以及有余额的Token较为复杂
     // 暂时决定方案时，紧急情况下用户可以提走自己所有的余额
     // token列表可查询，也可自己给出
-    function withdrawWhenTerminated(
-        address[] calldata tokens
-        )
+    function withdrawWhenTerminated(address[] calldata tokens)
         external;
 
     function isTerminated()

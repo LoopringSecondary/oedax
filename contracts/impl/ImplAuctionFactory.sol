@@ -47,7 +47,7 @@ contract ImplAuctionFactory is DataHelper {
 
     function setOedax(
         address _oedax
-            )
+        )
         public
     {
         require(

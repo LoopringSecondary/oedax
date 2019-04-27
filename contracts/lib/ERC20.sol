@@ -33,7 +33,7 @@ contract ERC20 {
 
     function balanceOf(
         address who
-            )
+        )
         public
         view
         returns (uint256);
@@ -41,7 +41,7 @@ contract ERC20 {
     function allowance(
         address owner,
         address spender
-            )
+        )
         public
         view
         returns (uint256);
@@ -49,7 +49,7 @@ contract ERC20 {
     function transfer(
         address to,
         uint256 value
-            )
+        )
         public
         returns (bool);
 
@@ -57,14 +57,14 @@ contract ERC20 {
         address from,
         address to,
         uint256 value
-            )
+        )
         public
         returns (bool);
 
     function approve(
         address spender,
         uint256 value
-            )
+        )
         public
         returns (bool);
 }

@@ -272,7 +272,7 @@ contract TestToken is ERC20 {
         string memory _symbol,
         uint8 _decimals,
         uint _totalSupply
-            )
+        )
         public
     {
         name = _name;

@@ -64,7 +64,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function setOedax(
         address _oedax
-            )
+        )
         public
         onlyOwner
     {
@@ -77,7 +77,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
 
     function getAuctionIndex(
         address creator
-            )
+        )
         public
         view
         returns (

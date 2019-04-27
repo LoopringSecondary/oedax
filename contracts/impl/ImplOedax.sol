@@ -492,7 +492,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
-            )
+        )
         public
         returns (
             address /* auction */,
@@ -520,7 +520,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
-            )
+        )
         public
         returns (
             address /* auction */,

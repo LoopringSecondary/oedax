@@ -49,7 +49,7 @@ contract Ownable {
     /// @param newOwner The address to transfer ownership to.
     function transferOwnership(
         address newOwner
-            )
+        )
         public
         onlyOwner
     {

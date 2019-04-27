@@ -246,13 +246,15 @@ contract IAuction is IAuctionData {
 
 /*
 
-    function askWithdraw(uint amount)
+    function askWithdraw(uint amount
+        )
         public
         returns (
             uint
         );
 
-    function bidWithdraw(uint amount)
+    function bidWithdraw(uint amount
+        )
         public
         returns (
             uint
@@ -267,7 +269,8 @@ contract IAuction is IAuctionData {
         //address user,
         address wallet,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         returns (
             uint /* amount */
@@ -278,7 +281,8 @@ contract IAuction is IAuctionData {
     function withdraw(
         //address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         returns (
             uint /* amount */
@@ -288,7 +292,8 @@ contract IAuction is IAuctionData {
     function simulateDeposit(
         address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         view
         returns (
@@ -300,7 +305,8 @@ contract IAuction is IAuctionData {
     function simulateWithdrawal(
         address user,
         address token,
-        uint    amount)
+        uint    amount
+        )
         public
         view
         returns (
@@ -323,9 +329,7 @@ contract IAuction is IAuctionData {
         );
 
     /// @dev Get participations from a given address.
-    function getUserParticipations(
-        address user
-        )
+    function getUserParticipations(address user)
         external
         view
         returns (

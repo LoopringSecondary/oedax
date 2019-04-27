@@ -23,9 +23,7 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IAuctionData{
 
-    function logEvents(
-        uint status
-        )
+    function logEvents(uint status)
         external;
 
     // Initiate an auction
@@ -44,9 +42,7 @@ contract IOedax is IAuctionData{
         );
 
     // 获取用户创建的所有合约
-    function getAuctionsAll(
-        address creator
-        )
+    function getAuctionsAll(address creator)
         public
         view
         returns (
@@ -93,7 +89,7 @@ contract IOedax is IAuctionData{
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
-            )
+        )
         public
         returns (
             address /* auction */,
@@ -107,7 +103,7 @@ contract IOedax is IAuctionData{
         uint    delaySeconds,
         uint    initialAskAmount,
         uint    initialBidAmount
-            )
+        )
         public
         returns (
             address /* auction */,
@@ -139,8 +135,7 @@ contract IOedax is IAuctionData{
         )
         external;
 
-    function getFeeSettings(
-        )
+    function getFeeSettings()
         external
         view
         returns (
@@ -156,25 +151,20 @@ contract IOedax is IAuctionData{
     // 无需单独生成合约
     // register a curve sub-contract.
     // The first curve should have id 1, not 0.
-    function registerCurve(
-        address ICurve
-        )
+    function registerCurve(address ICurve)
         external
         returns (
             uint /* curveId */
         );
 
     // unregister a curve sub-contract
-    function unregisterCurve(
-        uint curveId
-        )
+    function unregisterCurve(uint curveId)
         external
         returns (
             address /* curve */
         );
 
-    function getCurves(
-            )
+    function getCurves()
         external
         view
         returns (

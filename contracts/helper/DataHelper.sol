@@ -23,7 +23,9 @@ import "./BytesToTypes.sol";
 
 contract DataHelper is BytesToTypes, IAuctionData {
 
-    function curveParamsToBytes(ICurveData.CurveParams memory curveParams)
+    function curveParamsToBytes(
+        ICurveData.CurveParams memory curveParams
+        )
         internal
         pure
         returns (
@@ -48,7 +50,9 @@ contract DataHelper is BytesToTypes, IAuctionData {
         return res;
     }
 
-    function auctionInfoToBytes(AuctionInfo memory auctionInfo)
+    function auctionInfoToBytes(
+        AuctionInfo memory auctionInfo
+        )
         internal
         pure
         returns (
@@ -70,7 +74,9 @@ contract DataHelper is BytesToTypes, IAuctionData {
         return res;
     }
 
-    function feeSettingsToBytes(IAuctionData.FeeSettings memory feeSettings)
+    function feeSettingsToBytes(
+        IAuctionData.FeeSettings memory feeSettings
+        )
         internal
         pure
         returns (
@@ -89,7 +95,9 @@ contract DataHelper is BytesToTypes, IAuctionData {
         return res;
     }
 
-    function tokenInfoToBytes(IAuctionData.TokenInfo memory tokenInfo)
+    function tokenInfoToBytes(
+        IAuctionData.TokenInfo memory tokenInfo
+        )
         internal
         pure
         returns (
@@ -107,7 +115,9 @@ contract DataHelper is BytesToTypes, IAuctionData {
         return res;
     }
 
-    function auctionStateToBytes(IAuctionData.AuctionState memory auctionState)
+    function auctionStateToBytes(
+        IAuctionData.AuctionState memory auctionState
+        )
         internal
         pure
         returns (
@@ -132,7 +142,9 @@ contract DataHelper is BytesToTypes, IAuctionData {
         return res;
     }
 
-    function auctionSettingsToBytes(IAuctionData.AuctionSettings memory auctionSettings)
+    function auctionSettingsToBytes(
+        IAuctionData.AuctionSettings memory auctionSettings
+        )
         internal
         pure
         returns (
