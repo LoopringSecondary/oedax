@@ -89,7 +89,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         return index;
     }
 
-    function getNextAuctionID()
+    function getNextAuctionId()
         public
         view
         returns (
@@ -413,7 +413,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             uint /*   id      */
         )
     {
-        uint auctionID = getNextAuctionID();
+        uint auctionID = getNextAuctionId();
         auctionAddressMap[auction] = auctionID;
         auctionIdMap[auctionID] = auction;
         auctionCreatorMap[creator].push(auctionID);

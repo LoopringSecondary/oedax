@@ -22,7 +22,7 @@ import "../lib/MathLib.sol";
 import "../helper/DataHelper.sol";
 
 interface IOedax {
-    function receiveEvents(
+    function logEvents(
         uint status
     )
     external;
@@ -257,7 +257,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         );
         */
 
-        //oedax.receiveEvents(1);
+        //oedax.logEvents(1);
         auctionEvents(1);
 
         if (auctionInfo.delaySeconds == 0) {
@@ -273,7 +273,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             */
             auctionEvents(2);
             // 此处event在oedax合约中完成
-            //oedax.receiveEvents(2);
+            //oedax.logEvents(2);
 
         }
     }
@@ -536,7 +536,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             );
             */
             auctionEvents(2);
-            oedax.receiveEvents(2);
+            oedax.logEvents(2);
         }
 
         if (status == Status.OPEN &&
@@ -559,7 +559,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             );
             */
             auctionEvents(3);
-            oedax.receiveEvents(3);
+            oedax.logEvents(3);
         }
 
         if (now == lastSynTime || status != Status.CONSTRAINED) {
@@ -587,7 +587,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             );
             */
             auctionEvents(4);
-            oedax.receiveEvents(4);
+            oedax.logEvents(4);
         }
         updateLimits();
     }
@@ -974,7 +974,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         ) {
             status = Status.OPEN;
             auctionEvents(2);
-            oedax.receiveEvents(2);
+            oedax.logEvents(2);
         }
 
         require(
@@ -1448,7 +1448,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
             auctionEvents(3);
-            oedax.receiveEvents(3);
+            oedax.logEvents(3);
         }
 
         //updateLimits();
@@ -1708,7 +1708,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         );
         */
         auctionEvents(5);
-        oedax.receiveEvents(5);
+        oedax.logEvents(5);
         return success;
     }
 

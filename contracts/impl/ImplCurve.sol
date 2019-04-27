@@ -70,16 +70,6 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
         return cidByName[curveParams[cid-1].curveName];
     }
 
-    function getNextCurveID()
-        public
-        view
-        returns (
-            uint
-        )
-    {
-        return curveParams.length + 1;
-    }
-
     function cloneCurve(
         uint cid,
         uint T,
@@ -87,17 +77,15 @@ contract ImplCurve is ICurve, MathLib, DataHelper {
     )
         external
         returns (
-            bool /* success */,
-            uint /* cid */
+            uint  curveId
         )
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        uint newId = getNextCurveID();
         CurveParams memory newCurve = curveParams[cid - 1];
         newCurve.T = T;
         newCurve.P = P;
         curveParams.push(newCurve);
-        return (true, newId);
+        curveId = curveParams.length;
     }
 
     /// @dev Init parameters of price curves

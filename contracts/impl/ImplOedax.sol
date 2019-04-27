@@ -43,8 +43,7 @@ interface ICurve {
     )
         external
         returns (
-            bool /* success */,
-            uint /* cid */
+            uint curveId
         );
 }
 
@@ -95,15 +94,15 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
 
-    function receiveEvents(
+    function logEvents(
         uint events
     )
         external
     {
-        receiveEvents(events, msg.sender);
+        logEvents(events, msg.sender);
     }
 
-    function receiveEvents(
+    function logEvents(
         uint events,
         address auctionAddr
     )
@@ -213,7 +212,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
             uint    auctionId
         )
     {
-        auctionId = treasury.getNextAuctionID();
+        auctionId = treasury.getNextAuctionId();
         auctionAddr = auctionGenerator.createAuction(
             address(curve),
             curveId,
@@ -228,18 +227,18 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
         treasury.registerAuction(auctionAddr, msg.sender);
 
-        receiveEvents(1, auctionAddr);
+        logEvents(1, auctionAddr);
 
         if (IAuction(auctionAddr).status() == Status.OPEN) {
-            receiveEvents(2, auctionAddr);
+            logEvents(2, auctionAddr);
         }
 
         // REVIEW?
-        // receiveEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
-        // receiveEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
+        // logEvents看起来是个挺heavy的方法，里面涉及到了跨合约调用。因此需要尽最大努力减少
+        // logEvents的调用。我建议这样，如果需要log两个events，可以定义event为：
         // event.type1 = 1; event.type2 = 1 << 1; event.typeN = 1 << N
-        // 然后 receiveEvents( event.type1 | event.type2)
-        // inside receiveEvents, do the following:
+        // 然后 logEvents( event.type1 | event.type2)
+        // inside logEvents, do the following:
         // if (events & event.type1) {... log event 1}
         // if (events & event.type2) {... log event 2}
 
@@ -251,7 +250,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 tokenInfo.askToken,
                 initialAskAmount
             ),
-            "Not enough tokens!"
+            "not enough tokens!"
         );
 
         require(
@@ -262,7 +261,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
                 tokenInfo.bidToken,
                 initialBidAmount
             ),
-            "Not enough tokens!"
+            "not enough tokens!"
         );
     }
 
@@ -555,8 +554,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionInfo.delaySeconds = delaySeconds;
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
 
-        uint cid;
-        (, cid) = ICurve(curve).cloneCurve(
+        uint cid = ICurve(curve).cloneCurve(
             auctionSettings.curveID,
             auctionInfo.T,
             auctionInfo.P

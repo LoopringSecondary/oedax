@@ -55,7 +55,7 @@ contract ITreasury {
         );
 
     // auctionID递增，用于创建拍卖时获得ID
-    function getNextAuctionID()
+    function getNextAuctionId()
         public
         view
         returns (

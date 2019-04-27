@@ -52,13 +52,6 @@ contract ICurve is ICurveData {
             uint
         );
 
-    function getNextCurveID()
-        public
-        view
-        returns (
-            uint
-        );
-
     /// @dev Clone a curve with different parameters
     /// @param cid The id of curve to be cloned
     /// @param T The duration of new curve
@@ -70,8 +63,7 @@ contract ICurve is ICurveData {
     )
         external
         returns (
-            bool /* success */,
-            uint /* cid */
+            uint curveId
         );
 
     /// @dev Init parameters of price curves
