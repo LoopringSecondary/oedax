@@ -726,38 +726,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         return aucSettings;
     }
 
-    function getAuctionInfo()
-        public
-        view
-        returns (AuctionInfo memory)
-    {
-        return auctionInfo;
-    }
-
-    function getTokenInfo()
-        public
-        view
-        returns (TokenInfo memory)
-    {
-        return tokenInfo;
-    }
-
-    function getFeeSettings()
-        public
-        view
-        returns (FeeSettings memory)
-    {
-        return feeSettings;
-    }
-
-    function getAuctionState()
-        public
-        view
-        returns (AuctionState memory)
-    {
-        return auctionState;
-    }
-
     function getAuctionSettingsBytes()
         public
         view
@@ -771,7 +739,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         view
         returns (bytes memory)
     {
-        return auctionStateToBytes(getAuctionState());
+        return auctionStateToBytes(auctionState);
     }
 
     function getAuctionInfoBytes()
@@ -779,7 +747,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         view
         returns (bytes memory)
     {
-        return auctionInfoToBytes(getAuctionInfo());
+        return auctionInfoToBytes(auctionInfo);
     }
 
     function getTokenInfoBytes()
@@ -787,34 +755,23 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         view
         returns (bytes memory)
     {
-        return tokenInfoToBytes(getTokenInfo());
+        return tokenInfoToBytes(tokenInfo);
     }
 
     function getFeeSettingsBytes()
         public
         view
-        returns (
-            bytes memory
-        )
+        returns (bytes memory)
     {
-        FeeSettings memory S;
-        bytes memory b;
-        S = getFeeSettings();
-        b = feeSettingsToBytes(S);
-        return b;
+        return feeSettingsToBytes(feeSettings);
     }
 
-    function calcAskPrice(
-        uint t
-        )
+    function calcAskPrice(uint t)
         internal
         view
-        returns (
-            uint
-        )
+        returns (uint)
     {
-        uint p = ICurve(curve).calcAskPrice(auctionSettings.curveId, t);
-        return p;
+        return ICurve(curve).calcAskPrice(auctionSettings.curveId, t);
     }
 
     function calcBidPrice(
@@ -822,21 +779,16 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         internal
         view
-        returns (
-            uint
-        )
+        returns (uint)
     {
-        uint p = ICurve(curve).calcBidPrice(auctionSettings.curveId, t);
-        return p;
+        return ICurve(curve).calcBidPrice(auctionSettings.curveId, t);
     }
 
     /// @dev Return the estimated time to end
     function getEstimatedTTL()
         public
         view
-        returns (
-            uint /* ttlSeconds */
-        )
+        returns (uint)
     {
         uint period = auctionInfo.T;
 
@@ -855,18 +807,14 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
 
     function askDeposit(uint amount)
         public
-        returns (
-            uint
-        )
+        returns (uint)
     {
         return deposit(address(0x0), tokenInfo.askToken, amount);
     }
 
     function bidDeposit(uint amount)
         public
-        returns (
-            uint
-        )
+        returns (uint)
     {
         return deposit(address(0x0), tokenInfo.bidToken, amount);
     }
@@ -898,9 +846,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         address token,
         uint    amount)
         public
-        returns (
-            uint /* amount */
-        )
+        returns (uint /* amount */ )
     {
         require(
             token == tokenInfo.askToken ||
@@ -990,9 +936,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             amount-fee
         );
 
-        updateAfterAction(action, amount-fee);
+        updateAfterAction(action, amount - fee);
 
-        return amount-fee;
+        return amount - fee;
     }
 
     function recordTaker(
@@ -1021,9 +967,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         internal
         view
-        returns (
-            uint
-        )
+        returns (uint limit)
     {
 
         if (status == Status.STARTED ||
@@ -1039,8 +983,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 return auctionInfo.maxBidAmountPerAddr;
             }
         }
-
-        uint limit = 0;
 
         if (action == 1) {
             limit = mul(
@@ -1069,8 +1011,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
                 auctionState.totalBidAmount
                 )/auctionState.askPrice;
         }
-
-        return limit;
     }
 
     function tokenExchange(
@@ -1079,11 +1019,9 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         )
         internal
         view
-        returns (
-            uint
-        )
+        returns (uint res)
     {
-        uint res = amount;
+        res = amount;
         // input amountA, output amountB
         if (dir == 1) {
             res = mul(amount, tokenInfo.priceScale)/auctionState.actualPrice;
@@ -1093,8 +1031,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         if (dir == 2) {
             res = mul(amount, auctionState.actualPrice)/tokenInfo.priceScale;
         }
-
-        return res;
     }
 
     // 仅处理等待队列里的记录，放入到ask/bidAmount中
@@ -1399,9 +1335,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         address token,
         uint    amount)
         public
-        returns (
-            uint /* amount */
-        )
+        returns (uint /* amount */)
     {
 
         require(
@@ -1512,13 +1446,8 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         // TODO: simulate the price changes
     }
 
-    function settle(
-        address user
-        )
+    function settle(address user)
         public
-        returns (
-            bool /* settled */
-        )
     {
         require(
             status >= Status.CLOSED &&
@@ -1549,16 +1478,11 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
             exchangedA,
             exchangedB
         );
-
-        return true;
     }
 
     // 拍卖结束后提款
     function settle()
         external
-        returns (
-            bool /* settled */
-        )
     {
         settle(msg.sender);
     }
@@ -1571,9 +1495,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     // withdrawalPenalty - 用户withdraw时收取
     function triggerSettle()
         public
-        returns (
-            bool /* settled */
-        )
+        returns (bool success)
     {
 
         require(
@@ -1582,7 +1504,6 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         );
         // 第一步：清空askQueue与bidQueue
         uint len;
-        bool success;
         QueuedParticipation memory q;
 
         len = askQueue.length;
@@ -1648,29 +1569,25 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         */
         auctionEvents(5);
         oedax.logEvents(5);
-        return success;
     }
 
     /// @dev Get participations from a given address.
-    function getUserParticipations(
-        address user
-        )
+    function getUserParticipations(address user)
         external
         view
         returns (
-            uint /* total */,
-            Participation[] memory
+            uint total,
+            Participation[] memory p
         )
     {
         uint[] memory index = participationIndex[user];
-        uint len = index.length;
+        total = index.length;
         Participation[] memory p;
-        p = new Participation[](len);
+        p = new Participation[](total);
 
-        for (uint i = 0; i < len; i++) {
+        for (uint i = 0; i < total; i++) {
             p[i] = (participations[index[i]]);
         }
-        return (len, p);
     }
 
     /// @dev Returns a sub-sequence of participations.
@@ -1682,24 +1599,22 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
         external
         view
         returns (
-            uint /* total */,
-            Participation[] memory
+            uint  total,
+            Participation[] memory p
         )
     {
         uint len1 = participations.length;
-        uint len2 = count;
+        uint total = count;
         require(
             len1 > skip/*,
             "params not correct"*/
         );
-        if (len1 < add(skip,count)) {
-            len2 = len1 - skip;
+        if (len1 < add(skip, count)) {
+            total = len1 - skip;
         }
-        Participation[] memory p;
-        p = new Participation[](len2);
-        for (uint i = 0; i < len2; i++) {
-            p[i] = participations[skip+i];
+        p = new Participation[](total);
+        for (uint i = 0; i < total; i++) {
+            p[i] = participations[skip + i];
         }
-        return (len2, p);
     }
 }

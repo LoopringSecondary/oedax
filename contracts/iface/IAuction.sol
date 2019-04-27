@@ -142,41 +142,6 @@ contract IAuction is IAuctionData {
             uint /* rate */
         );
 
-    function getAuctionSettings()
-        public
-        view
-        returns (
-            AuctionSettings memory
-        );
-
-    function getAuctionState()
-        public
-        view
-        returns (
-            AuctionState memory
-        );
-
-    function getAuctionInfo()
-        public
-        view
-        returns (
-            AuctionInfo memory
-        );
-
-    function getTokenInfo()
-        public
-        view
-        returns (
-            TokenInfo memory
-        );
-
-    function getFeeSettings()
-        public
-        view
-        returns (
-            FeeSettings memory
-        );
-
     function getAuctionSettingsBytes()
         public
         view
@@ -316,17 +281,12 @@ contract IAuction is IAuctionData {
 
     // 拍卖结束后提款
     function settle()
-        external
-        returns (
-            bool /* settled */
-        );
+        external;
 
     // Try to settle the auction.
     function triggerSettle()
         external
-        returns (
-            bool /* settled */
-        );
+        returns (bool success);
 
     /// @dev Get participations from a given address.
     function getUserParticipations(address user)

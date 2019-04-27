@@ -33,7 +33,5 @@ contract IAuctionFactory is IAuctionData {
         address         creator
         )
         public
-        returns (
-            address /* auction */
-        );
+        returns (address);
 }
