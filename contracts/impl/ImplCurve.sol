@@ -71,7 +71,7 @@ contract ImplCurve is ICurve, DataHelper {
         )
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        return cidByName[curveParams[cid-1].curveName];
+        return cidByName[curveParams[cid - 1].curveName];
     }
 
     function cloneCurve(
@@ -124,6 +124,8 @@ contract ImplCurve is ICurve, DataHelper {
         uint    bidDecimals = ERC20(bidToken).decimals();
         uint    priceScale;
         require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
+
+        // TODO(daniel): figure out this
         priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
 
         uint cid;
@@ -132,10 +134,10 @@ contract ImplCurve is ICurve, DataHelper {
         cP.M = M;
 
         cP.S = S;
-        cP.a = 1e18 * 100;
-        cP.b = 1e18 * S * M / (M - 1);
-        cP.c = 1e18 * (100 + S);
-        cP.d = 1e18 * S / (M - 1);
+        cP.a = MathUint.mul(1e18, 100);
+        cP.b = MathUint.mul(1e18, S.mul(M)) / M.sub(1);
+        cP.c = MathUint.mul(1e18, 100.add(S));
+        cP.d = MathUint.mul(1e18, S) / M.sub(1);
 
         cP.askToken = askToken;
         cP.bidToken = bidToken;
