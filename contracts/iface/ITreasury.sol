@@ -68,10 +68,7 @@ contract ITreasury {
         uint    amountA,
         uint    amountB
         )
-        external
-        returns (
-            bool
-        );
+        external;
 
     // 用于结算deposit时的手续费
     function sendFee(
@@ -80,10 +77,7 @@ contract ITreasury {
         address token,
         uint    amount
         )
-        external
-        returns (
-            bool
-        );
+        external;
 
     function initDeposit(
         address user,
@@ -103,10 +97,7 @@ contract ITreasury {
         address token,
         uint    amount  // must be greater than 0.
         )
-        external
-        returns (
-            bool /* successful */
-        );
+        external;
 
     // between treasury contract and auction contract
     function auctionWithdraw(
@@ -114,10 +105,7 @@ contract ITreasury {
         address token,
         uint    amount  // specify 0 to withdrawl as much as possible.
         )
-        external
-        returns (
-            bool /* successful */
-        );
+        external;
 
     // treasuy合约与Token合约之间的转账
     // between treasury contract and token contract
@@ -126,9 +114,7 @@ contract ITreasury {
         uint    amount  // must be greater than 0.
         )
         external
-        returns (
-            bool /* successful */
-        );
+        returns (bool successful);
 
     // between treasury contract and token contract
     function withdraw(
@@ -136,9 +122,7 @@ contract ITreasury {
         uint    amount  // specify 0 to withdrawl as much as possible.
         )
         external
-        returns (
-            bool /* successful */
-        );
+        returns (bool successful);
 
     // 获取用户实时余额
     function getBalance(
@@ -160,9 +144,7 @@ contract ITreasury {
         )
         external
         view
-        returns (
-            uint /* available */
-        );
+        returns (uint);
 
     // 新增接口，用于查询用户授权的转账量
     // treasury合约的转账只能由用户调用时生效

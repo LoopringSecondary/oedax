@@ -33,10 +33,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
     bool    public terminated;
 
     modifier whenRunning() {
-        require(
-            terminated == false,
-            "the contract is already terminated!"
-        );
+        require(terminated == false, "already terminated!");
         _;
     }
 
@@ -49,7 +46,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         _;
     }
 
-    modifier isOedax() {
+    modifier onlyOedax() {
         require(
             msg.sender == oedax,
             "The address should be oedax contract"
@@ -57,14 +54,14 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         _;
     }
 
-    constructor() public {
+    constructor()
+        public
+    {
         oedax = address(0x0);
         auctionAmount = 0;
     }
 
-    function setOedax(
-        address _oedax
-        )
+    function setOedax(address _oedax)
         public
         onlyOwner
     {
@@ -75,16 +72,14 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         oedax = _oedax;
     }
 
-    function getAuctionIndex(
-        address creator
-        )
+    function getAuctionIndex(address creator)
         public
         view
         returns (
-            uint[] memory index
+            uint[] memory
         )
     {
-        index = auctionFactoryMap[creator];
+        return auctionFactoryMap[creator];
     }
 
     function getNextAuctionId()
@@ -107,9 +102,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns (
-            bool
-        )
     {
         uint id = auctionAddressMap[msg.sender];
         require(
@@ -137,8 +129,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userTotalBalances[user][tokenB] = add(userTotalBalances[user][tokenB], amountB);
         userAvailableBalances[user][tokenA] = add(userAvailableBalances[user][tokenA], amountA);
         userAvailableBalances[user][tokenB] = add(userAvailableBalances[user][tokenB], amountB);
-
-        return true;
     }
 
     /// Auction合约直接在user和recepient之间完成“转账”，保证所有变量总额不变
@@ -153,9 +143,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns (
-            bool
-        )
     {
 
         uint id = auctionAddressMap[msg.sender];
@@ -173,12 +160,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
 
         userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
-
-        return true;
     }
 
     /// 在拍卖结束后，由auction分配
     /// recepient获得相应的抽成，与单个用户无关，整体计算金额
+
+    // REVIEW? This method is missing from the ITreasury interface definition
     function sendFeeAll(
         address recepient,
         address token,
@@ -187,9 +174,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns (
-            bool
-        )
     {
 
         uint id = auctionAddressMap[msg.sender];
@@ -203,8 +187,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[recepient][token] = add(userAvailableBalances[recepient][token], amount);
 
         userTotalBalances[recepient][token] = add(userTotalBalances[recepient][token], amount);
-
-        return true;
     }
 
     //between treasury contract and auction contract
@@ -216,9 +198,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns (
-            bool /* successful */
-        )
     {
         require(
             amount <= userAvailableBalances[user][token],
@@ -230,8 +209,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
         contractLockedBalances[msg.sender][token] = add(contractLockedBalances[msg.sender][token], amount);
-
-        return true;
     }
 
     function initDeposit(
@@ -241,11 +218,8 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         uint    amount  // must be greater than 0.
         )
         external
-        isOedax
+        onlyOedax
         whenRunning
-        returns (
-            bool /* successful */
-        )
     {
         require(
             amount <= userAvailableBalances[user][token],
@@ -257,8 +231,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = sub(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = add(userLockedBalances[user][id][token], amount);
         contractLockedBalances[auctionAddr][token] = add(contractLockedBalances[auctionAddr][token], amount);
-
-        return true;
     }
 
     //between treasury contract and auction contract
@@ -270,9 +242,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         external
         isAuction
         whenRunning
-        returns (
-            bool /* successful */
-        )
     {
         require(
             amount <= userLockedBalances[user][auctionAddressMap[msg.sender]][token],
@@ -282,8 +251,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         userAvailableBalances[user][token] = add(userAvailableBalances[user][token], amount);
         userLockedBalances[user][id][token] = sub(userLockedBalances[user][id][token], amount);
         contractLockedBalances[msg.sender][token] = sub(contractLockedBalances[msg.sender][token], amount);
-
-        return true;
     }
 
     //between treasury contract and token contract
@@ -293,17 +260,14 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         )
         external
         whenRunning
-        returns (
-            bool /* successful */
-        )
+        returns (bool successful)
     {
-        bool success;
-        success = token.safeTransferFrom(
+        successful = token.safeTransferFrom(
             msg.sender,
             address(this),
             amount
         );
-        if (success) {
+        if (successful) {
             userAvailableBalances[msg.sender][token] = add(userAvailableBalances[msg.sender][token], amount);
             userTotalBalances[msg.sender][token] = add(userTotalBalances[msg.sender][token], amount);
         }
@@ -311,7 +275,6 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             userTokens[msg.sender][token] = true;
             userTokenList[msg.sender].push(token);
         }
-        return success;
     }
 
     //between treasury contract and token contract
@@ -321,24 +284,20 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         )
         external
         whenRunning
-        returns (
-            bool /* successful */
-        )
+        returns (bool successful)
     {
         require(
             amount <= userAvailableBalances[msg.sender][token],
             "Not enough token!"
         );
-        bool success;
-        success = token.safeTransfer(
+        successful = token.safeTransfer(
             msg.sender,
             amount
         );
-        if (success) {
+        if (successful) {
             userAvailableBalances[msg.sender][token] = sub(userAvailableBalances[msg.sender][token], amount);
             userTotalBalances[msg.sender][token] = sub(userTotalBalances[msg.sender][token], amount);
         }
-        return success;
     }
 
     function getBalance(
@@ -368,13 +327,9 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         )
         external
         view
-        returns (
-            uint /* available */
-        )
+        returns (uint)
     {
-        uint available = userAvailableBalances[user][token];
-
-        return available;
+        return userAvailableBalances[user][token];
     }
 
     function getApproval(
@@ -401,7 +356,7 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         )
         external
         whenRunning
-        isOedax
+        onlyOedax
         returns (uint auctionId)
     {
         auctionId = getNextAuctionId();

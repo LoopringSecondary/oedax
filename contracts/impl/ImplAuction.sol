@@ -170,7 +170,7 @@ contract ImplAuction is IAuction, MathLib, DataHelper, IAuctionEvents, IParticip
     ITreasury   public treasury;
     address     public curve;
 
-    modifier isOedax() {
+    modifier onlyOedax() {
         require(msg.sender == address(oedax), "unauthorized");
         _;
     }
