@@ -21,6 +21,7 @@ import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 import "./BytesToTypes.sol";
 
+// REVIEW? 感觉这个应该是个Library而不是一个contract。
 contract DataHelper is BytesToTypes, IAuctionData {
 
     function curveParamsToBytes(
