@@ -503,7 +503,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
 
         require(
             auctionAddr != address(0x0),
-            "auction not correct!"
+            "auction not correct"
         );
 
         return cloneAuction(
@@ -533,7 +533,7 @@ contract ImplOedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents 
         );
         require(
             IAuction(auctionAddr).status() >= Status.CLOSED,
-            "only closed auction can be cloned!"
+            "only closed auction can be cloned"
         );
 
         AuctionSettings memory auctionSettings = bytesToAuctionSettings(

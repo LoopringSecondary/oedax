@@ -33,7 +33,7 @@ contract ImplTreasury is ITreasury, Ownable {
     bool    public terminated;
 
     modifier whenRunning() {
-        require(terminated == false, "already terminated!");
+        require(terminated == false, "already terminated");
         _;
     }
 
@@ -41,7 +41,7 @@ contract ImplTreasury is ITreasury, Ownable {
         require(
             auctionAddressMap[msg.sender] != 0 ||
             msg.sender == oedax,
-            "The address is not oedax auction contract!"
+            "The address is not oedax auction contract"
         );
         _;
     }
@@ -67,7 +67,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             oedax == address(0x0),
-            "Oedax could only be set once!"
+            "Oedax could only be set once"
         );
         oedax = _oedax;
     }
@@ -146,10 +146,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
 
         uint id = auctionAddressMap[msg.sender];
-        require(
-            id > 0,
-            "address not correct"
-        );
+        require(id > 0, "address not correct");
 
         userLockedBalances[user][id][token] = userLockedBalances[user][id][token].sub(amount);
         userTotalBalances[user][token] = userTotalBalances[user][token].sub(amount);
@@ -177,10 +174,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
 
         uint id = auctionAddressMap[msg.sender];
-        require(
-            id > 0,
-            "address not correct"
-        );
+        require(id > 0, "address not correct");
 
         contractLockedBalances[msg.sender][token] = contractLockedBalances[msg.sender][token].sub(amount);
 
@@ -201,7 +195,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             amount <= userAvailableBalances[user][token],
-            "not enough token"
+            "insuffcient balance"
         );
 
         uint id = auctionAddressMap[msg.sender];
@@ -223,7 +217,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             amount <= userAvailableBalances[user][token],
-            "not enough token"
+            "insuffcient balance"
         );
 
         uint id = auctionAddressMap[auctionAddr];
@@ -246,7 +240,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             amount <= userLockedBalances[user][auctionAddressMap[msg.sender]][token],
-            "not enough token"
+            "insuffcient balance"
         );
         uint id = auctionAddressMap[msg.sender];
         userAvailableBalances[user][token] = userAvailableBalances[user][token].add(amount);
@@ -289,7 +283,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             amount <= userAvailableBalances[msg.sender][token],
-            "Not enough token!"
+            "insuffcient balance"
         );
         successful = token.safeTransfer(
             msg.sender,
@@ -386,7 +380,7 @@ contract ImplTreasury is ITreasury, Ownable {
     {
         require(
             terminated == true,
-            "contract should be terminated!"
+            "contract should be terminated"
         );
         address token;
         for (uint i = 0; i < tokens.length; i++) {
