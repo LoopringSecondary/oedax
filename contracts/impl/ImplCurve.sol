@@ -136,7 +136,7 @@ contract ImplCurve is ICurve, DataHelper {
         cP.S = S;
         cP.a = MathUint.mul(1e18, 100);
         cP.b = MathUint.mul(1e18, S.mul(M)) / M.sub(1);
-        cP.c = MathUint.mul(1e18, 100.add(S));
+        cP.c = MathUint.mul(1e18, S.add(100));
         cP.d = MathUint.mul(1e18, S) / M.sub(1);
 
         cP.askToken = askToken;
