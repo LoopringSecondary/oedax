@@ -97,8 +97,8 @@ contract IAuctionData {
     struct AuctionSettings {
 
         address creator;
-        uint    auctionID;
-        uint    curveID;
+        uint    auctionId;
+        uint    curveId;
         uint    startedTimestamp;   // Timestamp when this auction is started.
     }
 }

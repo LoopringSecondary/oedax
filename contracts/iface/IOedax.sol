@@ -89,7 +89,7 @@ contract IOedax is IAuctionData{
 
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
-        uint auctionID,
+        uint auctionId,
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount

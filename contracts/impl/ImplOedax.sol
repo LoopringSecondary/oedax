@@ -42,9 +42,7 @@ interface ICurve {
         uint P
     )
         external
-        returns (
-            uint curveId
-        );
+        returns (uint curveId);
 }
 
 contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOedaxEvents {
@@ -130,7 +128,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         if (events == 1) {
             emit AuctionCreated(
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionInfo.delaySeconds,
                 auctionInfo.P,
@@ -145,7 +143,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         if (events == 2) {
             emit AuctionOpened (
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
             );
@@ -154,7 +152,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         if (events == 3) {
             emit AuctionConstrained(
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
@@ -167,7 +165,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         if (events == 4) {
             emit AuctionClosed(
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
@@ -181,7 +179,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         if (events == 5) {
             emit AuctionSettled (
                 auctionSettings.creator,
-                auctionSettings.auctionID,
+                auctionSettings.auctionId,
                 msg.sender,
                 block.timestamp
             );
@@ -488,7 +486,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
 
     // /@dev clone an auction from existing auction using its id
     function cloneAuction(
-        uint auctionID,
+        uint auctionId,
         uint delaySeconds,
         uint initialAskAmount,
         uint initialBidAmount
@@ -501,7 +499,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         )
     {
         address auctionAddr;
-        auctionAddr = treasury.auctionIdMap(auctionID);
+        auctionAddr = treasury.auctionIdMap(auctionId);
         require(
             auctionAddr != address(0x0),
             "auction not correct!"
@@ -555,7 +553,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         auctionInfo.P = IAuction(auctionAddr).getActualPrice();
 
         uint cid = ICurve(curve).cloneCurve(
-            auctionSettings.curveID,
+            auctionSettings.curveId,
             auctionInfo.T,
             auctionInfo.P
         );

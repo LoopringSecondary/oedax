@@ -142,8 +142,8 @@ contract DataHelper is BytesToTypes, IAuctionData {
         bytes memory res;
         res = abi.encodePacked(
             auctionSettings.creator,
-            auctionSettings.auctionID,
-            auctionSettings.curveID,
+            auctionSettings.auctionId,
+            auctionSettings.curveId,
             auctionSettings.startedTimestamp
         );
         return res;
@@ -255,8 +255,8 @@ contract DataHelper is BytesToTypes, IAuctionData {
         );
 
         auctionSettings.creator = bytesToAddress(20, b);
-        auctionSettings.auctionID = bytesToUint256(52, b);
-        auctionSettings.curveID = bytesToUint256(84, b);
+        auctionSettings.auctionId = bytesToUint256(52, b);
+        auctionSettings.curveId = bytesToUint256(84, b);
         auctionSettings.startedTimestamp = bytesToUint256(116, b);
     }
 

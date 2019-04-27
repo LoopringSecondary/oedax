@@ -54,12 +54,12 @@ contract ITreasury {
             uint[] memory
         );
 
-    // auctionID递增，用于创建拍卖时获得ID
+    // auctionId递增，用于创建拍卖时获得Id
     function getNextAuctionId()
         public
         view
         returns (
-            uint /* auctionID */
+            uint /* auctionId */
         );
 
     // 拍卖结束时统一结算用户应得的Token数量，由于操作较为复杂
@@ -199,7 +199,7 @@ contract ITreasury {
     // This method can only be called once.
     function terminate() external;
 
-    // 合约中用户参与的拍卖ID以及有余额的Token较为复杂
+    // 合约中用户参与的拍卖Id以及有余额的Token较为复杂
     // 暂时决定方案时，紧急情况下用户可以提走自己所有的余额
     // token列表可查询，也可自己给出
     function withdrawWhenTerminated(

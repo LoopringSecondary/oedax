@@ -93,12 +93,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
         public
         view
         returns (
-            uint /* auctionID */
+            uint /* auctionId */
         )
     {
-        uint auctionID;
-        auctionID = auctionAmount + 1;
-        return auctionID;
+        uint auctionId;
+        auctionId = auctionAmount + 1;
+        return auctionId;
     }
 
     // 把两个Token的锁仓全部换成新的amount
@@ -413,12 +413,12 @@ contract ImplTreasury is ITreasury, Ownable, MathLib {
             uint /*   id      */
         )
     {
-        uint auctionID = getNextAuctionId();
-        auctionAddressMap[auction] = auctionID;
-        auctionIdMap[auctionID] = auction;
-        auctionCreatorMap[creator].push(auctionID);
+        uint auctionId = getNextAuctionId();
+        auctionAddressMap[auction] = auctionId;
+        auctionIdMap[auctionId] = auction;
+        auctionCreatorMap[creator].push(auctionId);
         auctionAmount += 1;
-        return (true, auctionID);
+        return (true, auctionId);
     }
 
     // In case of an high-risk bug, the admin can return all tokens, including those locked in
