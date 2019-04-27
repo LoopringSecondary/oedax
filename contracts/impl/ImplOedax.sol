@@ -27,7 +27,7 @@ import "../iface/IAuction.sol";
 import "../helper/DataHelper.sol";
 import "../iface/ICurveData.sol";
 
-// TODO(weikang): why define another contract called ICurve?
+// REVIEW? why define another contract called ICurve?
 interface ICurve {
     function getCurveBytes(
         uint cid
@@ -94,6 +94,7 @@ contract ImplOedax is IOedax, Ownable, MathLib, DataHelper, IAuctionEvents, IOed
         );
     }
 
+    // REVIEW? use event1 & event2 here as the avalue for `events` to support multiple event logging.
     function logEvents(
         uint events
         )
