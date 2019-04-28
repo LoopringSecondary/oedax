@@ -830,7 +830,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
 
         uint realAmount = amount;
 
-        newParticipation(token, int(amount));
+        
 
         if (status == Status.CONSTRAINED)
         {
@@ -847,6 +847,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
             }
         }
 
+        newParticipation(token, int(amount));
         // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
         treasury.auctionDeposit(
@@ -1334,6 +1335,9 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
             toWithdraw = bidAmount[msg.sender].min(auctionState.bidWithdrawalLimit);
         }
 
+        if (toWithdraw == 0){
+            return 0;
+        }
         // 成功取出的Token数量，录入新的参与记录
         newParticipation(token, -int(toWithdraw));
 

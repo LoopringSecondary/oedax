@@ -44,7 +44,7 @@ contract AuctionFactory is Ownable, DataHelper {
         public
         onlyOwner
     {
-        require(oedax != address(0x0), "zero address");
+        require(oedax == address(0x0), "oedax could be set only once");
         oedax = _oedax;
     }
 
