@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
  * @dev The BytesToTypes contract converts the memory byte arrays to the standard solidity types
   */
 
-// REVIEW? 感觉这个应该是个Library而不是一个contract。
+// REVIEW? 感觉这个应该是个Library而不是一个contract。 -- Library不可以继承
 contract BytesToTypes {
     function bytesToAddress(
         uint          offset,

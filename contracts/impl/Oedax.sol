@@ -28,7 +28,7 @@ import "../iface/IAuction.sol";
 import "../iface/ICurveData.sol";
 
 
-// REVIEW? why define another contract called ICurve?
+// REVIEW? why define another contract called ICurve? - 因为bytecode原因，之前做法是直接继承ICurve
 interface ICurve {
     function getCurveBytes(uint cid)
         external
@@ -95,7 +95,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         );
     }
 
-    // REVIEW？ 这个方法也应该是Internal的
+    // REVIEW？ 这个方法也应该是Internal的 - 这个用于拍卖子合约同步状态，Oedax合约内部不可能得到Auction合约信息
     function emitEvent(
         uint events
         )
@@ -104,9 +104,9 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         emitEvent(events, msg.sender);
     }
 
-    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
+    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）； 
     // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
-
+    // 这里函数的设置用于creatorAuction时进行emit操作
     function emitEvent(
         uint events,
         address auctionAddr
@@ -188,7 +188,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         }
     }
 
-    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
+    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。 - 这个函数为调试方便所设置，后期可以考虑删除
     // 这个规则也适用于其他所有文件。
     function setAuctionFactory(
         address addr
@@ -231,7 +231,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         treasury.registerAuction(auctionAddr, msg.sender);
 
         // REVIEW? 这个合约里面，只需要emit AuctionCreated事件，其它Auction事件放到IAuction里面。
-        // 因此可以极大简化这个方法。
+        // 因此可以极大简化这个方法。 -- 此方法可以考虑，在拍卖子合约中，没有必要加入indexed
         emitEvent(1, auctionAddr);
 
         if (initialAskAmount > 0) {
@@ -269,7 +269,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         uint bidDecimals = ERC20(bidToken).decimals();
         uint priceScale;
 
-        // REVIEW? 这个地方绝对需要商榷...
+        // REVIEW? 这个地方绝对需要商榷...， -- 这里可以放宽限制，比如差距在5以内，但是priceScale必须有标准化定义
         require(
             askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals,
             "decimals not correct"
@@ -397,7 +397,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             uint[] memory auctionIds
         )
     {
-        // REVIEW? 这个代码可以极大简化，参考上面的getAuctions方法的实现。无需循环两次。
+        // REVIEW? 这个代码可以极大简化，参考上面的getAuctions方法的实现。无需循环两次。 -- 这里返回数组的长度在一遍循环里无法确认，此方法需要测试
         uint[] memory auctionIds = getAuctions(creator);
         uint len = auctionIds.length;
 

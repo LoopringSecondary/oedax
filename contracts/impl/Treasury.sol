@@ -157,7 +157,7 @@ contract Treasury is ITreasury, Ownable {
     /// 在拍卖结束后，由auction分配
     /// recepient获得相应的抽成，与单个用户无关，整体计算金额
 
-    // REVIEW? This method is missing from the ITreasury interface definition
+    // REVIEW? This method is missing from the ITreasury interface definition -- 此处只能为Oedax调用，在Oedax中已设置接口，可在ITreasury中加入接口
     function sendFeeAll(
         address recepient,
         address token,
@@ -217,7 +217,7 @@ contract Treasury is ITreasury, Ownable {
 
         uint id = auctionAddressMap[auctionAddr];
         //REVIEW? 如果auctionAddr不是一个合法的地址是不是就不应该转账？也就是需要判断id是不是为0。
-
+        // -- 此函数只能Oedax调用，在创建合约时，所以不存在个人调用，id为0的情况
         userAvailableBalances[user][token] = userAvailableBalances[user][token].sub(amount);
         userLockedBalances[user][id][token] = userLockedBalances[user][id][token].add(amount);
         contractLockedBalances[auctionAddr][token] = contractLockedBalances[auctionAddr][token].add(amount);

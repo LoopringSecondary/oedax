@@ -28,7 +28,7 @@ interface IOedax {
 
 contract IAuctionEvents {
 
-    // REVIEW? 下面这些event哪些field是需要index的？
+    // REVIEW? 下面这些event哪些field是需要index的？ -- 无需index，因为不需要索引
     event AuctionOpened (
         uint256         openTime
     );
@@ -232,7 +232,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         }
     }
 
-    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。
+    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。- 有多处重复emit，如此可以与oedax调用emit保持一致
     function emitEvent(uint status)
         internal
     {
@@ -971,7 +971,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
     }
 
     function tokenExchange(
-        uint dir, // REVIEW? what is this?
+        uint dir, // REVIEW? what is this? - The direction of exchange, for the calculation
         uint amount
         )
         internal
@@ -992,7 +992,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
 
     // 仅处理等待队列里的记录，放入到ask/bidAmount中
     function releaseQueue(
-        uint dir, // REVIEW? what is this?
+        uint dir, // ? what is this? - 释放等待队列的方向，即ask或者bid
         uint amount
         )
         internal

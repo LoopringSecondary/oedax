@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 contract IAuctionEvents {
 
     event AuctionCreated(
-        // REVIEW? add this `factory` address.
+        // REVIEW? add this `factory` address. -- 可以考虑加上
         // address         factory,
         address indexed creator,
         uint256 indexed aucitionId,
