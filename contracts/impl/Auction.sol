@@ -17,12 +17,14 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IAuction.sol";
-import "../iface/IOedax.sol";
-import "../iface/ICurve.sol";
-import "../iface/ITreasury.sol";
-import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
+
+import "../iface/IAuction.sol";
+import "../iface/ICurve.sol";
+import "../iface/IOedax.sol";
+import "../iface/ITreasury.sol";
+
+import "../lib/MathUint.sol";
 
 contract Auction is IAuction, DataHelper {
 

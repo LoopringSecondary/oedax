@@ -17,10 +17,12 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../lib/MathUint.sol";
-import "../lib/ERC20.sol";
 import "../helper/DataHelper.sol";
+
 import "../iface/ICurve.sol";
+
+import "../lib/ERC20.sol";
+import "../lib/MathUint.sol";
 
 contract Curve is ICurve, DataHelper {
 

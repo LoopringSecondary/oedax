@@ -17,16 +17,18 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../lib/Ownable.sol";
+import "../helper/DataHelper.sol";
+
+import "../iface/IAuction.sol";
+import "../iface/IAuctionFactory.sol";
+import "../iface/ICurve.sol";
+import "../iface/ICurveData.sol";
+import "../iface/IOedax.sol";
+import "../iface/ITreasury.sol";
+
 import "../lib/ERC20.sol";
 import "../lib/MathUint.sol";
-import "../helper/DataHelper.sol";
-import "../iface/IOedax.sol";
-import "../iface/ICurve.sol";
-import "../iface/ITreasury.sol";
-import "../iface/IAuctionFactory.sol";
-import "../iface/IAuction.sol";
-import "../iface/ICurveData.sol";
+import "../lib/Ownable.sol";
 
 contract Oedax is IOedax, DataHelper, Ownable {
 
