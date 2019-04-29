@@ -374,15 +374,24 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             uint[] memory auctionIds
         )
     {
-        uint[] memory auctions = getAuctions(creator);
+        uint len;
+        uint[] memory index;
+        index = getAuctions(creator);
+        len = index.length;
         address auctionAddr;
-        uint count;
-        for (uint i = 0; i < auctions.length; i++) {
-            auctionAddr = treasury.auctionIdMap(auctions[i]);
-            if (IAuction(auctionAddr).status() == status) {
-                auctionIds[count++] = auctionIds[i];
+        uint count = 0;
+        for (uint i = 0; i < len; i++){
+            auctionAddr = treasury.auctionIdMap(index[i]);
+            if (IAuction(auctionAddr).status() == status){
+                index[count] = index[i];
+                count++;
             }
         }
+        auctionIds = new uint[](count);
+        for (uint i = 0; i < count; i++){
+            auctionIds[i] = index[i];
+        }
+
     }
 
     function getAuctions(
@@ -397,39 +406,31 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             uint[] memory
         )
     {
-        // REVIEW? 这个代码可以极大简化，参考上面的getAuctions方法的实现。无需循环两次。 -- 这里返回数组的长度在一遍循环里无法确认，此方法需要测试
-        uint[] memory auctionIds = getAuctions(creator);
-        uint len = auctionIds.length;
-
+        uint len;
+        uint[] memory index;
+        index = getAuctions(creator);
+        len = index.length;
         address auctionAddr;
         uint cnt = 0;
-
-        for (uint i = 0; i < len; i++) {
-            auctionAddr = treasury.auctionIdMap(auctionIds[i]);
+        for (uint i = 0; i < len; i++){
+            auctionAddr = treasury.auctionIdMap(index[i]);
             if (
-                auctionIds[i] > skip &&
-                auctionIds[i] <= skip.add(count) &&
+                index[i] > skip &&
+                index[i] <= skip.add(count) &&
                 IAuction(auctionAddr).status() == status
             )
             {
+                index[cnt] = index[i];
                 cnt++;
             }
         }
 
-        if (cnt>0) {
-            cnt = 0;
-            for (uint i = 0; i < len; i++) {
-                auctionAddr = treasury.auctionIdMap(auctionIds[i]);
-                if (
-                    auctionIds[i] > skip &&
-                    auctionIds[i] <= skip.add(count) &&
-                    IAuction(auctionAddr).status() == status
-                ) {
-                    auctionIds[cnt] = auctionIds[i];
-                    cnt++;
-                }
-            }
+        uint[] memory auctionIds = new uint[](count);
+        for (uint i = 0; i < cnt; i++){
+            auctionIds[i] = index[i];
         }
+
+        return auctionIds;
     }
 
     /// @dev clone an auction from existing auction using its id
