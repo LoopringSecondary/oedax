@@ -81,20 +81,7 @@ contract Oedax is IOedax, DataHelper, Ownable {
         );
     }
 
-    // REVIEW？ 这个方法也应该是Internal的
-    function emitEvent(
-        uint events
-        )
-        external
-    {
-        emitEvent(events, msg.sender);
-    }
-
-    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
-    // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
-
-    function emitEvent(
-        uint events,
+    function emitAuctionCreatedEvent(
         address auctionAddr
         )
         internal
@@ -117,20 +104,18 @@ contract Oedax is IOedax, DataHelper, Ownable {
             IAuction(auctionAddr).getTokenInfoBytes()
         );
 
-        if (events == 1) {
-            emit AuctionCreated(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionInfo.delaySeconds,
-                auctionInfo.P,
-                tokenInfo.priceScale,
-                auctionInfo.M,
-                auctionInfo.S,
-                auctionInfo.T,
-                auctionInfo.isWithdrawalAllowed
-            );
-        }
+        emit AuctionCreated(
+            auctionSettings.creator,
+            auctionSettings.auctionId,
+            msg.sender,
+            auctionInfo.delaySeconds,
+            auctionInfo.P,
+            tokenInfo.priceScale,
+            auctionInfo.M,
+            auctionInfo.S,
+            auctionInfo.T,
+            auctionInfo.isWithdrawalAllowed
+        );
     }
 
     // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
@@ -177,7 +162,7 @@ contract Oedax is IOedax, DataHelper, Ownable {
 
         // REVIEW? 这个合约里面，只需要emit AuctionCreated事件，其它Auction事件放到IAuction里面。
         // 因此可以极大简化这个方法。
-        emitEvent(1, auctionAddr);
+        emitAuctionCreatedEvent(auctionAddr);
 
         if (initialAskAmount > 0) {
             treasury.initDeposit(
