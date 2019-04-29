@@ -30,7 +30,6 @@ import "../lib/ERC20.sol";
 import "../lib/MathUint.sol";
 import "../lib/Ownable.sol";
 
-// TODO(dong): remove IAuctionEvents
 contract Oedax is IOedax, Ownable {
 
     using MathUint            for uint;
