@@ -24,7 +24,6 @@ import "../iface/ITreasury.sol";
 import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 
-
 contract Auction is IAuction, DataHelper {
 
     using MathUint for uint;
@@ -100,47 +99,10 @@ contract Auction is IAuction, DataHelper {
 
         if (auctionInfo.delaySeconds == 0) {
             status = Status.OPEN;
-            emitEvent(2);
+            emit AuctionOpened(block.timestamp);
         }
     }
 
-    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。
-    function emitEvent(uint status)
-        internal
-    {
-        if (status == 2) {
-            emit AuctionOpened (
-                block.timestamp
-            );
-        }
-
-        if (status == 3) {
-            emit AuctionConstrained(
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp
-            );
-        }
-
-        if (status == 4) {
-            emit AuctionClosed(
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp,
-                true
-            );
-        }
-
-        if (status == 5) {
-            emit AuctionSettled (
-                block.timestamp
-            );
-        }
-    }
 
     function newParticipation(
         address token,
@@ -350,15 +312,7 @@ contract Auction is IAuction, DataHelper {
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            /*
-            emit AuctionOpened (
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
-                block.timestamp
-            );
-            */
-            emitEvent(2);
+            emit AuctionOpened (block.timestamp);
         }
 
         if (status == Status.OPEN &&
@@ -368,19 +322,13 @@ contract Auction is IAuction, DataHelper {
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            /*
             emit AuctionConstrained(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
                 auctionState.actualPrice,
                 block.timestamp
             );
-            */
-            emitEvent(3);
         }
 
         if (now == lastSynTime || status != Status.CONSTRAINED) {
@@ -394,11 +342,7 @@ contract Auction is IAuction, DataHelper {
 
         if (auctionState.askPrice <= auctionState.bidPrice) {
             status = Status.CLOSED;
-            /*
             emit AuctionClosed(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
@@ -406,8 +350,6 @@ contract Auction is IAuction, DataHelper {
                 block.timestamp,
                 true
             );
-            */
-            emitEvent(4);
         }
         updateLimits();
     }
@@ -691,7 +633,7 @@ contract Auction is IAuction, DataHelper {
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            emitEvent(2);
+            emit AuctionOpened(block.timestamp);
         }
 
         require(
@@ -1148,7 +1090,13 @@ contract Auction is IAuction, DataHelper {
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            emitEvent(3);
+            emit AuctionConstrained(
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                block.timestamp
+            );
         }
 
         //updateLimits();
@@ -1382,16 +1330,7 @@ contract Auction is IAuction, DataHelper {
         );
         // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
-
-        /*
-        emit AuctionSettled (
-            auctionSettings.creator,
-            auctionSettings.auctionId,
-            address(this),
-            block.timestamp
-        );
-        */
-        emitEvent(5);
+        emit AuctionSettled(block.timestamp);
     }
 
     /// @dev Get participations from a given address.

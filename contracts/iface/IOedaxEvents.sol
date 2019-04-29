@@ -22,7 +22,20 @@ pragma experimental ABIEncoderV2;
 
 contract IOedaxEvents {
 
-
+    event AuctionCreated(
+        // REVIEW? add this `factory` address.
+        // address         factory,
+        address indexed creator,
+        uint256 indexed aucitionId,
+        address indexed aucitionAddress,
+        uint256         delaySeconds,
+        uint256         targetPrice,
+        uint256         priceScale,
+        uint256         scaleFactor,
+        uint256         shapeFactor,
+        uint256         durationSeconds,
+        bool            isWithdrawalAllowed
+    );
 
     event FeeSettingsUpdated (
         address indexed recepient,

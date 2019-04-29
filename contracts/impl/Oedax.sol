@@ -129,47 +129,6 @@ contract Oedax is IOedax, DataHelper, Ownable {
                 auctionInfo.isWithdrawalAllowed
             );
         }
-
-        // if (events == 2) {
-        //     emit AuctionOpened (
-        //         auctionSettings.auctionId,
-        //         msg.sender,
-        //         block.timestamp
-        //     );
-        // }
-
-        // if (events == 3) {
-        //     emit AuctionConstrained(
-        //         auctionSettings.auctionId,
-        //         msg.sender,
-        //         auctionState.totalAskAmount,
-        //         auctionState.totalBidAmount,
-        //         tokenInfo.priceScale,
-        //         auctionState.actualPrice,
-        //         block.timestamp
-        //     );
-        // }
-
-        // if (events == 4) {
-        //     emit AuctionClosed(
-        //         auctionSettings.auctionId,
-        //         msg.sender,
-        //         auctionState.totalAskAmount,
-        //         auctionState.totalBidAmount,
-        //         tokenInfo.priceScale,
-        //         auctionState.actualPrice,
-        //         block.timestamp,
-        //         true
-        //     );
-        // }
-
-        // if (events == 5) {
-        //     emit AuctionSettled (
-        //         auctionSettings.auctionId,
-        //         msg.sender,
-        //         block.timestamp
-        //     );
-        // }
     }
 
     // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
