@@ -1502,25 +1502,25 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.creationFeeEth
+            auctionState.totalAskAmount*feeSettings.creationFeeEth/10000
         );
 
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.creationFeeEth
+            auctionState.totalBidAmount*feeSettings.creationFeeEth/10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.protocolBips
+            auctionState.totalAskAmount*feeSettings.protocolBips/10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.protocolBips
+            auctionState.totalBidAmount*feeSettings.protocolBips/10000
         );
         // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
