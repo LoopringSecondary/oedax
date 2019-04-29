@@ -19,10 +19,11 @@ pragma experimental ABIEncoderV2;
 
 import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
-import "./BytesToTypes.sol";
+import "./BytesUtil.sol";
 
-// REVIEW? 感觉这个应该是个Library而不是一个contract。
-contract DataHelper is BytesToTypes, IAuctionData {
+contract DataHelper {
+
+    using BytesUtil for bytes;
 
     function curveParamsToBytes(
         ICurveData.CurveParams memory curveParams
@@ -48,7 +49,7 @@ contract DataHelper is BytesToTypes, IAuctionData {
     }
 
     function auctionInfoToBytes(
-        AuctionInfo memory auctionInfo
+        IAuctionData.AuctionInfo memory auctionInfo
         )
         internal
         pure
@@ -142,90 +143,90 @@ contract DataHelper is BytesToTypes, IAuctionData {
         internal
         pure
         returns (
-            AuctionInfo memory auctionInfo
+            IAuctionData.AuctionInfo memory auctionInfo
         )
     {
         require(b.length == 226, "invalid argument size");
 
-        auctionInfo.P = bytesToUint256(32, b);
-        auctionInfo.M = bytesToUint256(64, b);
-        auctionInfo.S = bytesToUint256(96, b);
-        auctionInfo.T = bytesToUint256(128, b);
-        auctionInfo.delaySeconds = bytesToUint256(160, b);
-        auctionInfo.maxAskAmountPerAddr = bytesToUint256(192, b);
-        auctionInfo.maxBidAmountPerAddr = bytesToUint256(224, b);
-        auctionInfo.isWithdrawalAllowed = bytesToBool(225, b);
-        auctionInfo.isTakerFeeDisabled = bytesToBool(226, b);
+        auctionInfo.P = b.getUint256(32);
+        auctionInfo.M = b.getUint256(64);
+        auctionInfo.S = b.getUint256(96);
+        auctionInfo.T = b.getUint256(128);
+        auctionInfo.delaySeconds = b.getUint256(160);
+        auctionInfo.maxAskAmountPerAddr = b.getUint256(192);
+        auctionInfo.maxBidAmountPerAddr = b.getUint256(224);
+        auctionInfo.isWithdrawalAllowed = b.getBool(225);
+        auctionInfo.isTakerFeeDisabled = b.getBool(226);
     }
 
     function bytesToFeeSettings(bytes memory b)
         internal
         pure
         returns (
-            FeeSettings memory feeSettings
+            IAuctionData.FeeSettings memory feeSettings
         )
     {
         require(b.length == 180, "invalid argument size");
 
-        feeSettings.recepient = bytesToAddress(20, b);
-        feeSettings.creationFeeEth = bytesToUint256(52, b);
-        feeSettings.protocolBips = bytesToUint256(84, b);
-        feeSettings.walletBipts = bytesToUint256(116, b);
-        feeSettings.takerBips = bytesToUint256(148, b);
-        feeSettings.withdrawalPenaltyBips = bytesToUint256(180, b);
+        feeSettings.recepient = b.getAddress(20);
+        feeSettings.creationFeeEth = b.getUint256(52);
+        feeSettings.protocolBips = b.getUint256(84);
+        feeSettings.walletBipts = b.getUint256(116);
+        feeSettings.takerBips = b.getUint256(148);
+        feeSettings.withdrawalPenaltyBips = b.getUint256(180);
     }
 
     function bytesToTokenInfo(bytes memory b)
         internal
         pure
         returns (
-            TokenInfo memory tokenInfo
+            IAuctionData.TokenInfo memory tokenInfo
         )
     {
         require(b.length == 136, "invalid argument size");
 
-        tokenInfo.askToken = bytesToAddress(20, b);
-        tokenInfo.bidToken = bytesToAddress(40, b);
-        tokenInfo.askDecimals = bytesToUint256(72, b);
-        tokenInfo.bidDecimals = bytesToUint256(104, b);
-        tokenInfo.priceScale = bytesToUint256(136, b);
+        tokenInfo.askToken = b.getAddress(20);
+        tokenInfo.bidToken = b.getAddress(40);
+        tokenInfo.askDecimals = b.getUint256(72);
+        tokenInfo.bidDecimals = b.getUint256(104);
+        tokenInfo.priceScale = b.getUint256(136);
     }
 
     function bytesToAuctionState(bytes memory b)
         internal
         pure
         returns (
-            AuctionState memory auctionState
+            IAuctionData.AuctionState memory auctionState
         )
     {
         require(b.length == 384, "invalid argument size");
 
-        auctionState.askPrice = bytesToUint256(32, b);
-        auctionState.bidPrice = bytesToUint256(64, b);
-        auctionState.actualPrice = bytesToUint256(96, b);
-        auctionState.totalAskAmount = bytesToUint256(128, b);
-        auctionState.totalBidAmount = bytesToUint256(160, b);
-        auctionState.estimatedTTLSeconds = bytesToUint256(192, b);
-        auctionState.queuedAskAmount = bytesToUint256(224, b);
-        auctionState.queuedBidAmount = bytesToUint256(256, b);
-        auctionState.askDepositLimit = bytesToUint256(288, b);
-        auctionState.bidDepositLimit = bytesToUint256(320, b);
-        auctionState.askWithdrawalLimit = bytesToUint256(352, b);
-        auctionState.bidWithdrawalLimit = bytesToUint256(384, b);
+        auctionState.askPrice = b.getUint256(32);
+        auctionState.bidPrice = b.getUint256(64);
+        auctionState.actualPrice = b.getUint256(96);
+        auctionState.totalAskAmount = b.getUint256(128);
+        auctionState.totalBidAmount = b.getUint256(160);
+        auctionState.estimatedTTLSeconds = b.getUint256(192);
+        auctionState.queuedAskAmount = b.getUint256(224);
+        auctionState.queuedBidAmount = b.getUint256(256);
+        auctionState.askDepositLimit = b.getUint256(288);
+        auctionState.bidDepositLimit = b.getUint256(320);
+        auctionState.askWithdrawalLimit = b.getUint256(352);
+        auctionState.bidWithdrawalLimit = b.getUint256(384);
     }
 
     function bytesToAuctionSettings(bytes memory b)
         internal
         pure
         returns (
-            AuctionSettings memory auctionSettings
+            IAuctionData.AuctionSettings memory auctionSettings
         )
     {
         require(b.length == 116, "invalid argument size");
-        auctionSettings.creator = bytesToAddress(20, b);
-        auctionSettings.auctionId = bytesToUint256(52, b);
-        auctionSettings.curveId = bytesToUint256(84, b);
-        auctionSettings.startedTimestamp = bytesToUint256(116, b);
+        auctionSettings.creator = b.getAddress(20);
+        auctionSettings.auctionId = b.getUint256(52);
+        auctionSettings.curveId = b.getUint256(84);
+        auctionSettings.startedTimestamp = b.getUint256(116);
     }
 
     function bytesToCurveParams(bytes memory b)
@@ -237,17 +238,17 @@ contract DataHelper is BytesToTypes, IAuctionData {
     {
         require(b.length == 360, "invalid argument size");
 
-        curveParams.askToken = bytesToAddress(20, b);
-        curveParams.bidToken = bytesToAddress(40, b);
-        curveParams.T = bytesToUint256(72, b);
-        curveParams.P = bytesToUint256(104, b);
-        curveParams.priceScale = bytesToUint256(136, b);
-        curveParams.M = bytesToUint256(168, b);
-        curveParams.S = bytesToUint256(200, b);
-        curveParams.a = bytesToUint256(232, b);
-        curveParams.b = bytesToUint256(264, b);
-        curveParams.c = bytesToUint256(296, b);
-        curveParams.d = bytesToUint256(328, b);
-        curveParams.curveName = bytes32(bytesToUint256(360, b));
+        curveParams.askToken = b.getAddress(20);
+        curveParams.bidToken = b.getAddress(40);
+        curveParams.T = b.getUint256(72);
+        curveParams.P = b.getUint256(104);
+        curveParams.priceScale = b.getUint256(136);
+        curveParams.M = b.getUint256(168);
+        curveParams.S = b.getUint256(200);
+        curveParams.a = b.getUint256(232);
+        curveParams.b = b.getUint256(264);
+        curveParams.c = b.getUint256(296);
+        curveParams.d = b.getUint256(328);
+        curveParams.curveName = bytes32(b.getUint256(360));
     }
 }

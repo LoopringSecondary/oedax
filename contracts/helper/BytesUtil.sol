@@ -18,15 +18,14 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 /**
- * @title BytesToTypes
- * @dev The BytesToTypes contract converts the memory byte arrays to the standard solidity types
+ * @title BytesUtil
+ * @dev The BytesUtil contract converts the memory byte arrays to the standard solidity types
   */
 
-// REVIEW? 感觉这个应该是个Library而不是一个contract。
-contract BytesToTypes {
-    function bytesToAddress(
-        uint          offset,
-        bytes memory  input
+library BytesUtil {
+    function getAddress(
+        bytes memory  input,
+        uint          offset
         )
         internal
         pure
@@ -37,9 +36,9 @@ contract BytesToTypes {
         }
     }
 
-    function bytesToBool(
-        uint          offset,
-        bytes memory  input
+    function getBool(
+        bytes memory  input,
+        uint          offset
         )
         internal
         pure
@@ -52,9 +51,9 @@ contract BytesToTypes {
         return (x == 0);
     }
 
-    function bytesToUint256(
-        uint          offset,
-        bytes memory  input
+    function getUint256(
+        bytes memory  input,
+        uint          offset
         )
         internal
         pure

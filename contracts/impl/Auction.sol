@@ -28,30 +28,29 @@ interface IOedax {
 
 contract IAuctionEvents {
 
-    // REVIEW? 下面这些event哪些field是需要index的？
     event AuctionOpened (
-        uint256         openTime
+        uint256 openTime
     );
 
     event AuctionConstrained(
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         actualPrice,
-        uint256         constrainedTime
+        uint256 totalAskAmount,
+        uint256 totalBidAmount,
+        uint256 priceScale,
+        uint256 actualPrice,
+        uint256 constrainedTime
     );
 
     event AuctionClosed(
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         closePrice,
-        uint256         closeTime,
-        bool            canSettle
+        uint256 totalAskAmount,
+        uint256 totalBidAmount,
+        uint256 priceScale,
+        uint256 closePrice,
+        uint256 closeTime,
+        bool    canSettle
     );
 
     event AuctionSettled (
-        uint256         settleTime
+        uint256 settleTime
     );
 }
 
