@@ -22,7 +22,7 @@ import "./IOedaxEvents.sol";
 
 contract IOedax is IOedaxEvents, IAuctionData {
 
-    function emitEvent(uint status)
+    function setAuctionFactory(address addr)
         external;
 
     // Initiate an auction

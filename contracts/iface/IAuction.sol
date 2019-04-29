@@ -21,6 +21,7 @@ import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
 
 contract IAuction is IAuctionData, IAuctionEvents {
+
     struct Participation {
         uint    index;             // start from 0
         address user;

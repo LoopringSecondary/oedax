@@ -17,15 +17,15 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/IAuctionFactory.sol";
 
 import "../impl/Auction.sol";
 
-import "../lib/Ownable.sol";
+contract AuctionFactory {
 
-contract AuctionFactory is Ownable, DataHelper {
+    using SerializationHelper for bytes;
 
     address public oedax;
     address public treasury;
@@ -35,20 +35,17 @@ contract AuctionFactory is Ownable, DataHelper {
         _;
     }
 
-    constructor(address _treasury)
+    constructor(
+        address _treasury,
+        address _oedax
+        )
         public
     {
-        owner = msg.sender;
-        oedax = address(0x0);
-        treasury = _treasury;
-    }
+        require(_oedax != address(0x0), "zero address");
+        require(_treasury != address(0x0), "zero address");
 
-    function setOedax(address _oedax)
-        public
-        onlyOwner
-    {
-        require(oedax != address(0x0), "zero address");
         oedax = _oedax;
+        treasury = _treasury;
     }
 
     function createAuction(
@@ -74,9 +71,9 @@ contract AuctionFactory is Ownable, DataHelper {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bytesToFeeSettings(bFeeS),
-            bytesToTokenInfo(bTokenInfo),
-            bytesToAuctionInfo(bAuctionInfo),
+            bFeeS.toFeeSettings(),
+            bTokenInfo.toTokenInfo(),
+            bAuctionInfo.toAuctionInfo(),
             id,
             creator
         );

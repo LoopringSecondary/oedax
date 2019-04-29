@@ -17,7 +17,7 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/IAuction.sol";
 import "../iface/ICurve.sol";
@@ -26,9 +26,14 @@ import "../iface/ITreasury.sol";
 
 import "../lib/MathUint.sol";
 
-contract Auction is IAuction, DataHelper {
+contract Auction is IAuction {
 
-    using MathUint for uint;
+    using MathUint            for uint;
+    using SerializationHelper for IAuctionData.AuctionInfo;
+    using SerializationHelper for IAuctionData.AuctionSettings;
+    using SerializationHelper for IAuctionData.AuctionState;
+    using SerializationHelper for IAuctionData.FeeSettings;
+    using SerializationHelper for IAuctionData.TokenInfo;
 
     mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
 
@@ -508,7 +513,7 @@ contract Auction is IAuction, DataHelper {
         view
         returns (bytes memory)
     {
-        return auctionSettingsToBytes(getAuctionSettings());
+        return getAuctionSettings().toBytes();
     }
 
     function getAuctionStateBytes()
@@ -516,7 +521,7 @@ contract Auction is IAuction, DataHelper {
         view
         returns (bytes memory)
     {
-        return auctionStateToBytes(auctionState);
+        return auctionState.toBytes();
     }
 
     function getAuctionBytes()
@@ -524,7 +529,7 @@ contract Auction is IAuction, DataHelper {
         view
         returns (bytes memory)
     {
-        return auctionInfoToBytes(auctionInfo);
+        return auctionInfo.toBytes();
     }
 
     function getTokenInfoBytes()
@@ -532,7 +537,7 @@ contract Auction is IAuction, DataHelper {
         view
         returns (bytes memory)
     {
-        return tokenInfoToBytes(tokenInfo);
+        return tokenInfo.toBytes();
     }
 
     function getFeeSettingsBytes()
@@ -540,7 +545,7 @@ contract Auction is IAuction, DataHelper {
         view
         returns (bytes memory)
     {
-        return feeSettingsToBytes(feeSettings);
+        return feeSettings.toBytes();
     }
 
     function calcAskPrice(uint t)
