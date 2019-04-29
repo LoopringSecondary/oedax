@@ -53,9 +53,9 @@ contract AuctionFactory {
         uint            curveId,
         uint            initialAskAmount,   // The initial amount of tokenA from the creator's account.
         uint            initialBidAmount,   // The initial amount of tokenB from the creator's account.
-        bytes  memory   bFeeS,
-        bytes  memory   bTokenInfo,
-        bytes  memory   bAuctionInfo,
+        bytes  memory   feeSettingsBytes,
+        bytes  memory   tokenInfoBytes,
+        bytes  memory   auctionInfoBytes,
         uint            id,
         address         creator
         )
@@ -71,9 +71,9 @@ contract AuctionFactory {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bFeeS.toFeeSettings(),
-            bTokenInfo.toTokenInfo(),
-            bAuctionInfo.toAuctionInfo(),
+            feeSettingsBytes.toFeeSettings(),
+            tokenInfoBytes.toTokenInfo(),
+            auctionInfoBytes.toAuctionInfo(),
             id,
             creator
         );
