@@ -1343,6 +1343,8 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
 
         uint penaltyBips = feeSettings.withdrawalPenaltyBips;
         uint realAmount = toWithdraw;
+        
+  
 
         if (penaltyBips > 0) {
             realAmount = realAmount - amount*penaltyBips/10000;
@@ -1360,12 +1362,21 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
             realAmount
         );
 
+
+      // 更新takerFee
+        uint toDecrease;
         uint action;
         if (token == tokenInfo.askToken) {
             action = 3;
+            toDecrease = takerRateA[msg.sender]*toWithdraw/askAmount[msg.sender];
+            takerRateA[msg.sender] = takerRateA[msg.sender].sub(toDecrease);
+            totalTakerRateA = totalTakerRateA.sub(toDecrease);
         }
         if (token == tokenInfo.bidToken) {
             action = 4;
+            toDecrease = takerRateB[msg.sender]*toWithdraw/bidAmount[msg.sender];
+            takerRateB[msg.sender] = takerRateB[msg.sender].sub(toDecrease);
+            totalTakerRateB = totalTakerRateB.sub(toDecrease);
         }
 
         updateAfterAction(action, toWithdraw);
