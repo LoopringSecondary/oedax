@@ -25,6 +25,8 @@ import "../lib/ERC20SafeTransfer.sol";
 import "../lib/MathUint.sol";
 import "../lib/Ownable.sol";
 
+
+// REVIEW? Treasury 肯定不能是Ownable，否则谁还敢用这个拍卖协议！
 contract Treasury is ITreasury, Ownable {
 
     using ERC20SafeTransfer for address;
