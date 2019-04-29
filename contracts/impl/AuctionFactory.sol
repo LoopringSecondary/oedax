@@ -17,7 +17,7 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/IAuctionFactory.sol";
 
@@ -27,7 +27,7 @@ import "../lib/Ownable.sol";
 
 contract AuctionFactory is Ownable {
 
-    using DataHelper for bytes;
+    using SerializationHelper for bytes;
 
     address public oedax;
     address public treasury;

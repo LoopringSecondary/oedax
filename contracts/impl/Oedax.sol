@@ -17,7 +17,7 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/IAuction.sol";
 import "../iface/IAuctionFactory.sol";
@@ -33,12 +33,12 @@ import "../lib/Ownable.sol";
 // TODO(dong): remove IAuctionEvents
 contract Oedax is IOedax, Ownable {
 
-    using MathUint   for uint;
-    using DataHelper for bytes;
-    using DataHelper for IAuctionData.AuctionInfo;
-    using DataHelper for IAuctionData.AuctionState;
-    using DataHelper for IAuctionData.FeeSettings;
-    using DataHelper for IAuctionData.TokenInfo;
+    using MathUint            for uint;
+    using SerializationHelper for bytes;
+    using SerializationHelper for IAuctionData.AuctionInfo;
+    using SerializationHelper for IAuctionData.AuctionState;
+    using SerializationHelper for IAuctionData.FeeSettings;
+    using SerializationHelper for IAuctionData.TokenInfo;
 
     ITreasury       public treasury;
     ICurve          public curve;

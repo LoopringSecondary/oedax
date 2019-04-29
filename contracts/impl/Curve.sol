@@ -17,7 +17,7 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/ICurve.sol";
 
@@ -26,11 +26,8 @@ import "../lib/MathUint.sol";
 
 contract Curve is ICurve {
 
-    using DataHelper for ICurveData.CurveParams;
-
-    // REVIEW? 请使用MathUint(参考Auction)
-
-    using MathUint for uint;
+    using MathUint            for uint;
+    using SerializationHelper for ICurveData.CurveParams;
 
     function nameCheck(string memory s)
         internal

@@ -18,11 +18,11 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 /**
- * @title BytesUtil
- * @dev The BytesUtil contract converts the memory byte arrays to the standard solidity types
+ * @title BytesHelper
+ * @dev The BytesHelper contract converts the memory byte arrays to the standard solidity types
   */
 
-library BytesUtil {
+library BytesHelper {
     function getAddress(
         bytes memory  input,
         uint          offset

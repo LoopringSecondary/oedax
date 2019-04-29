@@ -17,7 +17,7 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
 
 import "../iface/IAuction.sol";
 import "../iface/ICurve.sol";
@@ -28,13 +28,12 @@ import "../lib/MathUint.sol";
 
 contract Auction is IAuction {
 
-
-    using MathUint   for uint;
-    using DataHelper for IAuctionData.AuctionInfo;
-    using DataHelper for IAuctionData.AuctionSettings;
-    using DataHelper for IAuctionData.AuctionState;
-    using DataHelper for IAuctionData.FeeSettings;
-    using DataHelper for IAuctionData.TokenInfo;
+    using MathUint            for uint;
+    using SerializationHelper for IAuctionData.AuctionInfo;
+    using SerializationHelper for IAuctionData.AuctionSettings;
+    using SerializationHelper for IAuctionData.AuctionState;
+    using SerializationHelper for IAuctionData.FeeSettings;
+    using SerializationHelper for IAuctionData.TokenInfo;
 
     mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
 

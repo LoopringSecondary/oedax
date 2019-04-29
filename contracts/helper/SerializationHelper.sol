@@ -20,11 +20,11 @@ pragma experimental ABIEncoderV2;
 import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 
-import "./BytesUtil.sol";
+import "./BytesHelper.sol";
 
-library DataHelper {
+library SerializationHelper {
 
-    using BytesUtil for bytes;
+    using BytesHelper for bytes;
 
     function curveParamsToBytes(
         ICurveData.CurveParams memory curveParams
