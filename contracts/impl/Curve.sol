@@ -24,6 +24,8 @@ import "../iface/ICurve.sol";
 
 contract Curve is ICurve, DataHelper {
 
+    using DataHelper for ICurveData.CurveParams;
+
     // REVIEW? 请使用MathUint(参考Auction)
 
     using MathUint for uint;
@@ -181,7 +183,7 @@ contract Curve is ICurve, DataHelper {
         CurveParams memory cP;
         cP = curveParams[cid - 1];
         bytes memory bC;
-        bC = curveParamsToBytes(cP);
+        bC = cP.curveParamsToBytes();
         return bC;
     }
 

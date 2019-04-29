@@ -22,51 +22,28 @@ pragma experimental ABIEncoderV2;
 
 contract IAuctionEvents {
 
-    event AuctionCreated(
-        // REVIEW? add this `factory` address.
-        // address         factory,
-        address indexed creator,
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
-        uint256         delaySeconds,
-        uint256         targetPrice,
-        uint256         priceScale,
-        uint256         scaleFactor,
-        uint256         shapeFactor,
-        uint256         durationSeconds,
-        bool            isWithdrawalAllowed
-    );
-
     event AuctionOpened (
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
-        uint256         openTime
+        uint256 openTime
     );
 
     event AuctionConstrained(
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         actualPrice,
-        uint256         constrainedTime
+        uint256 totalAskAmount,
+        uint256 totalBidAmount,
+        uint256 priceScale,
+        uint256 actualPrice,
+        uint256 constrainedTime
     );
 
     event AuctionClosed(
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         closePrice,
-        uint256         closeTime,
-        bool            canSettle
+        uint256 totalAskAmount,
+        uint256 totalBidAmount,
+        uint256 priceScale,
+        uint256 closePrice,
+        uint256 closeTime,
+        bool    canSettle
     );
 
     event AuctionSettled (
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
-        uint256         settleTime
+        uint256 settleTime
     );
 }

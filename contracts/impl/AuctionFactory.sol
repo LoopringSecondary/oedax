@@ -22,7 +22,9 @@ import "../iface/IAuctionFactory.sol";
 import "../helper/DataHelper.sol";
 import "../lib/Ownable.sol";
 
-contract AuctionFactory is Ownable, DataHelper {
+contract AuctionFactory is Ownable {
+
+    using DataHelper for bytes;
 
     address public oedax;
     address public treasury;
@@ -71,9 +73,9 @@ contract AuctionFactory is Ownable, DataHelper {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bytesToFeeSettings(bFeeS),
-            bytesToTokenInfo(bTokenInfo),
-            bytesToAuctionInfo(bAuctionInfo),
+            bFeeS.bytesToFeeSettings(),
+            bTokenInfo.bytesToTokenInfo(),
+            bAuctionInfo.bytesToAuctionInfo(),
             id,
             creator
         );

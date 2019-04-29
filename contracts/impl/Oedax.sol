@@ -44,9 +44,15 @@ interface ICurve {
         returns (uint curveId);
 }
 
-contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
+// TODO(dong): remove IAuctionEvents
+contract Oedax is IOedax, Ownable {
 
-    using MathUint for uint;
+    using MathUint   for uint;
+    using DataHelper for bytes;
+    using DataHelper for IAuctionData.AuctionInfo;
+    using DataHelper for IAuctionData.AuctionState;
+    using DataHelper for IAuctionData.FeeSettings;
+    using DataHelper for IAuctionData.TokenInfo;
 
     ITreasury       public treasury;
     ICurve          public curve;
@@ -118,18 +124,21 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             "auction does not exist"
         );
 
-        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
-        );
-        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionBytes()
-        );
-        AuctionState memory auctionState = bytesToAuctionState(
-            IAuction(auctionAddr).getAuctionStateBytes()
-        );
-        TokenInfo memory tokenInfo = bytesToTokenInfo(
-            IAuction(auctionAddr).getTokenInfoBytes()
-        );
+        AuctionSettings memory auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .bytesToAuctionSettings();
+
+        AuctionInfo memory auctionInfo = IAuction(auctionAddr)
+            .getAuctionBytes()
+            .bytesToAuctionInfo();
+
+        AuctionState memory auctionState = IAuction(auctionAddr)
+            .getAuctionStateBytes()
+            .bytesToAuctionState();
+
+        TokenInfo memory tokenInfo = IAuction(auctionAddr)
+            .getTokenInfoBytes()
+            .bytesToTokenInfo();
 
         if (events == 1) {
             emit AuctionCreated(
@@ -221,9 +230,9 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            feeSettingsToBytes(feeS),
-            tokenInfoToBytes(tokenInfo),
-            auctionInfoToBytes(auctionInfo),
+            feeS.feeSettingsToBytes(),
+            tokenInfo.tokenInfoToBytes(),
+            auctionInfo.auctionInfoToBytes(),
             auctionId,
             msg.sender
         );
@@ -279,9 +288,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
 
         ICurveData.CurveParams memory cp;
 
-        cp = bytesToCurveParams(
-            curve.getCurveBytes(curveId)
-        );
+        cp = curve.getCurveBytes(curveId).bytesToCurveParams();
 
         require(
             cp.T == info.T &&
@@ -344,12 +351,14 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
     {
         address auctionAddr = treasury.auctionIdMap(id);
         lastSynTime = IAuction(auctionAddr).lastSynTime();
-        auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
-        );
-        auctionState = bytesToAuctionState(
-            IAuction(auctionAddr).getAuctionStateBytes()
-        );
+
+        auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .bytesToAuctionSettings();
+
+        auctionState = IAuction(auctionAddr)
+            .getAuctionStateBytes()
+            .bytesToAuctionState();
     }
 
     function getAuctions(
@@ -482,18 +491,22 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             "only closed auction can be cloned"
         );
 
-        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
-        );
-        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionBytes()
-        );
-        TokenInfo memory tokenInfo = bytesToTokenInfo(
-            IAuction(auctionAddr).getTokenInfoBytes()
-        );
-        FeeSettings memory _feeSettings = bytesToFeeSettings(
-            IAuction(auctionAddr).getFeeSettingsBytes()
-        );
+        AuctionSettings memory auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .bytesToAuctionSettings();
+
+        AuctionInfo memory auctionInfo = IAuction(auctionAddr)
+            .getAuctionBytes()
+            .bytesToAuctionInfo();
+
+        TokenInfo memory tokenInfo = IAuction(auctionAddr)
+            .getTokenInfoBytes()
+            .bytesToTokenInfo();
+
+        FeeSettings memory _feeSettings = IAuction(auctionAddr)
+            .getFeeSettingsBytes()
+            .bytesToFeeSettings();
+
 
         auctionSettings.startedTimestamp = block.timestamp;
         auctionInfo.delaySeconds = delaySeconds;

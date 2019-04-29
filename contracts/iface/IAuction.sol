@@ -18,10 +18,10 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
-//import "./IAuctionEvents.sol";
+import "./IAuctionEvents.sol";
 import "./IParticipationEvents.sol";
 
-contract IAuction is IAuctionData {
+contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents{
     struct Participation {
         uint    index;             // start from 0
         address user;

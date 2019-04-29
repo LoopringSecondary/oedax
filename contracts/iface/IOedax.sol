@@ -21,7 +21,7 @@ import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
 import "./IOedaxEvents.sol";
 
-contract IOedax is IAuctionData{
+contract IOedax is IAuctionData, IOedaxEvents, IAuctionEvents{
 
     function emitEvent(uint status)
         external;

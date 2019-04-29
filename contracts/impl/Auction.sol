@@ -26,34 +26,6 @@ interface IOedax {
         external;
 }
 
-contract IAuctionEvents {
-
-    event AuctionOpened (
-        uint256 openTime
-    );
-
-    event AuctionConstrained(
-        uint256 totalAskAmount,
-        uint256 totalBidAmount,
-        uint256 priceScale,
-        uint256 actualPrice,
-        uint256 constrainedTime
-    );
-
-    event AuctionClosed(
-        uint256 totalAskAmount,
-        uint256 totalBidAmount,
-        uint256 priceScale,
-        uint256 closePrice,
-        uint256 closeTime,
-        bool    canSettle
-    );
-
-    event AuctionSettled (
-        uint256 settleTime
-    );
-}
-
 contract ICurve {
     function calcEstimatedTTL(
         uint cid,
@@ -152,9 +124,14 @@ interface ITreasury {
         returns (bool);
 }
 
-contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
+contract Auction is IAuction {
 
-    using MathUint for uint;
+    using MathUint   for uint;
+    using DataHelper for IAuctionData.AuctionInfo;
+    using DataHelper for IAuctionData.AuctionSettings;
+    using DataHelper for IAuctionData.AuctionState;
+    using DataHelper for IAuctionData.FeeSettings;
+    using DataHelper for IAuctionData.TokenInfo;
 
     mapping(address => uint[]) private participationIndex;  // user address => index of Participation[]
 
@@ -691,7 +668,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         view
         returns (bytes memory)
     {
-        return auctionSettingsToBytes(getAuctionSettings());
+        return getAuctionSettings().auctionSettingsToBytes();
     }
 
     function getAuctionStateBytes()
@@ -699,7 +676,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         view
         returns (bytes memory)
     {
-        return auctionStateToBytes(auctionState);
+        return auctionState.auctionStateToBytes();
     }
 
     function getAuctionBytes()
@@ -707,7 +684,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         view
         returns (bytes memory)
     {
-        return auctionInfoToBytes(auctionInfo);
+        return auctionInfo.auctionInfoToBytes();
     }
 
     function getTokenInfoBytes()
@@ -715,7 +692,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         view
         returns (bytes memory)
     {
-        return tokenInfoToBytes(tokenInfo);
+        return tokenInfo.tokenInfoToBytes();
     }
 
     function getFeeSettingsBytes()
@@ -723,7 +700,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         view
         returns (bytes memory)
     {
-        return feeSettingsToBytes(feeSettings);
+        return feeSettings.feeSettingsToBytes();
     }
 
     function calcAskPrice(uint t)

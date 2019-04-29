@@ -21,7 +21,7 @@ import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
 import "./BytesUtil.sol";
 
-contract DataHelper {
+library DataHelper {
 
     using BytesUtil for bytes;
 
