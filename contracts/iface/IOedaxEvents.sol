@@ -21,6 +21,9 @@ pragma experimental ABIEncoderV2;
 ///@dev events to trigger in Oedax contract.
 
 contract IOedaxEvents {
+
+
+
     event FeeSettingsUpdated (
         address indexed recepient,
         uint            creationFeeEth,

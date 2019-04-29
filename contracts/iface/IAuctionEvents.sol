@@ -38,14 +38,10 @@ contract IAuctionEvents {
     );
 
     event AuctionOpened (
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
         uint256         openTime
     );
 
     event AuctionConstrained(
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
         uint256         totalAskAmount,
         uint256         totalBidAmount,
         uint256         priceScale,
@@ -54,8 +50,6 @@ contract IAuctionEvents {
     );
 
     event AuctionClosed(
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
         uint256         totalAskAmount,
         uint256         totalBidAmount,
         uint256         priceScale,
@@ -65,8 +59,86 @@ contract IAuctionEvents {
     );
 
     event AuctionSettled (
-        uint256 indexed aucitionId,
-        address indexed aucitionAddress,
         uint256         settleTime
     );
+
+    event Deposited (
+        address indexed user,
+        bool            isAsk,
+        uint            amount,
+        uint            totalAskAmount,
+        uint            totalBidAmount,
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            priceScale,
+        uint            actualPrice,
+        uint            timestamp
+    );
+
+    event Withdrawn (
+        address indexed user,
+        bool            isAsk,
+        uint            amount,
+        uint            totalAskAmount,
+        uint            totalBidAmount,
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            priceScale,
+        uint            actualPrice,
+        uint            timestamp
+    );
+
+    event QueuesUpdated (
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            timestamp
+    );
+
+    // event AuctionCreated(
+    //     // REVIEW? add this `factory` address.
+    //     // address         factory,
+    //     address indexed creator,
+    //     uint256 indexed aucitionId,
+    //     address indexed aucitionAddress,
+    //     uint256         delaySeconds,
+    //     uint256         targetPrice,
+    //     uint256         priceScale,
+    //     uint256         scaleFactor,
+    //     uint256         shapeFactor,
+    //     uint256         durationSeconds,
+    //     bool            isWithdrawalAllowed
+    // );
+
+    // event AuctionOpened (
+    //     uint256 indexed aucitionId,
+    //     address indexed aucitionAddress,
+    //     uint256         openTime
+    // );
+
+    // event AuctionConstrained(
+    //     uint256 indexed aucitionId,
+    //     address indexed aucitionAddress,
+    //     uint256         totalAskAmount,
+    //     uint256         totalBidAmount,
+    //     uint256         priceScale,
+    //     uint256         actualPrice,
+    //     uint256         constrainedTime
+    // );
+
+    // event AuctionClosed(
+    //     uint256 indexed aucitionId,
+    //     address indexed aucitionAddress,
+    //     uint256         totalAskAmount,
+    //     uint256         totalBidAmount,
+    //     uint256         priceScale,
+    //     uint256         closePrice,
+    //     uint256         closeTime,
+    //     bool            canSettle
+    // );
+
+    // event AuctionSettled (
+    //     uint256 indexed aucitionId,
+    //     address indexed aucitionAddress,
+    //     uint256         settleTime
+    // );
 }

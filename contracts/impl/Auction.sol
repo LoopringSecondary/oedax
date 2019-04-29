@@ -18,142 +18,14 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "../iface/IAuction.sol";
+import "../iface/IOedax.sol";
+import "../iface/ICurve.sol";
+import "../iface/ITreasury.sol";
 import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 
-interface IOedax {
-    function emitEvent(uint status)
-        external;
-}
 
-contract IAuctionEvents {
-
-    // REVIEW? 下面这些event哪些field是需要index的？
-    event AuctionOpened (
-        uint256         openTime
-    );
-
-    event AuctionConstrained(
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         actualPrice,
-        uint256         constrainedTime
-    );
-
-    event AuctionClosed(
-        uint256         totalAskAmount,
-        uint256         totalBidAmount,
-        uint256         priceScale,
-        uint256         closePrice,
-        uint256         closeTime,
-        bool            canSettle
-    );
-
-    event AuctionSettled (
-        uint256         settleTime
-    );
-}
-
-contract ICurve {
-    function calcEstimatedTTL(
-        uint cid,
-        uint t1,
-        uint t2
-        )
-        public
-        view
-        returns (
-            uint /* ttlSeconds */
-        );
-
-    function calcAskPrice(
-        uint cid,
-        uint t
-        )
-        public
-        view
-        returns (uint);
-
-    function calcInvAskPrice(
-        uint cid,
-        uint p
-        )
-        public
-        view
-        returns (
-            bool,
-            uint
-        );
-
-    function calcBidPrice(
-        uint cid,
-        uint t
-        )
-        public
-        view
-        returns (uint);
-
-    function calcInvBidPrice(
-        uint cid,
-        uint p
-        )
-        public
-        view
-        returns (
-            bool,
-            uint
-        );
-}
-
-interface ITreasury {
-
-    function auctionDeposit(
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function auctionWithdraw(
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function sendFee(
-        address recepient,
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function exchangeTokens(
-        address recepient,
-        address user,
-        address tokenA,
-        address tokenB,
-        uint    amountA,
-        uint    amountB
-        )
-        external
-        returns (bool);
-
-    function sendFeeAll(
-        address recepient,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-}
-
-contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
+contract Auction is IAuction, DataHelper {
 
     using MathUint for uint;
 
@@ -1448,7 +1320,6 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
     // withdrawalPenalty - 用户withdraw时收取
     function triggerSettle()
         public
-        returns (bool success)
     {
 
         require(
@@ -1462,7 +1333,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         len = askQueue.length;
         while(len > 0) {
             q = askQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.askToken,
                 q.amount
@@ -1475,7 +1346,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         len = bidQueue.length;
         while(len > 0) {
             q = bidQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.bidToken,
                 q.amount

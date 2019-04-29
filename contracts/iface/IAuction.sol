@@ -18,10 +18,9 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
-//import "./IAuctionEvents.sol";
-import "./IParticipationEvents.sol";
+import "./IAuctionEvents.sol";
 
-contract IAuction is IAuctionData {
+contract IAuction is IAuctionData, IAuctionEvents {
     struct Participation {
         uint    index;             // start from 0
         address user;
@@ -285,8 +284,7 @@ contract IAuction is IAuctionData {
 
     // Try to settle the auction.
     function triggerSettle()
-        external
-        returns (bool success);
+        external;
 
     /// @dev Get participations from a given address.
     function getUserParticipations(address user)

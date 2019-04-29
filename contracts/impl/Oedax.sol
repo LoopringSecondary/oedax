@@ -22,29 +22,13 @@ import "../lib/ERC20.sol";
 import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 import "../iface/IOedax.sol";
+import "../iface/ICurve.sol";
 import "../iface/ITreasury.sol";
 import "../iface/IAuctionFactory.sol";
 import "../iface/IAuction.sol";
 import "../iface/ICurveData.sol";
 
-
-// REVIEW? why define another contract called ICurve?
-interface ICurve {
-    function getCurveBytes(uint cid)
-        external
-        view
-        returns (bytes memory);
-
-    function cloneCurve(
-        uint cid,
-        uint T,
-        uint P
-        )
-        external
-        returns (uint curveId);
-}
-
-contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
+contract Oedax is IOedax, DataHelper, Ownable {
 
     using MathUint for uint;
 
@@ -146,46 +130,46 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             );
         }
 
-        if (events == 2) {
-            emit AuctionOpened (
-                auctionSettings.auctionId,
-                msg.sender,
-                block.timestamp
-            );
-        }
+        // if (events == 2) {
+        //     emit AuctionOpened (
+        //         auctionSettings.auctionId,
+        //         msg.sender,
+        //         block.timestamp
+        //     );
+        // }
 
-        if (events == 3) {
-            emit AuctionConstrained(
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp
-            );
-        }
+        // if (events == 3) {
+        //     emit AuctionConstrained(
+        //         auctionSettings.auctionId,
+        //         msg.sender,
+        //         auctionState.totalAskAmount,
+        //         auctionState.totalBidAmount,
+        //         tokenInfo.priceScale,
+        //         auctionState.actualPrice,
+        //         block.timestamp
+        //     );
+        // }
 
-        if (events == 4) {
-            emit AuctionClosed(
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp,
-                true
-            );
-        }
+        // if (events == 4) {
+        //     emit AuctionClosed(
+        //         auctionSettings.auctionId,
+        //         msg.sender,
+        //         auctionState.totalAskAmount,
+        //         auctionState.totalBidAmount,
+        //         tokenInfo.priceScale,
+        //         auctionState.actualPrice,
+        //         block.timestamp,
+        //         true
+        //     );
+        // }
 
-        if (events == 5) {
-            emit AuctionSettled (
-                auctionSettings.auctionId,
-                msg.sender,
-                block.timestamp
-            );
-        }
+        // if (events == 5) {
+        //     emit AuctionSettled (
+        //         auctionSettings.auctionId,
+        //         msg.sender,
+        //         block.timestamp
+        //     );
+        // }
     }
 
     // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
