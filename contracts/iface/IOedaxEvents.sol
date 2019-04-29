@@ -37,6 +37,10 @@ contract IOedaxEvents {
         bool            isWithdrawalAllowed
     );
 
+    event AuctionFactoryChanged(
+        address         factory
+    );
+
     event FeeSettingsUpdated (
         address indexed recepient,
         uint            creationFeeEth,

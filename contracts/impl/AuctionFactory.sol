@@ -76,9 +76,9 @@ contract AuctionFactory is Ownable {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bFeeS.bytesToFeeSettings(),
-            bTokenInfo.bytesToTokenInfo(),
-            bAuctionInfo.bytesToAuctionInfo(),
+            bFeeS.toFeeSettings(),
+            bTokenInfo.toTokenInfo(),
+            bAuctionInfo.toAuctionInfo(),
             id,
             creator
         );

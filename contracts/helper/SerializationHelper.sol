@@ -26,7 +26,7 @@ library SerializationHelper {
 
     using BytesHelper for bytes;
 
-    function curveParamsToBytes(
+    function toBytes(
         ICurveData.CurveParams memory curveParams
         )
         internal
@@ -49,7 +49,7 @@ library SerializationHelper {
         );
     }
 
-    function auctionInfoToBytes(
+    function toBytes(
         IAuctionData.AuctionInfo memory auctionInfo
         )
         internal
@@ -69,7 +69,7 @@ library SerializationHelper {
         );
     }
 
-    function feeSettingsToBytes(
+    function toBytes(
         IAuctionData.FeeSettings memory feeSettings
         )
         internal
@@ -86,7 +86,7 @@ library SerializationHelper {
         );
     }
 
-    function tokenInfoToBytes(
+    function toBytes(
         IAuctionData.TokenInfo memory tokenInfo
         )
         internal
@@ -102,7 +102,7 @@ library SerializationHelper {
         );
     }
 
-    function auctionStateToBytes(
+    function toBytes(
         IAuctionData.AuctionState memory auctionState
         )
         internal
@@ -125,7 +125,7 @@ library SerializationHelper {
         );
     }
 
-    function auctionSettingsToBytes(
+    function toBytes(
         IAuctionData.AuctionSettings memory auctionSettings
         )
         internal
@@ -140,7 +140,7 @@ library SerializationHelper {
         );
     }
 
-    function bytesToAuctionInfo(bytes memory b)
+    function toAuctionInfo(bytes memory b)
         internal
         pure
         returns (
@@ -160,7 +160,7 @@ library SerializationHelper {
         auctionInfo.isTakerFeeDisabled = b.getBool(226);
     }
 
-    function bytesToFeeSettings(bytes memory b)
+    function toFeeSettings(bytes memory b)
         internal
         pure
         returns (
@@ -177,7 +177,7 @@ library SerializationHelper {
         feeSettings.withdrawalPenaltyBips = b.getUint256(180);
     }
 
-    function bytesToTokenInfo(bytes memory b)
+    function toTokenInfo(bytes memory b)
         internal
         pure
         returns (
@@ -193,7 +193,7 @@ library SerializationHelper {
         tokenInfo.priceScale = b.getUint256(136);
     }
 
-    function bytesToAuctionState(bytes memory b)
+    function toAuctionState(bytes memory b)
         internal
         pure
         returns (
@@ -216,7 +216,7 @@ library SerializationHelper {
         auctionState.bidWithdrawalLimit = b.getUint256(384);
     }
 
-    function bytesToAuctionSettings(bytes memory b)
+    function toAuctionSettings(bytes memory b)
         internal
         pure
         returns (
@@ -230,7 +230,7 @@ library SerializationHelper {
         auctionSettings.startedTimestamp = b.getUint256(116);
     }
 
-    function bytesToCurveParams(bytes memory b)
+    function toCurveParams(bytes memory b)
         internal
         pure
         returns (

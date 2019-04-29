@@ -182,7 +182,7 @@ contract Curve is ICurve {
         CurveParams memory cP;
         cP = curveParams[cid - 1];
         bytes memory bC;
-        bC = cP.curveParamsToBytes();
+        bC = cP.toBytes();
         return bC;
     }
 

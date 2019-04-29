@@ -43,7 +43,7 @@ contract Oedax is IOedax, Ownable {
     ITreasury       public treasury;
     ICurve          public curve;
     FeeSettings     public feeSettings;
-    IAuctionFactory public auctionFactory;
+    IAuctionFactory public factory;
 
     // All fee settings will only apply to future auctions, not existing auctions.
     //
@@ -60,14 +60,14 @@ contract Oedax is IOedax, Ownable {
     constructor(
         address _treasury,
         address _curve,
-        address _auctionFactory,
+        address _factory,
         address _recepient
         )
         public
     {
         treasury = ITreasury(_treasury);
         curve = ICurve(_curve);
-        auctionFactory = IAuctionFactory(_auctionFactory);
+        factory = IAuctionFactory(_factory);
         feeSettings.recepient = _recepient;
 
         feeSettings.creationFeeEth = 0;
@@ -99,19 +99,19 @@ contract Oedax is IOedax, Ownable {
 
         AuctionSettings memory auctionSettings = IAuction(auctionAddr)
             .getAuctionSettingsBytes()
-            .bytesToAuctionSettings();
+            .toAuctionSettings();
 
         AuctionInfo memory auctionInfo = IAuction(auctionAddr)
             .getAuctionBytes()
-            .bytesToAuctionInfo();
+            .toAuctionInfo();
 
         AuctionState memory auctionState = IAuction(auctionAddr)
             .getAuctionStateBytes()
-            .bytesToAuctionState();
+            .toAuctionState();
 
         TokenInfo memory tokenInfo = IAuction(auctionAddr)
             .getTokenInfoBytes()
-            .bytesToTokenInfo();
+            .toTokenInfo();
 
         emit AuctionCreated(
             auctionSettings.creator,
@@ -127,8 +127,6 @@ contract Oedax is IOedax, Ownable {
         );
     }
 
-    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
-    // 这个规则也适用于其他所有文件。
     function setAuctionFactory(
         address addr
         )
@@ -136,7 +134,9 @@ contract Oedax is IOedax, Ownable {
         onlyOwner
     {
         require(addr != address(0x0), "zero address");
-        auctionFactory = IAuctionFactory(addr);
+        require(addr != address(factory), "same address");
+        factory = IAuctionFactory(addr);
+        emit AuctionFactoryChanged(addr);
     }
 
     // Initiate an auction
@@ -155,14 +155,14 @@ contract Oedax is IOedax, Ownable {
         )
     {
         auctionId = treasury.getNextAuctionId();
-        auctionAddr = auctionFactory.createAuction(
+        auctionAddr = factory.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
             initialBidAmount,
-            feeS.feeSettingsToBytes(),
-            tokenInfo.tokenInfoToBytes(),
-            auctionInfo.auctionInfoToBytes(),
+            feeS.toBytes(),
+            tokenInfo.toBytes(),
+            auctionInfo.toBytes(),
             auctionId,
             msg.sender
         );
@@ -216,7 +216,7 @@ contract Oedax is IOedax, Ownable {
 
         ICurveData.CurveParams memory cp;
 
-        cp = curve.getCurveBytes(curveId).bytesToCurveParams();
+        cp = curve.getCurveBytes(curveId).toCurveParams();
 
         require(
             cp.T == info.T &&
@@ -282,11 +282,11 @@ contract Oedax is IOedax, Ownable {
 
         auctionSettings = IAuction(auctionAddr)
             .getAuctionSettingsBytes()
-            .bytesToAuctionSettings();
+            .toAuctionSettings();
 
         auctionState = IAuction(auctionAddr)
             .getAuctionStateBytes()
-            .bytesToAuctionState();
+            .toAuctionState();
     }
 
     function getAuctions(
@@ -421,19 +421,19 @@ contract Oedax is IOedax, Ownable {
 
         AuctionSettings memory auctionSettings = IAuction(auctionAddr)
             .getAuctionSettingsBytes()
-            .bytesToAuctionSettings();
+            .toAuctionSettings();
 
         AuctionInfo memory auctionInfo = IAuction(auctionAddr)
             .getAuctionBytes()
-            .bytesToAuctionInfo();
+            .toAuctionInfo();
 
         TokenInfo memory tokenInfo = IAuction(auctionAddr)
             .getTokenInfoBytes()
-            .bytesToTokenInfo();
+            .toTokenInfo();
 
         FeeSettings memory _feeSettings = IAuction(auctionAddr)
             .getFeeSettingsBytes()
-            .bytesToFeeSettings();
+            .toFeeSettings();
 
 
         auctionSettings.startedTimestamp = block.timestamp;

@@ -513,7 +513,7 @@ contract Auction is IAuction {
         view
         returns (bytes memory)
     {
-        return getAuctionSettings().auctionSettingsToBytes();
+        return getAuctionSettings().toBytes();
     }
 
     function getAuctionStateBytes()
@@ -521,7 +521,7 @@ contract Auction is IAuction {
         view
         returns (bytes memory)
     {
-        return auctionState.auctionStateToBytes();
+        return auctionState.toBytes();
     }
 
     function getAuctionBytes()
@@ -529,7 +529,7 @@ contract Auction is IAuction {
         view
         returns (bytes memory)
     {
-        return auctionInfo.auctionInfoToBytes();
+        return auctionInfo.toBytes();
     }
 
     function getTokenInfoBytes()
@@ -537,7 +537,7 @@ contract Auction is IAuction {
         view
         returns (bytes memory)
     {
-        return tokenInfo.tokenInfoToBytes();
+        return tokenInfo.toBytes();
     }
 
     function getFeeSettingsBytes()
@@ -545,7 +545,7 @@ contract Auction is IAuction {
         view
         returns (bytes memory)
     {
-        return feeSettings.feeSettingsToBytes();
+        return feeSettings.toBytes();
     }
 
     function calcAskPrice(uint t)
