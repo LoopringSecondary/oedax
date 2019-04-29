@@ -87,7 +87,6 @@ contract Treasury is ITreasury, Ownable {
 
     // 把两个Token的锁仓全部换成新的amount
     function exchangeTokens(
-        address recepient,
         address user,
         address tokenA,
         address tokenB,

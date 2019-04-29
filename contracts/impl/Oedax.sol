@@ -394,7 +394,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         external
         view
         returns (
-            uint[] memory auctionIds
+            uint[] memory
         )
     {
         // REVIEW? 这个代码可以极大简化，参考上面的getAuctions方法的实现。无需循环两次。 -- 这里返回数组的长度在一遍循环里无法确认，此方法需要测试
@@ -592,41 +592,4 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         withdrawalPenaltyBips = feeSettings.withdrawalPenaltyBips;
     }
 
-    // no need to used the following functions
-    // if all curves are stored in a contract
-    // register a curve sub-contract.
-    // The first curve should have id 1, not 0.
-    function registerCurve(
-        address ICurve
-        )
-        external
-        returns (
-            uint /* curveId */
-        )
-    {
-        revert();  // REVIEW? if we do not support these methods, please delete them
-    }
-
-    // unregister a curve sub-contract
-    function unregisterCurve(
-        uint curveId
-        )
-        external
-        returns (
-            address /* curve */
-        )
-    {
-        revert();  // REVIEW? if we do not support these methods, please delete them
-    }
-
-    function getCurves(
-        )
-        external
-        view
-        returns (
-            address[] memory /* curves */
-        )
-    {
-        revert();  // REVIEW? if we do not support these methods, please delete them
-    }
 }

@@ -134,7 +134,6 @@ interface ITreasury {
         returns (bool);
 
     function exchangeTokens(
-        address recepient,
         address user,
         address tokenA,
         address tokenB,
@@ -1439,7 +1438,6 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         isSettled[user] = true;
 
         treasury.exchangeTokens(
-            feeSettings.recepient,
             user,
             tokenInfo.askToken,
             tokenInfo.bidToken,

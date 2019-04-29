@@ -142,28 +142,4 @@ contract IOedax is IAuctionData{
             uint    takerBips,
             uint    withdrawalPenaltyBips
         );
-
-    // 目前采用曲线合约中存储参数的形式，曲线可以命名
-    // 无需单独生成合约
-    // register a curve sub-contract.
-    // The first curve should have id 1, not 0.
-    function registerCurve(address ICurve)
-        external
-        returns (
-            uint /* curveId */
-        );
-
-    // unregister a curve sub-contract
-    function unregisterCurve(uint curveId)
-        external
-        returns (
-            address /* curve */
-        );
-
-    function getCurves()
-        external
-        view
-        returns (
-            address[] memory /* curves */
-        );
 }
