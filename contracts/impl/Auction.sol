@@ -17,114 +17,17 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../iface/IAuction.sol";
-import "../lib/MathUint.sol";
 import "../helper/DataHelper.sol";
 
-interface IOedax {
-    function emitEvent(uint status)
-        external;
-}
+import "../iface/IAuction.sol";
+import "../iface/ICurve.sol";
+import "../iface/IOedax.sol";
+import "../iface/ITreasury.sol";
 
-contract ICurve {
-    function calcEstimatedTTL(
-        uint cid,
-        uint t1,
-        uint t2
-        )
-        public
-        view
-        returns (
-            uint /* ttlSeconds */
-        );
-
-    function calcAskPrice(
-        uint cid,
-        uint t
-        )
-        public
-        view
-        returns (uint);
-
-    function calcInvAskPrice(
-        uint cid,
-        uint p
-        )
-        public
-        view
-        returns (
-            bool,
-            uint
-        );
-
-    function calcBidPrice(
-        uint cid,
-        uint t
-        )
-        public
-        view
-        returns (uint);
-
-    function calcInvBidPrice(
-        uint cid,
-        uint p
-        )
-        public
-        view
-        returns (
-            bool,
-            uint
-        );
-}
-
-interface ITreasury {
-
-    function auctionDeposit(
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function auctionWithdraw(
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function sendFee(
-        address recepient,
-        address user,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-
-    function exchangeTokens(
-        address recepient,
-        address user,
-        address tokenA,
-        address tokenB,
-        uint    amountA,
-        uint    amountB
-        )
-        external
-        returns (bool);
-
-    function sendFeeAll(
-        address recepient,
-        address token,
-        uint    amount
-        )
-        external
-        returns (bool);
-}
+import "../lib/MathUint.sol";
 
 contract Auction is IAuction {
+
 
     using MathUint   for uint;
     using DataHelper for IAuctionData.AuctionInfo;
@@ -204,47 +107,10 @@ contract Auction is IAuction {
 
         if (auctionInfo.delaySeconds == 0) {
             status = Status.OPEN;
-            emitEvent(2);
+            emit AuctionOpened(block.timestamp);
         }
     }
 
-    // REVIEW: 建议把这个方法去掉，直接在调用处去emit各个event。
-    function emitEvent(uint status)
-        internal
-    {
-        if (status == 2) {
-            emit AuctionOpened (
-                block.timestamp
-            );
-        }
-
-        if (status == 3) {
-            emit AuctionConstrained(
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp
-            );
-        }
-
-        if (status == 4) {
-            emit AuctionClosed(
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp,
-                true
-            );
-        }
-
-        if (status == 5) {
-            emit AuctionSettled (
-                block.timestamp
-            );
-        }
-    }
 
     function newParticipation(
         address token,
@@ -454,15 +320,7 @@ contract Auction is IAuction {
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            /*
-            emit AuctionOpened (
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
-                block.timestamp
-            );
-            */
-            emitEvent(2);
+            emit AuctionOpened (block.timestamp);
         }
 
         if (status == Status.OPEN &&
@@ -472,19 +330,13 @@ contract Auction is IAuction {
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            /*
             emit AuctionConstrained(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
                 auctionState.actualPrice,
                 block.timestamp
             );
-            */
-            emitEvent(3);
         }
 
         if (now == lastSynTime || status != Status.CONSTRAINED) {
@@ -498,11 +350,7 @@ contract Auction is IAuction {
 
         if (auctionState.askPrice <= auctionState.bidPrice) {
             status = Status.CLOSED;
-            /*
             emit AuctionClosed(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                address(this),
                 auctionState.totalAskAmount,
                 auctionState.totalBidAmount,
                 tokenInfo.priceScale,
@@ -510,8 +358,6 @@ contract Auction is IAuction {
                 block.timestamp,
                 true
             );
-            */
-            emitEvent(4);
         }
         updateLimits();
     }
@@ -795,7 +641,7 @@ contract Auction is IAuction {
             block.timestamp >= auctionSettings.startedTimestamp + auctionInfo.delaySeconds
         ) {
             status = Status.OPEN;
-            emitEvent(2);
+            emit AuctionOpened(block.timestamp);
         }
 
         require(
@@ -1252,7 +1098,13 @@ contract Auction is IAuction {
             status = Status.CONSTRAINED;
             constrainedTime = block.timestamp;
             auctionState.estimatedTTLSeconds = auctionInfo.T;
-            emitEvent(3);
+            emit AuctionConstrained(
+                auctionState.totalAskAmount,
+                auctionState.totalBidAmount,
+                tokenInfo.priceScale,
+                auctionState.actualPrice,
+                block.timestamp
+            );
         }
 
         //updateLimits();
@@ -1424,7 +1276,6 @@ contract Auction is IAuction {
     // withdrawalPenalty - 用户withdraw时收取
     function triggerSettle()
         public
-        returns (bool success)
     {
 
         require(
@@ -1438,7 +1289,7 @@ contract Auction is IAuction {
         len = askQueue.length;
         while(len > 0) {
             q = askQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.askToken,
                 q.amount
@@ -1451,7 +1302,7 @@ contract Auction is IAuction {
         len = bidQueue.length;
         while(len > 0) {
             q = bidQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.bidToken,
                 q.amount
@@ -1487,16 +1338,7 @@ contract Auction is IAuction {
         );
         // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
-
-        /*
-        emit AuctionSettled (
-            auctionSettings.creator,
-            auctionSettings.auctionId,
-            address(this),
-            block.timestamp
-        );
-        */
-        emitEvent(5);
+        emit AuctionSettled(block.timestamp);
     }
 
     /// @dev Get participations from a given address.

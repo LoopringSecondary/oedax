@@ -80,6 +80,13 @@ contract ITreasury {
         )
         external;
 
+    function sendFeeAll(
+        address recepient,
+        address token,
+        uint    amount
+        )
+        external;
+
     function initDeposit(
         address user,
         address auctionAddr,

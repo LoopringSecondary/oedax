@@ -19,9 +19,9 @@ pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
 import "./IAuctionEvents.sol";
-import "./IParticipationEvents.sol";
 
-contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents{
+contract IAuction is IAuctionData, IAuctionEvents {
+
     struct Participation {
         uint    index;             // start from 0
         address user;
@@ -285,8 +285,7 @@ contract IAuction is IAuctionData, IAuctionEvents, IParticipationEvents{
 
     // Try to settle the auction.
     function triggerSettle()
-        external
-        returns (bool success);
+        external;
 
     /// @dev Get participations from a given address.
     function getUserParticipations(address user)

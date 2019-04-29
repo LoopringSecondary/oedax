@@ -17,12 +17,13 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../iface/ITreasury.sol";
 import "../iface/IAuction.sol";
-import "../lib/Ownable.sol";
+import "../iface/ITreasury.sol";
+
+import "../lib/ERC20.sol";
 import "../lib/ERC20SafeTransfer.sol";
 import "../lib/MathUint.sol";
-import "../lib/ERC20.sol";
+import "../lib/Ownable.sol";
 
 contract Treasury is ITreasury, Ownable {
 

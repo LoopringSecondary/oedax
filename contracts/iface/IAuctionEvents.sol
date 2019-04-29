@@ -23,27 +23,59 @@ pragma experimental ABIEncoderV2;
 contract IAuctionEvents {
 
     event AuctionOpened (
-        uint256 openTime
+        uint256         openTime
     );
 
     event AuctionConstrained(
-        uint256 totalAskAmount,
-        uint256 totalBidAmount,
-        uint256 priceScale,
-        uint256 actualPrice,
-        uint256 constrainedTime
+        uint256         totalAskAmount,
+        uint256         totalBidAmount,
+        uint256         priceScale,
+        uint256         actualPrice,
+        uint256         constrainedTime
     );
 
     event AuctionClosed(
-        uint256 totalAskAmount,
-        uint256 totalBidAmount,
-        uint256 priceScale,
-        uint256 closePrice,
-        uint256 closeTime,
-        bool    canSettle
+        uint256         totalAskAmount,
+        uint256         totalBidAmount,
+        uint256         priceScale,
+        uint256         closePrice,
+        uint256         closeTime,
+        bool            canSettle
     );
 
     event AuctionSettled (
-        uint256 settleTime
+        uint256         settleTime
+    );
+
+    event Deposited (
+        address indexed user,
+        bool            isAsk,
+        uint            amount,
+        uint            totalAskAmount,
+        uint            totalBidAmount,
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            priceScale,
+        uint            actualPrice,
+        uint            timestamp
+    );
+
+    event Withdrawn (
+        address indexed user,
+        bool            isAsk,
+        uint            amount,
+        uint            totalAskAmount,
+        uint            totalBidAmount,
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            priceScale,
+        uint            actualPrice,
+        uint            timestamp
+    );
+
+    event QueuesUpdated (
+        uint            queuedAskAmount,
+        uint            queuedBidAmount,
+        uint            timestamp
     );
 }

@@ -19,6 +19,7 @@ pragma experimental ABIEncoderV2;
 
 import "../iface/IAuctionData.sol";
 import "../iface/ICurveData.sol";
+
 import "./BytesUtil.sol";
 
 library DataHelper {

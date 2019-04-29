@@ -17,9 +17,12 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../impl/Auction.sol";
-import "../iface/IAuctionFactory.sol";
 import "../helper/DataHelper.sol";
+
+import "../iface/IAuctionFactory.sol";
+
+import "../impl/Auction.sol";
+
 import "../lib/Ownable.sol";
 
 contract AuctionFactory is Ownable {
