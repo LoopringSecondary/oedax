@@ -113,16 +113,14 @@ interface ITreasury {
         address token,
         uint    amount
         )
-        external
-        returns (bool);
+        external;
 
     function auctionWithdraw(
         address user,
         address token,
         uint    amount
         )
-        external
-        returns (bool);
+        external;
 
     function sendFee(
         address recepient,
@@ -130,8 +128,7 @@ interface ITreasury {
         address token,
         uint    amount
         )
-        external
-        returns (bool);
+        external;
 
     function exchangeTokens(
         address user,
@@ -140,16 +137,14 @@ interface ITreasury {
         uint    amountA,
         uint    amountB
         )
-        external
-        returns (bool);
+        external;
 
     function sendFeeAll(
         address recepient,
         address token,
         uint    amount
         )
-        external
-        returns (bool);
+        external;
 }
 
 contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
@@ -847,6 +842,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         }
 
         newParticipation(token, int(amount));
+        
         // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
         treasury.auctionDeposit(
@@ -870,6 +866,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         // takerBips            - 所有人共享，拍卖结束时参与者分配
         // withdrawalPenaltyBips- 给recepient, withdraw时分配
 
+        /*
         uint fee;
 
         fee = amount*feeSettings.walletBipts/10000;
@@ -895,10 +892,12 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
             token,
             amount-fee
         );
+        */
 
-        updateAfterAction(action, amount - fee);
+        //updateAfterAction(action, amount - fee);
+        updateAfterAction(action, amount);
 
-        return amount - fee;
+        return amount;
     }
 
     function recordTaker(
@@ -1346,7 +1345,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
   
 
         if (penaltyBips > 0) {
-            realAmount = realAmount - amount*penaltyBips/10000;
+            realAmount = realAmount - toWithdraw*penaltyBips/10000;
             treasury.sendFee(
                 feeSettings.recepient,
                 msg.sender,
@@ -1363,19 +1362,23 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
 
 
       // 更新takerFee
-        uint toDecrease;
+        //uint toDecrease;
         uint action;
         if (token == tokenInfo.askToken) {
             action = 3;
+            /*
             toDecrease = takerRateA[msg.sender]*toWithdraw/askAmount[msg.sender];
             takerRateA[msg.sender] = takerRateA[msg.sender].sub(toDecrease);
             totalTakerRateA = totalTakerRateA.sub(toDecrease);
+            */
         }
         if (token == tokenInfo.bidToken) {
             action = 4;
+            /*
             toDecrease = takerRateB[msg.sender]*toWithdraw/bidAmount[msg.sender];
             takerRateB[msg.sender] = takerRateB[msg.sender].sub(toDecrease);
             totalTakerRateB = totalTakerRateB.sub(toDecrease);
+            */
         }
 
         updateAfterAction(action, toWithdraw);
@@ -1475,7 +1478,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         len = askQueue.length;
         while(len > 0) {
             q = askQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.askToken,
                 q.amount
@@ -1488,7 +1491,7 @@ contract Auction is IAuction, DataHelper, IAuctionEvents, IParticipationEvents {
         len = bidQueue.length;
         while(len > 0) {
             q = bidQueue[len - 1];
-            success = treasury.auctionWithdraw(
+            treasury.auctionWithdraw(
                 q.user,
                 tokenInfo.bidToken,
                 q.amount
