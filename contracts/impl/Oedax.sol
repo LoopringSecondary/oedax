@@ -425,7 +425,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             }
         }
 
-        uint[] memory auctionIds = new uint[](count);
+        uint[] memory auctionIds = new uint[](cnt);
         for (uint i = 0; i < cnt; i++){
             auctionIds[i] = index[i];
         }
