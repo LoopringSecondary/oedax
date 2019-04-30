@@ -48,7 +48,7 @@ library BytesHelper {
         assembly {
             x := mload(add(input, offset))
         }
-        return (x == 0);
+        return (x == 1);
     }
 
     function getUint256(
