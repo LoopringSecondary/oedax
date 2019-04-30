@@ -651,8 +651,7 @@ contract Auction is IAuction {
 
         uint realAmount = amount;
 
-        newParticipation(token, int(amount));
-
+        
         if (status == Status.CONSTRAINED)
         {
             // 同步参数到now
@@ -667,6 +666,8 @@ contract Auction is IAuction {
                 return 0;
             }
         }
+
+        newParticipation(token, int(amount));
 
         // 从treasury提取token，手续费暂时不收取，在最后结算时收取
         // 无论放在队列中，或者交易中，都视作锁仓realAmount，其余部分交手续费
@@ -1161,6 +1162,9 @@ contract Auction is IAuction {
             toWithdraw = bidAmount[msg.sender].min(auctionState.bidWithdrawalLimit);
         }
 
+        if (toWithdraw == 0){
+            return 0;
+        }
         // 成功取出的Token数量，录入新的参与记录
         newParticipation(token, -int(toWithdraw));
 
@@ -1315,25 +1319,25 @@ contract Auction is IAuction {
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.creationFeeEth
+            auctionState.totalAskAmount*feeSettings.creationFeeEth/10000
         );
 
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.creationFeeEth
+            auctionState.totalBidAmount*feeSettings.creationFeeEth/10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.protocolBips
+            auctionState.totalAskAmount*feeSettings.protocolBips/10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.protocolBips
+            auctionState.totalBidAmount*feeSettings.protocolBips/10000
         );
         // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
