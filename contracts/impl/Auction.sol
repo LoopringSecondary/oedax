@@ -377,7 +377,7 @@ contract Auction is IAuction {
         if (status == Status.STARTED ||
             status >= Status.CLOSED
         ) {
-            return (0,0,0,0);
+            return (0, 0, 0, 0);
         }
 
         if (status == Status.OPEN) {
@@ -397,7 +397,7 @@ contract Auction is IAuction {
         uint askPrice;
         uint bidPrice;
 
-        (askPrice, bidPrice, ,  ,  ) = simulatePrice(0);
+        (askPrice, bidPrice, , ,) = simulatePrice(0);
 
         uint ask = auctionState.totalAskAmount;
         uint bid = auctionState.totalBidAmount;
@@ -453,16 +453,22 @@ contract Auction is IAuction {
         amountA = askAmount[user];
         amountB = bidAmount[user];
         if (totalTakerRateA > 0) {
-            amountA = amountA - totalFeeBips() * amountA/10000 +
-                auctionState.totalAskAmount * feeSettings.takerBips/10000 *
-                takerRateA[user]/totalTakerRateA;
+            amountA = amountA.sub(totalFeeBips().mul(amountA) / 10000)
+                .add(
+                    auctionState.totalAskAmount
+                        .mul(feeSettings.takerBips)
+                        .mul(takerRateA[user]) / totalTakerRateA / 10000
+                );
 
             //amountA += totalTakerAmountA*takerRateA[user]/totalTakerRateA;
         }
         if (totalTakerRateB > 0) {
-            amountB = amountB - totalFeeBips() * amountB/10000 +
-                auctionState.totalBidAmount * feeSettings.takerBips/10000 *
-                takerRateB[user]/totalTakerRateB;
+            amountB = amountB.sub(totalFeeBips().mul(amountB) / 10000)
+                .add(
+                    auctionState.totalBidAmount
+                        .mul(feeSettings.takerBips)
+                        .mul(takerRateB[user]) / totalTakerRateB /10000
+                );
         }
     }
 
@@ -487,7 +493,7 @@ contract Auction is IAuction {
 
         uint time = block.timestamp.sub(constrainedTime);
 
-        rate = time*100/auctionInfo.T;
+        rate = time * 100 / auctionInfo.T;
 
         if (rate < 100) {
             rate = 100 - rate;
@@ -651,7 +657,7 @@ contract Auction is IAuction {
 
         uint realAmount = amount;
 
-        
+
         if (status == Status.CONSTRAINED)
         {
             // 同步参数到now
@@ -1319,25 +1325,29 @@ contract Auction is IAuction {
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.creationFeeEth/10000
+            auctionState.totalAskAmount
+                .mul(feeSettings.creationFeeEth) / 10000
         );
 
         treasury.sendFeeAll(
             auctionSettings.creator,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.creationFeeEth/10000
+            auctionState.totalBidAmount
+                .mul(feeSettings.creationFeeEth) / 10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.askToken,
-            auctionState.totalAskAmount*feeSettings.protocolBips/10000
+            auctionState.totalAskAmount
+                .mul(feeSettings.protocolBips) / 10000
         );
 
         treasury.sendFeeAll(
             feeSettings.recepient,
             tokenInfo.bidToken,
-            auctionState.totalBidAmount*feeSettings.protocolBips/10000
+            auctionState.totalBidAmount
+                .mul(feeSettings.protocolBips) / 10000
         );
         // 第三步： 更改拍卖状态并通知Oedax主合约
         status = Status.SETTLED;
