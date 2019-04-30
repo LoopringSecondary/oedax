@@ -17,41 +17,32 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../lib/Ownable.sol";
-import "../lib/ERC20.sol";
-import "../lib/MathUint.sol";
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
+
+import "../iface/IAuction.sol";
+import "../iface/IAuctionFactory.sol";
+import "../iface/ICurve.sol";
+import "../iface/ICurveData.sol";
 import "../iface/IOedax.sol";
 import "../iface/ITreasury.sol";
-import "../iface/IAuctionFactory.sol";
-import "../iface/IAuction.sol";
-import "../iface/ICurveData.sol";
 
+import "../lib/ERC20.sol";
+import "../lib/MathUint.sol";
+import "../lib/Ownable.sol";
 
-// REVIEW? why define another contract called ICurve?
-interface ICurve {
-    function getCurveBytes(uint cid)
-        external
-        view
-        returns (bytes memory);
+contract Oedax is IOedax, Ownable {
 
-    function cloneCurve(
-        uint cid,
-        uint T,
-        uint P
-        )
-        external
-        returns (uint curveId);
-}
-
-contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
-
-    using MathUint for uint;
+    using MathUint            for uint;
+    using SerializationHelper for bytes;
+    using SerializationHelper for IAuctionData.AuctionInfo;
+    using SerializationHelper for IAuctionData.AuctionState;
+    using SerializationHelper for IAuctionData.FeeSettings;
+    using SerializationHelper for IAuctionData.TokenInfo;
 
     ITreasury       public treasury;
     ICurve          public curve;
     FeeSettings     public feeSettings;
-    IAuctionFactory public auctionFactory;
+    IAuctionFactory public factory;
 
     // All fee settings will only apply to future auctions, not existing auctions.
     //
@@ -68,14 +59,14 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
     constructor(
         address _treasury,
         address _curve,
-        address _auctionFactory,
+        address _factory,
         address _recepient
         )
         public
     {
         treasury = ITreasury(_treasury);
         curve = ICurve(_curve);
-        auctionFactory = IAuctionFactory(_auctionFactory);
+        factory = IAuctionFactory(_factory);
         feeSettings.recepient = _recepient;
 
         feeSettings.creationFeeEth = 0;
@@ -95,20 +86,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         );
     }
 
-    // REVIEW？ 这个方法也应该是Internal的
-    function emitEvent(
-        uint events
-        )
-        external
-    {
-        emitEvent(events, msg.sender);
-    }
-
-    // REVIEW? 所有public和external method都应该放到文件最前面（排序最好和接口定义一致）；
-    // 所有内部的internal方法都应该放到文件最后。这个规则对其它所有文件也适应！！！
-
-    function emitEvent(
-        uint events,
+    function emitAuctionCreatedEvent(
         address auctionAddr
         )
         internal
@@ -118,78 +96,36 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             "auction does not exist"
         );
 
-        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
+        AuctionSettings memory auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .toAuctionSettings();
+
+        AuctionInfo memory auctionInfo = IAuction(auctionAddr)
+            .getAuctionBytes()
+            .toAuctionInfo();
+
+        AuctionState memory auctionState = IAuction(auctionAddr)
+            .getAuctionStateBytes()
+            .toAuctionState();
+
+        TokenInfo memory tokenInfo = IAuction(auctionAddr)
+            .getTokenInfoBytes()
+            .toTokenInfo();
+
+        emit AuctionCreated(
+            auctionSettings.creator,
+            auctionSettings.auctionId,
+            msg.sender,
+            auctionInfo.delaySeconds,
+            auctionInfo.P,
+            tokenInfo.priceScale,
+            auctionInfo.M,
+            auctionInfo.S,
+            auctionInfo.T,
+            auctionInfo.isWithdrawalAllowed
         );
-        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionBytes()
-        );
-        AuctionState memory auctionState = bytesToAuctionState(
-            IAuction(auctionAddr).getAuctionStateBytes()
-        );
-        TokenInfo memory tokenInfo = bytesToTokenInfo(
-            IAuction(auctionAddr).getTokenInfoBytes()
-        );
-
-        if (events == 1) {
-            emit AuctionCreated(
-                auctionSettings.creator,
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionInfo.delaySeconds,
-                auctionInfo.P,
-                tokenInfo.priceScale,
-                auctionInfo.M,
-                auctionInfo.S,
-                auctionInfo.T,
-                auctionInfo.isWithdrawalAllowed
-            );
-        }
-
-        if (events == 2) {
-            emit AuctionOpened (
-                auctionSettings.auctionId,
-                msg.sender,
-                block.timestamp
-            );
-        }
-
-        if (events == 3) {
-            emit AuctionConstrained(
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp
-            );
-        }
-
-        if (events == 4) {
-            emit AuctionClosed(
-                auctionSettings.auctionId,
-                msg.sender,
-                auctionState.totalAskAmount,
-                auctionState.totalBidAmount,
-                tokenInfo.priceScale,
-                auctionState.actualPrice,
-                block.timestamp,
-                true
-            );
-        }
-
-        if (events == 5) {
-            emit AuctionSettled (
-                auctionSettings.auctionId,
-                msg.sender,
-                block.timestamp
-            );
-        }
     }
 
-    // REVIEW: 所有public/external方法都应该对应于接口里面的定义，这个方法接口里面就没定义。
-    // 这个规则也适用于其他所有文件。
     function setAuctionFactory(
         address addr
         )
@@ -197,7 +133,9 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         onlyOwner
     {
         require(addr != address(0x0), "zero address");
-        auctionFactory = IAuctionFactory(addr);
+        require(addr != address(factory), "same address");
+        factory = IAuctionFactory(addr);
+        emit AuctionFactoryChanged(addr);
     }
 
     // Initiate an auction
@@ -216,23 +154,21 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
         )
     {
         auctionId = treasury.getNextAuctionId();
-        auctionAddr = auctionFactory.createAuction(
+        auctionAddr = factory.createAuction(
             address(curve),
             curveId,
             initialAskAmount,
             initialBidAmount,
-            feeSettingsToBytes(feeS),
-            tokenInfoToBytes(tokenInfo),
-            auctionInfoToBytes(auctionInfo),
+            feeS.toBytes(),
+            tokenInfo.toBytes(),
+            auctionInfo.toBytes(),
             auctionId,
             msg.sender
         );
 
         treasury.registerAuction(auctionAddr, msg.sender);
 
-        // REVIEW? 这个合约里面，只需要emit AuctionCreated事件，其它Auction事件放到IAuction里面。
-        // 因此可以极大简化这个方法。
-        emitEvent(1, auctionAddr);
+        emitAuctionCreatedEvent(auctionAddr);
 
         if (initialAskAmount > 0) {
             treasury.initDeposit(
@@ -279,9 +215,7 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
 
         ICurveData.CurveParams memory cp;
 
-        cp = bytesToCurveParams(
-            curve.getCurveBytes(curveId)
-        );
+        cp = curve.getCurveBytes(curveId).toCurveParams();
 
         require(
             cp.T == info.T &&
@@ -344,12 +278,14 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
     {
         address auctionAddr = treasury.auctionIdMap(id);
         lastSynTime = IAuction(auctionAddr).lastSynTime();
-        auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
-        );
-        auctionState = bytesToAuctionState(
-            IAuction(auctionAddr).getAuctionStateBytes()
-        );
+
+        auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .toAuctionSettings();
+
+        auctionState = IAuction(auctionAddr)
+            .getAuctionStateBytes()
+            .toAuctionState();
     }
 
     function getAuctions(
@@ -482,18 +418,22 @@ contract Oedax is IOedax, Ownable, DataHelper, IAuctionEvents, IOedaxEvents {
             "only closed auction can be cloned"
         );
 
-        AuctionSettings memory auctionSettings = bytesToAuctionSettings(
-            IAuction(auctionAddr).getAuctionSettingsBytes()
-        );
-        AuctionInfo memory auctionInfo = bytesToAuctionInfo(
-            IAuction(auctionAddr).getAuctionBytes()
-        );
-        TokenInfo memory tokenInfo = bytesToTokenInfo(
-            IAuction(auctionAddr).getTokenInfoBytes()
-        );
-        FeeSettings memory _feeSettings = bytesToFeeSettings(
-            IAuction(auctionAddr).getFeeSettingsBytes()
-        );
+        AuctionSettings memory auctionSettings = IAuction(auctionAddr)
+            .getAuctionSettingsBytes()
+            .toAuctionSettings();
+
+        AuctionInfo memory auctionInfo = IAuction(auctionAddr)
+            .getAuctionBytes()
+            .toAuctionInfo();
+
+        TokenInfo memory tokenInfo = IAuction(auctionAddr)
+            .getTokenInfoBytes()
+            .toTokenInfo();
+
+        FeeSettings memory _feeSettings = IAuction(auctionAddr)
+            .getFeeSettingsBytes()
+            .toFeeSettings();
+
 
         auctionSettings.startedTimestamp = block.timestamp;
         auctionInfo.delaySeconds = delaySeconds;

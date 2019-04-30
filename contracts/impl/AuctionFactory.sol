@@ -17,12 +17,15 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../impl/Auction.sol";
-import "../iface/IAuctionFactory.sol";
-import "../helper/DataHelper.sol";
-import "../lib/Ownable.sol";
+import "../helper/SerializationHelper.sol";
 
-contract AuctionFactory is Ownable, DataHelper {
+import "../iface/IAuctionFactory.sol";
+
+import "../impl/Auction.sol";
+
+contract AuctionFactory {
+
+    using SerializationHelper for bytes;
 
     address public oedax;
     address public treasury;
@@ -32,20 +35,17 @@ contract AuctionFactory is Ownable, DataHelper {
         _;
     }
 
-    constructor(address _treasury)
+    constructor(
+        address _treasury,
+        address _oedax
+        )
         public
     {
-        owner = msg.sender;
-        oedax = address(0x0);
-        treasury = _treasury;
-    }
+        require(_oedax != address(0x0), "zero address");
+        require(_treasury != address(0x0), "zero address");
 
-    function setOedax(address _oedax)
-        public
-        onlyOwner
-    {
-        require(oedax != address(0x0), "zero address");
         oedax = _oedax;
+        treasury = _treasury;
     }
 
     function createAuction(
@@ -53,9 +53,9 @@ contract AuctionFactory is Ownable, DataHelper {
         uint            curveId,
         uint            initialAskAmount,   // The initial amount of tokenA from the creator's account.
         uint            initialBidAmount,   // The initial amount of tokenB from the creator's account.
-        bytes  memory   bFeeS,
-        bytes  memory   bTokenInfo,
-        bytes  memory   bAuctionInfo,
+        bytes  memory   feeSettingsBytes,
+        bytes  memory   tokenInfoBytes,
+        bytes  memory   auctionInfoBytes,
         uint            id,
         address         creator
         )
@@ -71,9 +71,9 @@ contract AuctionFactory is Ownable, DataHelper {
             curveId,
             initialAskAmount,
             initialBidAmount,
-            bytesToFeeSettings(bFeeS),
-            bytesToTokenInfo(bTokenInfo),
-            bytesToAuctionInfo(bAuctionInfo),
+            feeSettingsBytes.toFeeSettings(),
+            tokenInfoBytes.toTokenInfo(),
+            auctionInfoBytes.toAuctionInfo(),
             id,
             creator
         );

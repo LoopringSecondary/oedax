@@ -18,12 +18,11 @@ pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
 import "./IAuctionData.sol";
-import "./IAuctionEvents.sol";
 import "./IOedaxEvents.sol";
 
-contract IOedax is IAuctionData{
+contract IOedax is IOedaxEvents, IAuctionData {
 
-    function emitEvent(uint status)
+    function setAuctionFactory(address addr)
         external;
 
     // Initiate an auction

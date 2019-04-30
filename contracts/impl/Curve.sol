@@ -17,16 +17,17 @@
 pragma solidity 0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "../lib/MathUint.sol";
-import "../lib/ERC20.sol";
-import "../helper/DataHelper.sol";
+import "../helper/SerializationHelper.sol";
+
 import "../iface/ICurve.sol";
 
-contract Curve is ICurve, DataHelper {
+import "../lib/ERC20.sol";
+import "../lib/MathUint.sol";
 
-    // REVIEW? 请使用MathUint(参考Auction)
+contract Curve is ICurve {
 
-    using MathUint for uint;
+    using MathUint            for uint;
+    using SerializationHelper for ICurveData.CurveParams;
 
     function nameCheck(string memory s)
         internal
@@ -122,13 +123,15 @@ contract Curve is ICurve, DataHelper {
 
         uint    askDecimals = ERC20(askToken).decimals();
         uint    bidDecimals = ERC20(bidToken).decimals();
-        uint    priceScale;
-        require(askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals, "decimals not correct");
+
+        require(
+            askDecimals <= bidDecimals && askDecimals + 18 > bidDecimals,
+            "decimals not correct"
+        );
 
         // TODO(daniel): figure out this
-        priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
+        uint priceScale = MathUint.pow(10, 18 + askDecimals - bidDecimals);
 
-        uint cid;
         CurveParams memory cP;
 
         cP.M = M;
@@ -148,7 +151,7 @@ contract Curve is ICurve, DataHelper {
 
         curveParams.push(cP);
 
-        cid = curveParams.length;
+        uint cid = curveParams.length;
 
         cidByName[name] = cid;
 
@@ -178,11 +181,7 @@ contract Curve is ICurve, DataHelper {
         returns (bytes memory)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        CurveParams memory cP;
-        cP = curveParams[cid - 1];
-        bytes memory bC;
-        bC = curveParamsToBytes(cP);
-        return bC;
+        return curveParams[cid - 1].toBytes();
     }
 
     /// @dev Get Curve info From curve name
@@ -211,13 +210,9 @@ contract Curve is ICurve, DataHelper {
         returns (uint)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        uint p;
-        CurveParams memory cP;
-        cP = curveParams[cid - 1];
+        CurveParams memory cP = curveParams[cid - 1];
         //p=P*(at+bT)/(ct+dT)
-        // p = mul(cP.P, add(mul(t, cP.a), mul(cP.T, cP.b))) / add(mul(t, cP.c), mul(cP.T, cP.d));
-        p = t.mul(cP.a).add(cP.T.mul(cP.b)).mul(cP.P) / t.mul(cP.c).add(cP.T.mul(cP.d));
-        return p;
+        return t.mul(cP.a).add(cP.T.mul(cP.b)).mul(cP.P) / t.mul(cP.c).add(cP.T.mul(cP.d));
     }
 
     /// @dev Calculate inverse ask/sell price on price curve
@@ -234,16 +229,13 @@ contract Curve is ICurve, DataHelper {
             uint)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        CurveParams memory cP;
-        cP = curveParams[cid - 1];
+        CurveParams memory cP = curveParams[cid - 1];
+
         if (p > cP.P * cP.M || p <= cP.P * cP.a / cP.c) {
             return (false, 0);
         }
 
-        uint t;
-        // t = mul(cP.T, sub(mul(cP.b, cP.P),mul(cP.d, p))) / sub(mul(cP.c, p), mul(cP.a, cP.P));
-        t = cP.b.mul(cP.P).sub(cP.d.mul(p)).mul(cP.T) / cP.c.mul(p).sub(cP.a.mul(cP.P));
-
+        uint t = cP.b.mul(cP.P).sub(cP.d.mul(p)).mul(cP.T) / cP.c.mul(p).sub(cP.a.mul(cP.P));
         return (true, t);
     }
 
@@ -256,14 +248,12 @@ contract Curve is ICurve, DataHelper {
         )
         public
         view
-        returns (uint p)
+        returns (uint)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        CurveParams memory cP;
-        cP = curveParams[cid - 1];
+        CurveParams memory cP = curveParams[cid - 1];
 
-        // p = mul(cP.P, add(mul(t, cP.c), mul(cP.T, cP.d))) / add(mul(t, cP.a), mul(cP.T, cP.b));
-        p = t.mul(cP.c).add(cP.T.mul(cP.d)).mul(cP.P) / t.mul(cP.a).add(cP.T.mul(cP.b));
+        return t.mul(cP.c).add(cP.T.mul(cP.d)).mul(cP.P) / t.mul(cP.a).add(cP.T.mul(cP.b));
     }
 
     /// @dev Calculate inverse bid/buy price on price curve
@@ -280,15 +270,13 @@ contract Curve is ICurve, DataHelper {
             uint)
     {
         require(cid > 0 && cid <= curveParams.length, "curve does not exist");
-        CurveParams memory cP;
-        cP = curveParams[cid - 1];
+        CurveParams memory cP = curveParams[cid - 1];
 
         if (p < cP.P / cP.M || p >= cP.P.mul(cP.c) / cP.a) {
             return (false, 0);
         }
-        uint t;
-        // t = mul(cP.T, sub(mul(cP.b, p), mul(cP.d, cP.P))) / sub(mul(cP.c, cP.P), mul(cP.a, p));
-        t = cP.b.mul(p).sub(cP.d.mul(cP.P)).mul(cP.T) / cP.c.mul(cP.P).sub(cP.a.mul(p));
+
+        uint t = cP.b.mul(p).sub(cP.d.mul(cP.P)).mul(cP.T) / cP.c.mul(cP.P).sub(cP.a.mul(p));
         return (true, t);
     }
 
@@ -303,9 +291,7 @@ contract Curve is ICurve, DataHelper {
             bool
         )
     {
-        uint p1 = calcAskPrice(cid, t1);
-        uint p2 = calcBidPrice(cid, t2);
-        return p1 <= p2;
+        return calcAskPrice(cid, t1) <= calcBidPrice(cid, t2);
     }
 
     function calcEstimatedTTL(
