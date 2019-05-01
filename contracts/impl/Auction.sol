@@ -496,24 +496,13 @@ contract Auction is IAuction {
         }
     }
 
-    function getAuctionSettings()
-        public
-        view
-        returns (
-            AuctionSettings memory
-        )
-    {
-        AuctionSettings memory aucSettings;
-        aucSettings = auctionSettings;
-        return aucSettings;
-    }
 
     function getAuctionSettingsBytes()
         public
         view
         returns (bytes memory)
     {
-        return getAuctionSettings().toBytes();
+        return auctionSettings.toBytes();
     }
 
     function getAuctionStateBytes()
@@ -1188,11 +1177,18 @@ contract Auction is IAuction {
         );
 
         uint action;
+        uint toDecrease;
         if (token == tokenInfo.askToken) {
+            toDecrease = takerRateA[msg.sender]*toWithdraw/askAmount[msg.sender];
+            takerRateA[msg.sender] = takerRateA[msg.sender].sub(toDecrease);
+            totalTakerRateA = totalTakerRateA.sub(toDecrease);
             action = 3;
         }
         if (token == tokenInfo.bidToken) {
             action = 4;
+            toDecrease = takerRateB[msg.sender]*toWithdraw/bidAmount[msg.sender];
+            takerRateB[msg.sender] = takerRateB[msg.sender].sub(toDecrease);
+            totalTakerRateB = totalTakerRateB.sub(toDecrease);
         }
 
         updateAfterAction(action, toWithdraw);
